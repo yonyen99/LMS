@@ -37,6 +37,27 @@
                             @endforelse
                         </div>
                     </div>
+
+                    <div class="mb-3 row">
+                        <label for="images" class="col-md-4 col-form-label text-md-end text-start"><strong>Images:</strong></label>
+                        <div class="col-md-6" style="line-height: 35px;">
+                            {{ $user->images }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="phone" class="col-md-4 col-form-label text-md-end text-start"><strong>Phone:</strong></label>
+                        <div class="col-md-6" style="line-height: 35px;">
+                            {{ $user->phone }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="is_active" class="col-md-4 col-form-label text-md-end text-start"><strong>Is Active:</strong></label>
+                        <div class="col-md-6" style="line-height: 35px;">
+                            {{ $user->is_active ? 'Yes' : 'No' }}
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
