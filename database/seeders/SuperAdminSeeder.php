@@ -31,11 +31,11 @@ class SuperAdminSeeder extends Seeder
         $admin->assignRole('Admin');
 
         // Creating Product Manager User
-        $productManager = User::create([
+        $departmentManager = User::create([
             'name' => 'Abdul Muqeet', 
             'email' => 'muqeet@allphptricks.com',
             'password' => Hash::make('muqeet1234')
         ]);
-        $productManager->assignRole('Product Manager');
+        $departmentManager->assignRole('Department Manager');
     }
 }
