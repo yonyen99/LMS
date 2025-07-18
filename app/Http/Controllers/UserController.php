@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Department;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
@@ -40,7 +42,8 @@ class UserController extends Controller
     public function create(): View
     {
         return view('users.create', [
-            'roles' => Role::pluck('name')->all()
+            'roles' => Role::pluck('name')->all(),
+            'departments' => Department::pluck('name', 'id')
         ]);
     }
 
@@ -49,8 +52,13 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request): RedirectResponse
     {
-        $input = $request->all();
+        $input = $request->validated(); 
         $input['password'] = Hash::make($request->password);
+
+        // Handle image upload
+        if ($request->hasFile('images')) {
+            $input['images'] = $request->file('images')->store('users', 'public');
+        }
 
         $user = User::create($input);
         $user->assignRole($request->roles);
@@ -84,7 +92,8 @@ class UserController extends Controller
         return view('users.edit', [
             'user' => $user,
             'roles' => Role::pluck('name')->all(),
-            'userRoles' => $user->roles->pluck('name')->all()
+            'userRoles' => $user->roles->pluck('name')->all(),
+            'departments' => Department::pluck('name', 'id')
         ]);
     }
 
@@ -93,16 +102,23 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $input = $request->all();
- 
+        $input = $request->validated(); // Changed from all() to validated()
+
         if(!empty($request->password)){
             $input['password'] = Hash::make($request->password);
         }else{
             $input = $request->except('password');
         }
-        
-        $user->update($input);
 
+        // Handle image upload
+        if ($request->hasFile('images')) {
+            if ($user->images && Storage::disk('public')->exists($user->images)) {
+                Storage::disk('public')->delete($user->images);
+            }
+            $input['images'] = $request->file('images')->store('users', 'public');
+        }
+
+        $user->update($input);
         $user->syncRoles($request->roles);
 
         return redirect()->back()
@@ -114,10 +130,14 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
-        // About if user is Super Admin or User ID belongs to Auth User
         if ($user->hasRole('Super Admin') || $user->id == auth()->user()->id)
         {
             abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
+        }
+
+        // Delete user image if exists
+        if ($user->images) {
+            Storage::disk('public')->delete($user->images);
         }
 
         $user->syncRoles([]);

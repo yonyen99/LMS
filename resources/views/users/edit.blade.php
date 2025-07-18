@@ -13,9 +13,9 @@
                 </div>
             </div>
             <div class="card-body">
-                <form action="{{ route('users.update', $user->id) }}" method="post">
+                <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    @method("PUT")
+                    @method('PUT')
 
                     <div class="mb-3 row">
                         <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
@@ -51,6 +51,59 @@
                         <label for="password_confirmation" class="col-md-4 col-form-label text-md-end text-start">Confirm Password</label>
                         <div class="col-md-6">
                           <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="images" class="col-md-4 col-form-label text-md-end text-start">Image</label>
+                        <div class="col-md-6">
+                            <input type="file" class="form-control @error('images') is-invalid @enderror" id="images" name="images">
+                            @error('images')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+
+                            @if ($user->images)
+                                <div class="mt-2">
+                                    <img src="{{ asset('storage/' . $user->images) }}" alt="Current Image" style="max-height: 150px;">
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="phone" class="col-md-4 col-form-label text-md-end text-start">Phone</label>
+                        <div class="col-md-6">
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ $user->phone }}">
+                            @if ($errors->has('phone'))
+                                <span class="text-danger">{{ $errors->first('phone') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="department_id" class="col-md-4 col-form-label text-md-end text-start">Department</label>
+                        <div class="col-md-6">
+                            <select class="form-select @error('department_id') is-invalid @enderror" id="department_id" name="department_id">
+                                <option value="">-- Select Department --</option>
+                                @foreach ($departments as $id => $name)
+                                    <option value="{{ $id }}" {{ old('department_id', $user->department_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                @endforeach
+                            </select>
+                            @error('department_id')
+                                <span class="text-danger">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3 row">
+                        <label for="is_active" class="col-md-4 col-form-label text-md-end text-start">Is Active</label>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" {{ $user->is_active ? 'checked' : '' }}>
+                            </div>
+                            @if ($errors->has('is_active'))
+                                <span class="text-danger">{{ $errors->first('is_active') }}</span>
+                            @endif
                         </div>
                     </div>
 
