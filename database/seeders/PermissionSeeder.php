@@ -26,10 +26,10 @@ class PermissionSeeder extends Seeder
          ];
  
           // Looping and Inserting Array's Permissions into Permission Table
-         foreach ($permissions as $permission) {
-            Permission::firstOrCreate(
-                ['name' => $permission, 'guard_name' => 'web']
-            );
+        foreach ($permissions as $permission) {
+                       Permission::firstOrCreate(
+                        ['name' => $permission, 'guard_name' => 'web']
+                );
         }
     }
 }
