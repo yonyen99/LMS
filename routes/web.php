@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\HistoryController;
 use Illuminate\Support\Facades\Auth;
 
 /*
@@ -32,3 +33,5 @@ Route::resources([
     'users' => UserController::class,
     'departments' => DepartmentController::class,
 ]);
+
+Route::get('/history', [HistoryController::class, 'index']);
