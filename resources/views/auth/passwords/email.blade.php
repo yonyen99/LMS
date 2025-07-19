@@ -1,61 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-md-8 col-lg-6">
-            <div class="card auth-card">
-                <div class="auth-header">
-                    <div class="auth-logo">
-                        <!-- Password reset icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#3f80ea" class="bi bi-shield-lock" viewBox="0 0 16 16">
-                            <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
-                            <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415z"/>
-                        </svg>
-                        <h3 class="mt-3 mb-2 text-center">{{ __('Reset Password') }}</h3>
-                        <p class="text-muted text-center">Enter your email to receive a reset link</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:600&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ asset('css/login.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/reset.css') }}">
+</head>
+<body>
+    <img class="wave" src="{{ asset('img/wave.png') }}" alt="Wave Background">
+    <div class="container">
+        <div class="img">
+            <img src="{{ asset('img/bg.svg') }}" alt="Background Image">
+        </div>
+        <div class="reset-content">
+            <form method="POST" action="{{ route('password.email') }}">
+                @csrf
+                <img src="{{ asset('img/log.png') }}" alt="User Avatar">
+                <h2 class="title">Reset Password</h2>
+                <p>Enter your email to receive a reset link</p>
+
+                @if (session('status'))
+                    <div class="alert-success" role="alert">
+                        <i class='bx bx-check-circle'></i>
+                        {{ session('status') }}
                     </div>
+                @endif
+
+                <div class="input-div @error('email') is-invalid @enderror">
+                    <div class="i">
+                        <i class='bx bx-envelope' style="font-size: 1.5rem;"></i>
+                    </div>
+                    <div class="div">
+                        <h5>{{ __('Email Address') }}</h5>
+                        <input type="email" class="input" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                    </div>
+                    @error('email')
+                        <span class="invalid-feedback" role="alert">
+                            <strong>{{ $message }}</strong>
+                        </span>
+                    @enderror
                 </div>
 
-                <div class="card-body px-5 py-4">
-                    @if (session('status'))
-                        <div class="alert alert-success text-center mb-4" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            {{ session('status') }}
-                        </div>
-                    @endif
+                <button type="submit" class="btn">{{ __('Send Password Reset Link') }}</button>
 
-                    <form method="POST" action="{{ route('password.email') }}">
-                        @csrf
-
-                        <div class="mb-4">
-                            <label for="email" class="form-label">{{ __('Email Address') }}</label>
-                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
-                                   name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
-                                   placeholder="Enter your email address">
-
-                            @error('email')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                {{ __('Send Password Reset Link') }}
-                            </button>
-                        </div>
-
-                        <div class="text-center mt-3">
-                            <a class="btn btn-link" href="{{ route('login') }}">
-                                {{ __('Back to Login') }}
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                <a href="{{ route('login') }}" class="back-to-login">{{ __('Back to Login') }}</a>
+            </form>
         </div>
     </div>
-</div>
+
+    <script>
+        const inputs = document.querySelectorAll(".input");
+
+        function addcl() {
+            let parent = this.parentNode.parentNode;
+            parent.classList.add("focus");
+        }
+
+        function remcl() {
+            let parent = this.parentNode.parentNode;
+            if (this.value == "") {
+                parent.classList.remove("focus");
+            }
+        }
+
+        inputs.forEach(input => {
+            input.addEventListener("focus", addcl);
+            input.addEventListener("blur", remcl);
+        });
+    </script>
+</body>
+</html>
 @endsection
