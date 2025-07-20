@@ -88,7 +88,7 @@
     {{-- Leave Requests Table --}}
     <table class="table table-bordered table-hover">
         <thead class="table-light">
-            <tr>
+            <tr class="text-center">
                 <th>ID</th>
                 <th>Start Date</th>
                  <th>End Date</th>
@@ -98,6 +98,7 @@
                 <th>Status</th>
                 <th>Requested</th>
                 <th>Last Change</th>
+                <th>Action</th>
             </tr>
         </thead>
         {{-- <tbody>

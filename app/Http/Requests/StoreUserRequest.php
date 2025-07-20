@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests;
+use Illuminate\Validation\Rule;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,7 +26,14 @@ class StoreUserRequest extends FormRequest
             'name' => 'required|string|max:250',
             'email' => 'required|string|email:rfc,dns|max:250|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required'
+            'roles' => 'required',
+            'images' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'phone' => 'nullable|string|max:20|unique:users,phone',
+            'is_active' => 'nullable|boolean',
+            'department_id' => [
+                'nullable',
+                'exists:departments,id',
+            ],
         ];
     }
 }

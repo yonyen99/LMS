@@ -17,9 +17,15 @@
                     {{ __('You are logged in!') }}
 
                     <p>This is your application dashboard.</p>
-                    <a class="btn btn-primary" href="{{ route('leave-requests.index') }}">
-                        @include('leaveRequest.leave_request')
-                    </a>
+                    @if(auth()->user()->hasRole('Employee') && 
+                        !auth()->user()->hasRole('Admin') && 
+                        !auth()->user()->hasRole('Super Admin') && 
+                        !auth()->user()->hasRole('Manager Department'))
+                        <a class="btn btn-primary" href="{{ route('leave-requests.index') }}">
+                            @include('leaveRequest.leave_request')
+                        </a>
+                    @endif
+
                     @canany(['create-role', 'edit-role', 'delete-role'])
                         <a class="btn btn-primary" href="{{ route('roles.index') }}">
                             <i class="bi bi-person-fill-gear"></i> Manage Roles</a>
