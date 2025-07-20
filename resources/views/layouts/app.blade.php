@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +13,9 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link rel="icon" href="{{ asset('img/logo.avif') }}" type="image/avif">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     <!-- Scripts -->
@@ -22,7 +26,7 @@
             background-color: #f8f9fa;
         }
 
-       
+
 
         .auth-card {
             border: 0;
@@ -76,120 +80,133 @@
         }
     </style>
 </head>
+
 <body class="bg-auth">
-<div id="app">
-    @unless(Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-    <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 text-light" style="background-color: #3097D1;">
+    <div id="app">
+        @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 text-light" style="background-color: #3097D1;">
+                <div class="container-fluid">
+                    <!-- Brand -->
+                    <a class="navbar-brand text-light fw-bold" href="/">
+                        NGO Forum
+                    </a>
 
-        <div class="container-fluid d-flex justify-content-between align-items-center">
+                    <!-- Toggler -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
 
-            <!-- Left: Logo + Navigation -->
-            <div class="d-flex align-items-center">
-                <a class="navbar-brand me-4 text-light fw-bold d-flex align-items-center" href="/">
-                    {{-- <img src="images/logo.png" alt="Logo" class="me-2"> --}}
-                    NGO Forum
-                </a>
+                    <!-- Collapsible Nav -->
+                    <div class="collapse navbar-collapse" id="mainNavbar">
+                        <!-- Left Side -->
+                        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                            @auth
+                                @canany(['create-role', 'edit-role', 'delete-role'])
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle text-light" href="#" id="permissionDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Permissions
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                            <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage User</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
+                                                    Department</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
 
-                <ul class="navbar-nav d-flex flex-row">
-    @auth
-        @canany(['create-role', 'edit-role', 'delete-role'])
-            <li class="nav-item dropdown">
-                <a class="nav-link text-light dropdown-toggle" href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Permission
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
-                    <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
-                    <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage User</a></li>
-                    <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage Department</a></li>
-                </ul>
-            </li>
-        @endcanany
+                                @canany(['create-user', 'edit-user', 'delete-user'])
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle text-light" href="#" id="requestDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Requested
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="requestDropdown">
+                                            <li><a class="dropdown-item" href="">User Requests</a></li>
+                                            <li><a class="dropdown-item" href="">Approved Users</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
 
-        @canany(['create-user', 'edit-user', 'delete-user'])
-            <li class="nav-item dropdown">
-                <a class="nav-link text-light dropdown-toggle" href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Request
-                </a>
-                <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                    <li><a class="dropdown-item" href="">User Requests</a></li>
-                    <li><a class="dropdown-item" href="">Approved Users</a></li>
-                </ul>
-            </li>
-        @endcanany
+                                @canany(['create-product', 'edit-product', 'delete-product'])
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle text-light" href="#" id="calendarDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Calendars
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                                            <li><a class="dropdown-item" href="">All Calendars</a></li>
+                                            <li><a class="dropdown-item" href="">Add Calendar</a></li>
+                                        </ul>
+                                    </li>
 
-        @canany(['create-product', 'edit-product', 'delete-product'])
-            <li class="nav-item dropdown">
-                <a class="nav-link text-light dropdown-toggle" href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Calendars
-                </a>
-                <ul class="dropdown-menu text-light" aria-labelledby="calendarDropdown">
-                    <li><a class="dropdown-item" href="">All Calendars</a></li>
-                    <li><a class="dropdown-item" href="">Add Calendar</a></li>
-                </ul>
-            </li>
+                                    <li class="nav-item">
+                                        <a href="#" class="btn btn-warning text-light ms-2">New Request</a>
+                                    </li>
+                                @endcanany
+                            @endauth
+                        </ul>
 
-            <!-- Button styled as a nav item -->
-            <li class="nav-item ms-3">
-                <a href="#" class="btn btn-warning text-light">New Request</a>
-            </li>
-        @endcanany
-    @endauth
-</ul>
+                        <!-- Right Side -->
+                        <ul class="navbar-nav ms-auto">
+                            @guest
+                                @if (Route::has('login'))
+                                    <li class="nav-item">
+                                        <a class="nav-link text-light" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    </li>
+                                @endif
+                            @else
+                                <li class="nav-item dropdown">
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle text-light d-flex align-items-center"
+                                        href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="false">
+                                        <i class="bi bi-person-circle me-2" style="font-size: 1.4rem;"></i>
+                                        {{ Auth::user()->name }}
+                                    </a>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                        <a href="#" class="dropdown-item">
+                                            <i class="bi bi-person-circle me-2"></i>
+                                            View Profile
+                                        </a>
+                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                            <i class="bi bi-box-arrow-right me-2"></i>
+                                            {{ __('Logout') }}
+                                        </a>
 
-            </div>
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                            class="d-none">
+                                            @csrf
+                                        </form>
+                                    </div>
+                                </li>
+                            @endguest
+                        </ul>
+                    </div>
+                </div>
+            </nav>
 
-            <!-- Right: User Profile -->
-<ul class="navbar-nav ms-auto">
-    @guest
-        @if (Route::has('login'))
-            <li class="nav-item">
-                <a class="nav-link text-light" href="{{ route('login') }}">{{ __('Login') }}</a>
-            </li>
-        @endif
-    @else
-        <li class="nav-item dropdown">
-            <a id="navbarDropdown" class="nav-link dropdown-toggle text-light d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="bi bi-person-circle me-2" style="font-size: 1.4rem;"></i>
-                {{ Auth::user()->name }}
-            </a>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                <a href="#" class="dropdown-item">
-                    <i class="bi bi-person-circle me-2"></i>
-                    View Profile
-                </a>
-                <a class="dropdown-item" href="{{ route('logout') }}"
-                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="bi bi-box-arrow-right me-2"></i>
-                    {{ __('Logout') }}
-                </a>
+        @endunless
 
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                    @csrf
-                </form>
-            </div>
-        </li>
-    @endguest
-</ul>
-        </div>
-    </nav>
-    @endunless
+        <main class="py-4">
+            <div class="container">
+                <div class="row justify-content-center mt-3">
+                    <div class="col-md-12">
+                        @if ($message = Session::get('success'))
+                            <div class="alert alert-success text-center" role="alert">
+                                {{ $message }}
+                            </div>
+                        @endif
 
-    <main class="py-4">
-        <div class="container">
-            <div class="row justify-content-center mt-3">
-                <div class="col-md-12">
-                    @if ($message = Session::get('success'))
-                        <div class="alert alert-success text-center" role="alert">
-                            {{ $message }}
-                        </div>
-                    @endif
-
-                    <h3 class="text-center mt-3 mb-3">Admin Dashboard</h3>
-                    @yield('content')
+                        {{-- <h3 class="text-center mt-3 mb-3">Admin Dashboard</h3> --}}
+                        @yield('content')
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
-</div>
+        </main>
+    </div>
 </body>
+
 </html>
