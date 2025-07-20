@@ -146,7 +146,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>;
                             <div class="row mt-4">
                                 <div class="col-md-12">
                                     <div class="card card-1 p-4  rounded-3">
