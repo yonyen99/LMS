@@ -80,6 +80,9 @@ class User extends Authenticatable
         return $this->belongsTo(Department::class);
     }
 
-
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
 
 }

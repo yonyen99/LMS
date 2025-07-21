@@ -22,4 +22,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
     }
+
+    protected $policies = [
+        \App\Models\LeaveRequest::class => \App\Policies\LeaveRequestPolicy::class,
+    ];
 }

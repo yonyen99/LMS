@@ -121,8 +121,8 @@
                                         <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
-                                                    Departments</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage Departments</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-types.index') }}">Manage Leave Types</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
@@ -158,7 +158,7 @@
 
                                 
                                     <li class="nav-item me-2">
-                                        <a href="#" class="btn btn-warning fw-semibold text-white rounded px-3 py-1" style="background: #F5811E">New Request</a>
+                                        <a href="{{ route('leave-requests.create') }}" class="btn btn-warning fw-semibold text-white rounded px-3 py-1" style="background: #F5811E">New Request</a>
                                     </li>
                             
                                 @endcanany
