@@ -44,7 +44,7 @@
                     <tr>
                         <th scope="col" width="60px">#</th>
                         <th scope="col">Name</th>
-                        <th scope="col">Description</th>
+                        <th scope="col-6">Description</th>
                         <th scope="col" width="100px">Actions</th>
                     </tr>
                 </thead>
@@ -62,28 +62,28 @@
                                         aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $department->id }}">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $department->id }}">
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('departments.show', $department->id) }}">
-                                            <i class="bi bi-eye me-2"></i> View
+                                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('departments.show', $department->id) }}">
+                                            <i class="bi bi-eye"></i> View
                                         </a>
                                     </li>
                                     @can('edit-department')
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('departments.edit', $department->id) }}">
-                                            <i class="bi bi-pencil me-2"></i> Edit
+                                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('departments.edit', $department->id) }}">
+                                            <i class="bi bi-pencil"></i> Edit
                                         </a>
                                     </li>
                                     @endcan
                                     @can('delete-department')
                                     <li>
-                                        <form action="{{ route('departments.destroy', $department->id) }}" method="POST">
+                                        <form id="delete-form-{{ $department->id }}" action="{{ route('departments.destroy', $department->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" 
-                                                    class="dropdown-item text-danger" 
-                                                    onclick="return confirm('Are you sure you want to delete this department?')">
-                                                <i class="bi bi-trash me-2"></i> Delete
+                                            <button type="button" 
+                                                    class="dropdown-item d-flex align-items-center gap-2 text-danger" 
+                                                    onclick="confirmDelete({{ $department->id }})">
+                                                <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </form>
                                     </li>
