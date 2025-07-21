@@ -13,6 +13,23 @@
         </div>
     </div>
     <div class="card-body">
+        {{-- Dashboard summary card: Total Departments --}}
+        <div class="row mb-3 border-bottom pb-4">
+            {{-- Total Departments Card --}}
+            <div class="col-md-3 mb-3 mb-md-0">
+                <div class="card border-start border-primary border-1 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <i class="bi bi-building text-primary fs-1"></i>
+                        <div>
+                            <h6 class="text-muted mb-1">Total Departments</h6>
+                            <h4 class="mb-0">{{ $totalDepartments }}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Success message --}}
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
             <i class="bi bi-check-circle-fill me-2"></i>
@@ -27,7 +44,7 @@
                     <tr>
                         <th scope="col" width="60px">#</th>
                         <th scope="col">Name</th>
-                        <th scope="col">Description</th>
+                        <th scope="col-6">Description</th>
                         <th scope="col" width="100px">Actions</th>
                     </tr>
                 </thead>
@@ -39,35 +56,34 @@
                         <td>{{ Str::limit($department->description, 50) }}</td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                                        type="button" 
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
                                         id="actionsDropdown{{ $department->id }}" 
                                         data-bs-toggle="dropdown" 
                                         aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $department->id }}">
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $department->id }}">
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('departments.show', $department->id) }}">
-                                            <i class="bi bi-eye me-2"></i> View
+                                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('departments.show', $department->id) }}">
+                                            <i class="bi bi-eye"></i> View
                                         </a>
                                     </li>
                                     @can('edit-department')
                                     <li>
-                                        <a class="dropdown-item" href="{{ route('departments.edit', $department->id) }}">
-                                            <i class="bi bi-pencil me-2"></i> Edit
+                                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('departments.edit', $department->id) }}">
+                                            <i class="bi bi-pencil"></i> Edit
                                         </a>
                                     </li>
                                     @endcan
                                     @can('delete-department')
                                     <li>
-                                        <form action="{{ route('departments.destroy', $department->id) }}" method="POST">
+                                        <form id="delete-form-{{ $department->id }}" action="{{ route('departments.destroy', $department->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" 
-                                                    class="dropdown-item text-danger" 
-                                                    onclick="return confirm('Are you sure you want to delete this department?')">
-                                                <i class="bi bi-trash me-2"></i> Delete
+                                            <button type="button" 
+                                                    class="dropdown-item d-flex align-items-center gap-2 text-danger" 
+                                                    onclick="confirmDelete({{ $department->id }})">
+                                                <i class="bi bi-trash"></i> Delete
                                             </button>
                                         </form>
                                     </li>
@@ -122,6 +138,14 @@
         text-transform: uppercase;
         font-size: 0.8rem;
         letter-spacing: 0.5px;
+    }
+    .badge {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
     }
     .table-hover tbody tr:hover {
         background-color: rgba(13, 110, 253, 0.05);

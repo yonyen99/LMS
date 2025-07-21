@@ -28,7 +28,9 @@ class DepartmentController extends Controller
     public function index(): View
     {
         return view('departments.index', [
-            'departments' => Department::latest()->paginate(8)
+            'departments' => Department::withCount('users')->latest()->paginate(10),
+            'totalDepartments' => Department::count(),
+            'departmentsWithUsers' => Department::withCount('users')->get(),
         ]);
     }
 

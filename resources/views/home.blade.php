@@ -164,6 +164,14 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            @endcanany
-        @endsection
+        </div>
+    @endcanany
+    @if(auth()->user()->hasRole('Employee') && 
+        !auth()->user()->hasRole('Admin') && 
+        !auth()->user()->hasRole('Super Admin') && 
+        !auth()->user()->hasRole('Manager Department'))
+        <a class="btn btn-primary" href="{{ route('leave-requests.index') }}">
+            @include('leaveRequest.leave_request')
+        </a>
+    @endif
+@endsection
