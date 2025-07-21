@@ -86,13 +86,12 @@
 <body class="bg-auth">
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #3097D1;">
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #fff;">
                 <div class="container-fluid">
                     <!-- Brand -->
-                    <a class="navbar-brand d-flex align-items-center text-light fw-bold" href="/">
+                    <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
-                        NGO Forum
                     </a>
 
 
@@ -109,13 +108,13 @@
                             @auth
                                 <!-- Sidebar Icon -->
                                 <li class="nav-item me-3">
-                                    <i class="bi bi-justify text-white fs-5"></i>
+                                    <i class="bi bi-justify fs-5"></i>
                                 </li>
 
                                 <!-- Permissions Dropdown -->
                                 @canany(['create-role', 'edit-role', 'delete-role'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle text-white" href="#" id="permissionDropdown"
+                                        <a class="nav-link dropdown-toggle" href="#" id="permissionDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
@@ -131,7 +130,7 @@
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle text-white" href="#" id="requestDropdown"
+                                        <a class="nav-link dropdown-toggle" href="#" id="requestDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
@@ -145,7 +144,7 @@
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-department', 'edit-department', 'delete-department', 'create-user', 'edit-user', 'delete-user'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle text-white" href="#" id="calendarDropdown"
+                                        <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
@@ -156,9 +155,12 @@
                                     </li>
 
                                     <!-- New Request Button -->
+
+                                
                                     <li class="nav-item me-2">
-                                        <a href="#" class="btn btn-warning text-white fw-semibold rounded px-3 py-1">New Request</a>
-                                    </li> 
+                                        <a href="#" class="btn btn-warning fw-semibold text-white rounded px-3 py-1" style="background: #F5811E">New Request</a>
+                                    </li>
+                            
                                 @endcanany
                             @endauth
                         </ul>
@@ -168,12 +170,12 @@
                             @guest
                                 @if (Route::has('login'))
                                     <li class="nav-item">
-                                        <a class="nav-link text-light" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
                                     </li>
                                 @endif
                             @else
                                 <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle text-light d-flex align-items-center"
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false">
                                         <i class="bi bi-person-circle me-2 fs-5"></i>
