@@ -84,6 +84,7 @@
 </head>
 
 <body class="bg-auth">
+    {{-- main content --}}
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
             <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
