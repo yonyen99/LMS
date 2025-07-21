@@ -114,8 +114,8 @@
                                 <!-- Permissions Dropdown -->
                                 @canany(['create-role', 'edit-role', 'delete-role'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="permissionDropdown"
-                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle" href="#" id="permissionDropdown" role="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
@@ -130,8 +130,8 @@
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="requestDropdown"
-                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="requestDropdown">
@@ -142,10 +142,11 @@
                                 @endcanany
 
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-department', 'edit-department', 'delete-department', 'create-user', 'edit-user', 'delete-user'])
+                                @canany(['create-department', 'edit-department', 'delete-department', 'create-user',
+                                    'edit-user', 'delete-user'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown"
-                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
@@ -156,11 +157,11 @@
 
                                     <!-- New Request Button -->
 
-                                
+
                                     <li class="nav-item me-2">
-                                        <a href="#" class="btn btn-warning fw-semibold rounded px-3 py-1">New Request</a>
+                                        <a href="#" class="btn btn-warning fw-semibold rounded text-white px-3 py-1"
+                                            style="background: #F5811E;">New Request</a>
                                     </li>
-                            
                                 @endcanany
                             @endauth
                         </ul>
@@ -178,7 +179,15 @@
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false">
-                                        <i class="bi bi-person-circle me-2 fs-5"></i>
+
+                                        @if (Auth::user()->images)
+                                            <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
+                                                class="rounded-circle me-2"
+                                                style="width: 32px; height: 32px; object-fit: cover;">
+                                        @else
+                                            <i class="bi bi-person-circle me-2 fs-5"></i>
+                                        @endif
+
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -195,6 +204,7 @@
                                         </form>
                                     </div>
                                 </li>
+
                             @endguest
                         </ul>
                     </div>
