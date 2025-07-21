@@ -81,7 +81,8 @@
 
         /* Ensure content is not hidden under fixed navbar */
         body {
-            padding-top: 70px; /* Adjust based on navbar height */
+            padding-top: 70px;
+            /* Adjust based on navbar height */
         }
     </style>
 </head>
@@ -120,7 +121,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
                                             <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
@@ -131,17 +132,34 @@
 
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown me-3 ">
                                         <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
-                                            <li><a class="dropdown-item" href="#">Approved Users</a></li>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
+                                            <!-- Leaves Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">LEAVES</h6>
+                                            </li>
+                                           <li><a class="dropdown-item" href="#">Counters</a></li>
+                                            <li><a class="dropdown-item" href="#">List of leave requests</a></li>
+                                            <li><a class="dropdown-item" href="#">Request a leave</a></li>
+
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+
+                                            <!-- Overtime Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">OVERTIME</h6>
+                                            </li>
+                                            <li><a class="dropdown-item" href="#">List of OT Worked</a></li>
+                                            <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
+
 
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-department', 'edit-department', 'delete-department', 'create-user',
@@ -151,7 +169,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
                                             <li><a class="dropdown-item" href="#">All Calendars</a></li>
                                             <li><a class="dropdown-item" href="#">Add Calendar</a></li>
                                         </ul>
@@ -209,7 +227,7 @@
             </nav>
         @endunless
 
-        <main >
+        <main>
             <div class="p-4">
                 <div class="row justify-content-center">
                     <div class="col-md-12">

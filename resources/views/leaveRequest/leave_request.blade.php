@@ -101,32 +101,7 @@
                 <th>Action</th>
             </tr>
         </thead>
-        {{-- <tbody>
-            @foreach($leaveRequests as $request)
-            <tr>
-                <td>{{ $request->id }}</td>
-                <td>{{ \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') }} (Morning)</td>
-                <td>{{ \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') }} (Morning)</td>
-                <td>{{ $request->reason ?? '-' }}</td>
-                <td>{{ number_format($request->duration, 3) }}</td>
-                <td>{{ $request->type }}</td>
-                <td>
-                    <span class="badge 
-                        @if($request->status == 'Accepted') bg-success
-                        @elseif($request->status == 'Requested') bg-warning text-dark
-                        @elseif($request->status == 'Canceled' || $request->status == 'Rejected') bg-danger
-                        @elseif($request->status == 'Cancellation') bg-danger-subtle text-danger
-                        @else bg-secondary
-                        @endif
-                    ">
-                        {{ $request->status }}
-                    </span>
-                </td>
-                <td>{{ \Carbon\Carbon::parse($request->requested_date)->format('d/m/Y') }}</td>
-                <td>{{ \Carbon\Carbon::parse($request->last_change)->format('d/m/Y') }}</td>
-            </tr>
-            @endforeach
-        </tbody> --}}
+        
     </table>
 </div>
 @endsection
