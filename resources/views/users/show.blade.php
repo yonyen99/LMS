@@ -7,9 +7,15 @@
             <div class="card-header bg-primary text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">User Details</h5>
-                    <a href="{{ route('users.index') }}" class="btn btn-light btn-sm">
-                        <i class="bi bi-arrow-left me-1"></i> Back to Users
-                    </a>
+                    @if (Auth::user()->hasRole('Employee'))
+                            <a href="{{ url('/') }}" class="btn btn-light btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i> Back
+                            </a>
+                        @else
+                            <a href="{{ route('users.index') }}" class="btn btn-light btn-sm">
+                                <i class="bi bi-arrow-left me-1"></i> Back
+                            </a>
+                        @endif
                 </div>
             </div>
             <div class="card-body">

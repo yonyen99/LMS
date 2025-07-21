@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>List Management System</title>
+    <title>List management system</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -27,6 +27,8 @@
         .bg-auth {
             background-color: #f8f9fa;
         }
+
+
 
         .auth-card {
             border: 0;
@@ -59,7 +61,7 @@
             border-color: #2f6fd8;
         }
 
-        /* Navbar styles */
+        /* New navbar styles */
         .navbar-brand img {
             height: 40px;
             border-radius: 5px;
@@ -78,26 +80,22 @@
         .navbar .dropdown-menu {
             min-width: 150px;
         }
-
-        /* Ensure content is not hidden under fixed navbar */
-        body {
-            padding-top: 70px;
-            /* Adjust based on navbar height */
-        }
     </style>
 </head>
 
 <body class="bg-auth">
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 fixed-top" style="background-color: #fff;">
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
+                style="background-color: #fff; top: 0; z-index: 1030;">
+
                 <div class="container-fluid">
                     <!-- Brand -->
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
                     </a>
-
+                    
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -131,8 +129,9 @@
                                 @endcanany
 
                                 <!-- Requested Dropdown -->
-                                @canany(['create-user', 'edit-user', 'delete-user'])
-                                    <li class="nav-item dropdown me-3 ">
+                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request', 'delete-request', 'view-request',
+                                    'cancel-request'])
+                                    <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
@@ -162,8 +161,8 @@
 
 
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-department', 'edit-department', 'delete-department', 'create-user',
-                                    'edit-user', 'delete-user'])
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request',
+                                    'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -176,6 +175,8 @@
                                     </li>
 
                                     <!-- New Request Button -->
+
+
                                     <li class="nav-item me-2">
                                         <a href="#" class="btn btn-warning fw-semibold rounded text-white px-3 py-1"
                                             style="background: #F5811E;">New Request</a>
@@ -197,6 +198,7 @@
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false">
+
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
@@ -204,10 +206,11 @@
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif
+
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a href="#" class="dropdown-item">
+                                        <a href="{{ route('users.show', Auth::user()->id) }}" class="dropdown-item">
                                             <i class="bi bi-person-circle me-2"></i> View Profile
                                         </a>
                                         <a class="dropdown-item" href="{{ route('logout') }}"
@@ -220,22 +223,26 @@
                                         </form>
                                     </div>
                                 </li>
+
                             @endguest
                         </ul>
                     </div>
                 </div>
             </nav>
+
+
         @endunless
 
-        <main>
+        <main class="py-4">
             <div class="p-4">
-                <div class="row justify-content-center">
+                <div class="row justify-content-center ">
                     <div class="col-md-12">
                         @if ($message = Session::get('success'))
                             <div class="alert alert-success text-center" role="alert">
                                 {{ $message }}
                             </div>
                         @endif
+
                         @yield('content')
                     </div>
                 </div>
