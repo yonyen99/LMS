@@ -84,12 +84,15 @@
 <body class="bg-auth">
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 text-light" style="background-color: #3097D1;">
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #3097D1;">
                 <div class="container-fluid">
                     <!-- Brand -->
-                    <a class="navbar-brand text-light fw-bold" href="/">
+                    <a class="navbar-brand d-flex align-items-center text-light fw-bold" href="/">
+                        <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
+                            style="height: 40px; border-radius: 5px;">
                         NGO Forum
                     </a>
+
 
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -99,57 +102,66 @@
 
                     <!-- Collapsible Nav -->
                     <div class="collapse navbar-collapse" id="mainNavbar">
-                        <!-- Left Side -->
-                        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                        <!-- Left Side Navigation -->
+                        <ul class="navbar-nav me-auto align-items-center">
                             @auth
+                                <!-- Sidebar Icon -->
+                                <li class="nav-item me-3">
+                                    <i class="bi bi-justify text-white fs-5"></i>
+                                </li>
+
+                                <!-- Permissions Dropdown -->
                                 @canany(['create-role', 'edit-role', 'delete-role'])
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle text-light" href="#" id="permissionDropdown"
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="permissionDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage User</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
                                             <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
-                                                    Department</a></li>
+                                                    Departments</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
 
+                                <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user'])
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle text-light" href="#" id="requestDropdown"
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="requestDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                                            <li><a class="dropdown-item" href="">User Requests</a></li>
-                                            <li><a class="dropdown-item" href="">Approved Users</a></li>
+                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
+                                            <li><a class="dropdown-item" href="#">Approved Users</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
 
+                                <!-- Calendars Dropdown -->
                                 @canany(['create-product', 'edit-product', 'delete-product'])
-                                    <li class="nav-item dropdown">
-                                        <a class="nav-link dropdown-toggle text-light" href="#" id="calendarDropdown"
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="calendarDropdown"
                                             role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item" href="">All Calendars</a></li>
-                                            <li><a class="dropdown-item" href="">Add Calendar</a></li>
+                                            <li><a class="dropdown-item" href="#">All Calendars</a></li>
+                                            <li><a class="dropdown-item" href="#">Add Calendar</a></li>
                                         </ul>
                                     </li>
 
-                                    <li class="nav-item">
-                                        <a href="#" class="btn btn-warning text-light ms-2">New Request</a>
+                                    <!-- New Request Button -->
+                                    <li class="nav-item me-2">
+                                        <a href="#" class="btn btn-warning fw-semibold rounded px-3 py-1">New Request</a>
                                     </li>
                                 @endcanany
                             @endauth
                         </ul>
 
-                        <!-- Right Side -->
+                        <!-- Right Side User Dropdown -->
                         <ul class="navbar-nav ms-auto">
                             @guest
                                 @if (Route::has('login'))
@@ -162,20 +174,17 @@
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle text-light d-flex align-items-center"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false">
-                                        <i class="bi bi-person-circle me-2" style="font-size: 1.4rem;"></i>
+                                        <i class="bi bi-person-circle me-2 fs-5"></i>
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                         <a href="#" class="dropdown-item">
-                                            <i class="bi bi-person-circle me-2"></i>
-                                            View Profile
+                                            <i class="bi bi-person-circle me-2"></i> View Profile
                                         </a>
                                         <a class="dropdown-item" href="{{ route('logout') }}"
                                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                            <i class="bi bi-box-arrow-right me-2"></i>
-                                            {{ __('Logout') }}
+                                            <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
                                         </a>
-
                                         <form id="logout-form" action="{{ route('logout') }}" method="POST"
                                             class="d-none">
                                             @csrf
@@ -187,6 +196,7 @@
                     </div>
                 </div>
             </nav>
+
 
         @endunless
 
