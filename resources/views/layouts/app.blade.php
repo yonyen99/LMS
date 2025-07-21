@@ -120,7 +120,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
                                             <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage Departments</a></li>
@@ -144,6 +144,7 @@
                                     </li>
                                 @endcanany
 
+
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request',
                                     'cancel-request'])
@@ -152,7 +153,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
                                             <li><a class="dropdown-item" href="#">All Calendars</a></li>
                                             <li><a class="dropdown-item" href="#">Add Calendar</a></li>
                                         </ul>
