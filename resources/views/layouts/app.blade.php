@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>List management system</title>
+    <title>List Management System</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
@@ -27,8 +27,6 @@
         .bg-auth {
             background-color: #f8f9fa;
         }
-
-
 
         .auth-card {
             border: 0;
@@ -61,7 +59,7 @@
             border-color: #2f6fd8;
         }
 
-        /* New navbar styles */
+        /* Navbar styles */
         .navbar-brand img {
             height: 40px;
             border-radius: 5px;
@@ -80,20 +78,24 @@
         .navbar .dropdown-menu {
             min-width: 150px;
         }
+
+        /* Ensure content is not hidden under fixed navbar */
+        body {
+            padding-top: 70px; /* Adjust based on navbar height */
+        }
     </style>
 </head>
 
 <body class="bg-auth">
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #fff;">
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 fixed-top" style="background-color: #fff;">
                 <div class="container-fluid">
                     <!-- Brand -->
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
                     </a>
-
 
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -156,8 +158,6 @@
                                     </li>
 
                                     <!-- New Request Button -->
-
-
                                     <li class="nav-item me-2">
                                         <a href="#" class="btn btn-warning fw-semibold rounded text-white px-3 py-1"
                                             style="background: #F5811E;">New Request</a>
@@ -179,7 +179,6 @@
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
                                         aria-expanded="false">
-
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
@@ -187,7 +186,6 @@
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif
-
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
@@ -204,27 +202,22 @@
                                         </form>
                                     </div>
                                 </li>
-
                             @endguest
                         </ul>
                     </div>
                 </div>
             </nav>
-
-
         @endunless
 
-        <main class="py-4">
+        <main >
             <div class="p-4">
-                <div class="row justify-content-center ">
+                <div class="row justify-content-center">
                     <div class="col-md-12">
                         @if ($message = Session::get('success'))
                             <div class="alert alert-success text-center" role="alert">
                                 {{ $message }}
                             </div>
                         @endif
-
-                        {{-- <h3 class="text-center mt-3 mb-3">Admin Dashboard</h3> --}}
                         @yield('content')
                     </div>
                 </div>
