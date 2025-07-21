@@ -201,7 +201,7 @@
                                 style="color: {{ $textColor }}; background-color: {{ $bgColor }};
                                        padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
                                 <input type="checkbox" name="statuses[]" value="{{ $status }}" id="status_{{ $status }}" 
-                                    {{ request()->input('statuses') && in_array($status, request()->input('statuses')) ? 'checked' : '' }}
+                                    {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
                                     onchange="this.form.submit()" 
                                     class="form-check-input me-2 mb-1"
                                     style="width: 1.1em; height: 1.1em;">
@@ -221,9 +221,9 @@
 
                 <div class="d-flex align-items-center gap-2 mt-2" style="width:27%;">
                     <label for="showRequest" class="fw-semibold small mb-0" style="width:50%;">Show Request</label>
-                    <select class="form-select" id="showRequest" name="show_request" onchange="this.form.submit()">
-                        <option value="all" {{ request('show_request') == 'all' ? 'selected' : '' }}>All</option>
-                        <option value="mine" {{ request('show_request') == 'mine' ? 'selected' : '' }}>My Requests</option>
+                    <select class="form-select" id="showRequest" name="sort_order" onchange="this.form.submit()">
+                        <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>Newest</option>
+                        <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>Oldest</option>
                     </select>
                 </div>
 
@@ -231,8 +231,11 @@
                     <label for="type" class="fw-semibold small mb-0" style="width:20%;">Type</label>
                     <select class="form-select flex-grow-1" id="type" name="type" onchange="this.form.submit()">
                         <option value="">All</option>
-                        <option value="Leave" {{ request('type') == 'Leave' ? 'selected' : '' }}>Leave</option>
-                        <option value="Work From Home" {{ request('type') == 'Work From Home' ? 'selected' : '' }}>Work From Home</option>
+                        @foreach($leaveTypes as $type)
+                            <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
+                                {{ $type }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
 
@@ -240,9 +243,11 @@
                     <label for="statusRequest" class="fw-semibold small mb-0" style="width:50%;">Status Request</label>
                     <select class="form-select" id="statusRequest" name="status_request" onchange="this.form.submit()">
                         <option value="">All</option>
-                        <option value="Pending" {{ request('status_request') == 'Pending' ? 'selected' : '' }}>Pending</option>
-                        <option value="Approved" {{ request('status_request') == 'Approved' ? 'selected' : '' }}>Approved</option>
-                        <option value="Rejected" {{ request('status_request') == 'Rejected' ? 'selected' : '' }}>Rejected</option>
+                        @foreach($statusRequestOptions as $status)
+                            <option value="{{ $status }}" {{ request('status_request') == $status ? 'selected' : '' }}>
+                                {{ $status }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
             </div>

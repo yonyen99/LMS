@@ -138,7 +138,7 @@
                                             Requested
                                         </a>
                                         <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">User Requests</a></li>
                                             <li><a class="dropdown-item" href="#">Approved Users</a></li>
                                         </ul>
                                     </li>
