@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    /**
-     * Instantiate a new UserController instance.
-     */
     public function __construct()
     {
         $this->middleware('auth');
@@ -32,7 +29,11 @@ class UserController extends Controller
     public function index(): View
     {
         return view('users.index', [
-            'users' => User::latest('id')->paginate(3)
+        'users' => User::latest()->paginate(6),
+        'totalUsers' => User::count(),
+        'activeUsers' => User::where('is_active', true)->count(),
+        'adminUsers' => User::role('Admin')->count(),
+        'newUsers' => User::where('created_at', '>=', now()->subDays(30))->count()
         ]);
     }
 
@@ -55,7 +56,6 @@ class UserController extends Controller
         $input = $request->validated(); 
         $input['password'] = Hash::make($request->password);
 
-        // Handle image upload
         if ($request->hasFile('images')) {
             $input['images'] = $request->file('images')->store('users', 'public');
         }
@@ -64,7 +64,7 @@ class UserController extends Controller
         $user->assignRole($request->roles);
 
         return redirect()->route('users.index')
-                ->withSuccess('New user is added successfully.');
+                ->withSuccess('New user added successfully.');
     }
 
     /**
@@ -102,7 +102,7 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user): RedirectResponse
     {
-        $input = $request->validated(); // Changed from all() to validated()
+        $input = $request->validated();
 
         if(!empty($request->password)){
             $input['password'] = Hash::make($request->password);
@@ -112,6 +112,7 @@ class UserController extends Controller
 
         // Handle image upload
         if ($request->hasFile('images')) {
+            // Delete old image if exists
             if ($user->images && Storage::disk('public')->exists($user->images)) {
                 Storage::disk('public')->delete($user->images);
             }
@@ -121,8 +122,8 @@ class UserController extends Controller
         $user->update($input);
         $user->syncRoles($request->roles);
 
-        return redirect()->back()
-                ->withSuccess('User is updated successfully.');
+        return redirect()->route('users.index')
+                ->withSuccess('User updated successfully.');
     }
 
     /**
@@ -130,6 +131,7 @@ class UserController extends Controller
      */
     public function destroy(User $user): RedirectResponse
     {
+        // About if user is Super Admin or user is deleting himself
         if ($user->hasRole('Super Admin') || $user->id == auth()->user()->id)
         {
             abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
@@ -142,7 +144,8 @@ class UserController extends Controller
 
         $user->syncRoles([]);
         $user->delete();
+
         return redirect()->route('users.index')
-                ->withSuccess('User is deleted successfully.');
+                ->withSuccess('User deleted successfully.');
     }
 }

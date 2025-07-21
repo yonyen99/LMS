@@ -1,60 +1,67 @@
 @extends('layouts.app')
 
 @section('content')
-
-<div class="row justify-content-center">
-    <div class="col-md-8">
-
-        <div class="card">
-            <div class="card-header">
-                <div class="float-start">
-                    Edit Role
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Edit Role</h5>
+                        <a href="{{ route('roles.index') }}" class="btn btn-light btn-sm">&larr; Back to Roles</a>
+                    </div>
                 </div>
-                <div class="float-end">
-                    <a href="{{ route('roles.index') }}" class="btn btn-primary btn-sm">&larr; Back</a>
+                <div class="card-body">
+                    <form action="{{ route('roles.update', $role->id) }}" method="post">
+                        @csrf
+                        @method("PUT")
+
+                        <div class="mb-4 row">
+                            <label for="name" class="col-md-4 col-form-label text-md-end text-start fw-bold">Role Name</label>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $role->name) }}" placeholder="Enter role name">
+                                @error('name')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="mb-4 row">
+                            <label class="col-md-4 col-form-label text-md-end text-start fw-bold">Permissions</label>
+                            <div class="col-md-6">
+                                <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
+                                    @forelse ($permissions as $permission)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="permissions[]" 
+                                                   id="permission_{{ $permission->id }}" 
+                                                   value="{{ $permission->id }}"
+                                                   {{ in_array($permission->id, old('permissions', $rolePermissions ?? [])) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="permission_{{ $permission->id }}">
+                                                {{ $permission->name }}
+                                            </label>
+                                        </div>
+                                    @empty
+                                        <div class="text-muted">No permissions available</div>
+                                    @endforelse
+                                </div>
+                                @error('permissions')
+                                    <span class="text-danger">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-0">
+                            <div class="col-md-6 offset-md-4">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-1"></i> Update Role
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('roles.update', $role->id) }}" method="post">
-                    @csrf
-                    @method("PUT")
-
-                    <div class="mb-3 row">
-                        <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
-                        <div class="col-md-6">
-                          <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ $role->name }}">
-                            @if ($errors->has('name'))
-                                <span class="text-danger">{{ $errors->first('name') }}</span>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="mb-3 row">
-                        <label for="permissions" class="col-md-4 col-form-label text-md-end text-start">Permissions</label>
-                        <div class="col-md-6">           
-                            <select class="form-select @error('permissions') is-invalid @enderror" multiple aria-label="Permissions" id="permissions" name="permissions[]" style="height: 210px;">
-                                @forelse ($permissions as $permission)
-                                    <option value="{{ $permission->id }}" {{ in_array($permission->id, $rolePermissions ?? []) ? 'selected' : '' }}>
-                                        {{ $permission->name }}
-                                    </option>
-                                @empty
-
-                                @endforelse
-                            </select>
-                            @if ($errors->has('permissions'))
-                                <span class="text-danger">{{ $errors->first('permissions') }}</span>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3 row">
-                        <input type="submit" class="col-md-3 offset-md-5 btn btn-primary" value="Update Role">
-                    </div>
-                    
-                </form>
             </div>
         </div>
-    </div>    
+    </div>
 </div>
-    
 @endsection
