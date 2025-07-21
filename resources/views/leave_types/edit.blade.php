@@ -4,22 +4,24 @@
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
         <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Create New Leave Type</h5>
+            <h5 class="mb-0">Edit Leave Type</h5>
             <a href="{{ route('leave-types.index') }}" class="btn btn-light btn-sm">
                 <i class="bi bi-arrow-left me-1"></i> Back
             </a>
         </div>
     </div>
     <div class="card-body">
-        <form action="{{ route('leave-types.store') }}" method="POST">
+        <form action="{{ route('leave-types.update', $leaveType->id) }}" method="POST">
             @csrf
+            @method('PUT')
+            
             <div class="mb-3">
                 <label for="name" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
                 <input type="text" 
                        class="form-control @error('name') is-invalid @enderror" 
                        id="name" 
                        name="name" 
-                       value="{{ old('name') }}" 
+                       value="{{ old('name', $leaveType->name) }}" 
                        placeholder="Enter leave type name"
                        required>
                 @error('name')
@@ -33,7 +35,7 @@
                           id="description" 
                           name="description" 
                           rows="3"
-                          placeholder="Optional description">{{ old('description') }}</textarea>
+                          placeholder="Optional description">{{ old('description', $leaveType->description) }}</textarea>
                 @error('description')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
@@ -44,7 +46,7 @@
                     <i class="bi bi-x-circle me-1"></i> Cancel
                 </a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Create Leave Type
+                    <i class="bi bi-check-circle me-1"></i> Update Leave Type
                 </button>
             </div>
         </form>
