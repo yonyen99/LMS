@@ -1,0 +1,32 @@
+.card-1 {
+            box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+        }
+
+        .custom-card {
+            border: none;
+            border-radius: 0.5rem;
+            box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+        }
+
+        .icon-box {
+            width: 2.5rem;
+            height: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+        }
+
+        .custom-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        #departmentChart {
+            max-width: 500px !important;
+            height: 345px !important;
+        }
+
+        .card {
+            overflow: hidden;
+        }

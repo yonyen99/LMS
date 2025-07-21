@@ -28,7 +28,7 @@ class DepartmentController extends Controller
     public function index(): View
     {
         return view('departments.index', [
-            'departments' => Department::latest()->paginate(3)
+            'departments' => Department::latest()->paginate(8)
         ]);
     }
 

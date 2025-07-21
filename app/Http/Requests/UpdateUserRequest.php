@@ -35,7 +35,7 @@ class UpdateUserRequest extends FormRequest
             ],
             'password' => 'nullable|string|min:8|confirmed',
             'roles' => 'required',
-            'images' => 'nullable|string',
+            'images' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'phone' => [
                 'nullable',
                 'string',
