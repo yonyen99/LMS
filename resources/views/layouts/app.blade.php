@@ -215,8 +215,8 @@
         @endunless
 
         <main class="py-4">
-            <div class="container">
-                <div class="row justify-content-center mt-3">
+            <div class="p-4">
+                <div class="row justify-content-center ">
                     <div class="col-md-12">
                         @if ($message = Session::get('success'))
                             <div class="alert alert-success text-center" role="alert">
