@@ -14,7 +14,7 @@
                         $colors = [
                             'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
                             'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                            'Requested' => ['text' => '#ffffff', 'bg' => '#F5811E'],
                             'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
                             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
                             'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
