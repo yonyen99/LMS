@@ -144,7 +144,7 @@
                                             </li>
                                            <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
                                             <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
-                                            <li><a class="dropdown-item" href="#">Request a leave</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a leave</a></li>
 
                                             <li>
                                                 <hr class="dropdown-divider">
