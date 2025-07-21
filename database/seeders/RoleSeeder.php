@@ -16,6 +16,7 @@ class RoleSeeder extends Seeder
         Role::create(['name' => 'Super Admin']);
         $admin = Role::create(['name' => 'Admin']);
         $departmentManager = Role::create(['name' => 'Department Manager']);
+        $employee = Role::create(['name' => 'Employee']);
 
         $admin->givePermissionTo([
             'create-user',
@@ -29,7 +30,15 @@ class RoleSeeder extends Seeder
         $departmentManager->givePermissionTo([
             'create-department',
             'edit-department',
-            'delete-department'
+            'delete-department',
+            
+        ]);
+        $employee-> givePermissionTo([
+            'create-request',
+            'edit-request',
+            'delete-request',
+            'view-request',
+            'cancel-request'
         ]);
     }
 }

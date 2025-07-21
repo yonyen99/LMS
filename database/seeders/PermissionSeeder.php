@@ -22,7 +22,12 @@ class PermissionSeeder extends Seeder
             'delete-user',
             'create-department',
             'edit-department',
-            'delete-department'
+            'delete-department',
+            'create-request',
+            'edit-request',
+            'delete-request',
+            'view-request',
+            'cancel-request'
          ];
  
           // Looping and Inserting Array's Permissions into Permission Table
