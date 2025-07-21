@@ -129,7 +129,8 @@
                                 @endcanany
 
                                 <!-- Requested Dropdown -->
-                                @canany(['create-user', 'edit-user', 'delete-user'])
+                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request', 'delete-request', 'view-request',
+                                    'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -143,8 +144,8 @@
                                 @endcanany
 
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-department', 'edit-department', 'delete-department', 'create-user',
-                                    'edit-user', 'delete-user'])
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request',
+                                    'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
