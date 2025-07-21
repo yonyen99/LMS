@@ -86,15 +86,16 @@
 <body class="bg-auth">
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #fff;">
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
+                style="background-color: #fff; top: 0; z-index: 1030;">
+
                 <div class="container-fluid">
                     <!-- Brand -->
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
                     </a>
-
-
+                    
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -191,7 +192,7 @@
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a href="#" class="dropdown-item">
+                                        <a href="{{ route('users.show', Auth::user()->id) }}" class="dropdown-item">
                                             <i class="bi bi-person-circle me-2"></i> View Profile
                                         </a>
                                         <a class="dropdown-item" href="{{ route('logout') }}"
