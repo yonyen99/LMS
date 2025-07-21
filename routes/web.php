@@ -34,6 +34,10 @@ Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cance
     ->name('leave-requests.cancel')
     ->middleware('auth');
 
+// Add route for Counters page
+Route::get('/counters', [CounterController::class, 'index'])
+    ->name('counters.index')
+    ->middleware('auth');
 
 Route::resources([
     'roles' => RoleController::class,

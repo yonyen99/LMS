@@ -142,7 +142,7 @@
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
-                                           <li><a class="dropdown-item" href="#">Counters</a></li>
+                                           <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
                                             <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
                                             <li><a class="dropdown-item" href="#">Request a leave</a></li>
 
@@ -233,7 +233,7 @@
 
         @endunless
 
-        <main class="py-4">
+        <main>
             <div class="p-4">
                 <div class="row justify-content-center ">
                     <div class="col-md-12">
