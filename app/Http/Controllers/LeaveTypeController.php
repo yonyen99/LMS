@@ -10,7 +10,8 @@ class LeaveTypeController extends Controller
     public function index()
     {
         $leaveTypes = LeaveType::latest()->paginate(10);
-        return view('leave_types.index', compact('leaveTypes'));
+        $totalLeaveTypes = LeaveType::count();
+        return view('leave_types.index', compact('leaveTypes', 'totalLeaveTypes'));
     }
 
     public function create()
@@ -28,6 +29,11 @@ class LeaveTypeController extends Controller
         LeaveType::create($request->only('name', 'description'));
 
         return redirect()->route('leave-types.index')->with('success', 'Leave type created successfully.');
+    }
+
+    public function show(LeaveType $leaveType)
+    {
+        return view('leave_types.show', compact('leaveType'));
     }
 
     public function edit(LeaveType $leaveType)
