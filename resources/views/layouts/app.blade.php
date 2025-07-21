@@ -13,16 +13,22 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
+    <link rel="icon" href="{{ asset('img/logo.avif') }}" type="image/avif">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-    @vite(['resources/css/dashboard.css','resources/js/dashboard.js'])
+    @vite(['resources/css/dashboard.css', 'resources/js/dashboard.js'])
 
     <style>
         .bg-auth {
             background-color: #f8f9fa;
         }
+
+
 
         .auth-card {
             border: 0;
@@ -55,55 +61,134 @@
             border-color: #2f6fd8;
         }
 
+        /* New navbar styles */
+        .navbar-brand img {
+            height: 40px;
+            border-radius: 5px;
+        }
+
+        .navbar-nav .nav-link {
+            margin-right: 15px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #3f80ea;
+        }
+
+        .navbar .dropdown-menu {
+            min-width: 150px;
+        }
     </style>
 </head>
 
 <body class="bg-auth">
     <div id="app">
-        @unless(Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    NGO Forum
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4" style="background-color: #3097D1;">
+                <div class="container-fluid">
+                    <!-- Brand -->
+                    <a class="navbar-brand d-flex align-items-center text-light fw-bold" href="/">
+                        <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
+                            style="height: 40px; border-radius: 5px;">
+                        NGO Forum
+                    </a>
 
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <!-- Left Side Of Navbar -->
-                        <ul class="navbar-nav me-auto"></ul>
 
-                        <!-- Right Side Of Navbar -->
+                    <!-- Toggler -->
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <!-- Collapsible Nav -->
+                    <div class="collapse navbar-collapse" id="mainNavbar">
+                        <!-- Left Side Navigation -->
+                        <ul class="navbar-nav me-auto align-items-center">
+                            @auth
+                                <!-- Sidebar Icon -->
+                                <li class="nav-item me-3">
+                                    <i class="bi bi-justify text-white fs-5"></i>
+                                </li>
+
+                                <!-- Permissions Dropdown -->
+                                @canany(['create-role', 'edit-role', 'delete-role'])
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="permissionDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Permissions
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                            <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
+                                                    Departments</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
+
+                                <!-- Requested Dropdown -->
+                                @canany(['create-user', 'edit-user', 'delete-user'])
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="requestDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Requested
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="requestDropdown">
+                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
+                                            <li><a class="dropdown-item" href="#">Approved Users</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
+
+                                <!-- Calendars Dropdown -->
+                                @canany(['create-product', 'edit-product', 'delete-product'])
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle text-white" href="#" id="calendarDropdown"
+                                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            Calendars
+                                        </a>
+                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                                            <li><a class="dropdown-item" href="#">All Calendars</a></li>
+                                            <li><a class="dropdown-item" href="#">Add Calendar</a></li>
+                                        </ul>
+                                    </li>
+
+                                    <!-- New Request Button -->
+                                    <li class="nav-item me-2">
+                                        <a href="#" class="btn btn-warning fw-semibold rounded px-3 py-1">New Request</a>
+                                    </li>
+                                @endcanany
+                            @endauth
+                        </ul>
+
+                        <!-- Right Side User Dropdown -->
                         <ul class="navbar-nav ms-auto">
                             @guest
                                 @if (Route::has('login'))
                                     <li class="nav-item">
-                                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                        <a class="nav-link text-light" href="{{ route('login') }}">{{ __('Login') }}</a>
                                     </li>
                                 @endif
                             @else
-                                @canany(['create-role', 'edit-role', 'delete-role'])
-                                    <li><a class="nav-link" href="{{ route('roles.index') }}">Manage Roles</a></li>
-                                @endcanany
-                                @canany(['create-user', 'edit-user', 'delete-user'])
-                                    <li><a class="nav-link" href="{{ route('users.index') }}">Manage Users</a></li>
-                                @endcanany
-                                @canany(['create-product', 'edit-product', 'delete-product'])
-                                    <li><a class="nav-link" href="{{ route('departments.index') }}">Manage Products</a></li>
-                                @endcanany
                                 <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
+                                    <a id="navbarDropdown" class="nav-link dropdown-toggle text-light d-flex align-items-center"
+                                        href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
+                                        aria-expanded="false">
+                                        <i class="bi bi-person-circle me-2 fs-5"></i>
                                         {{ Auth::user()->name }}
                                     </a>
                                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                            onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
-                                            {{ __('Logout') }}
+                                        <a href="#" class="dropdown-item">
+                                            <i class="bi bi-person-circle me-2"></i> View Profile
                                         </a>
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        <a class="dropdown-item" href="{{ route('logout') }}"
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                            <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
+                                        </a>
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                            class="d-none">
                                             @csrf
                                         </form>
                                     </div>
@@ -113,31 +198,22 @@
                     </div>
                 </div>
             </nav>
+
+
         @endunless
 
         <main class="py-4">
             <div class="container">
                 <div class="row justify-content-center mt-3">
                     <div class="col-md-12">
-                        
                         @if ($message = Session::get('success'))
                             <div class="alert alert-success text-center" role="alert">
                                 {{ $message }}
                             </div>
                         @endif
-                        @yield('content')
-                        
-                        <div class="row justify-content-center text-center mt-3">
-                            <div class="col-md-12">
-                                <p>Back to Tutorial: 
-                                    <a href="https://www.allphptricks.com/simple-laravel-10-user-roles-and-permissions/"><strong>Tutorial Link</strong></a>
-                                </p>
-                                <p>
-                                    For More Web Development Tutorials Visit: <a href="https://www.allphptricks.com/"><strong>AllPHPTricks.com</strong></a>
-                                </p>
-                            </div>
-                        </div>
 
+                        {{-- <h3 class="text-center mt-3 mb-3">Admin Dashboard</h3> --}}
+                        @yield('content')
                     </div>
                 </div>
             </div>
