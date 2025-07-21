@@ -9,6 +9,7 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EmployeeCounterController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LeaveRequestController;
+use App\Http\Controllers\LeaveTypeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +30,15 @@ Auth::routes(['register' => false]);
 
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
-Route::get('/leave-requests', [LeaveRequestController::class, 'index'])->name('leave-requests.index');
-Route::get('/employee-counter', [EmployeeCounterController::class, 'index'])->name('employee-counter.index');
+Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cancel'])
+    ->name('leave-requests.cancel')
+    ->middleware('auth');
+
 
 Route::resources([
     'roles' => RoleController::class,
     'users' => UserController::class,
     'departments' => DepartmentController::class,
+    'leave-types' => LeaveTypeController::class,
+    'leave-requests' => LeaveRequestController::class,
 ]);

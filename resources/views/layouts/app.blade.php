@@ -84,6 +84,7 @@
 </head>
 
 <body class="bg-auth">
+    {{-- main content --}}
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
             <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
@@ -122,8 +123,8 @@
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
-                                                    Departments</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage Departments</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-types.index') }}">Manage Leave Types</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
@@ -142,7 +143,7 @@
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
                                            <li><a class="dropdown-item" href="#">Counters</a></li>
-                                            <li><a class="dropdown-item" href="#">List of leave requests</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
                                             <li><a class="dropdown-item" href="#">Request a leave</a></li>
 
                                             <li>
@@ -178,8 +179,7 @@
 
 
                                     <li class="nav-item me-2">
-                                        <a href="#" class="btn btn-warning fw-semibold rounded text-white px-3 py-1"
-                                            style="background: #F5811E;">New Request</a>
+                                        <a href="{{ route('leave-requests.create') }}" class="btn btn-warning fw-semibold text-white rounded px-3 py-1" style="background: #F5811E">New Request</a>
                                     </li>
                                 @endcanany
                             @endauth
