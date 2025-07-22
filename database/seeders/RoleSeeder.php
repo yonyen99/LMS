@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
@@ -13,10 +13,14 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        Role::create(['name' => 'Super Admin']);
-        $admin = Role::create(['name' => 'Admin']);
-        $departmentManager = Role::create(['name' => 'Department Manager']);
-        $employee = Role::create(['name' => 'Employee']);
+        $superAdmin = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $admin = Role::create(['name' => 'Admin', 'guard_name' => 'web']);
+        $hr = Role::create(['name' => 'HR', 'guard_name' => 'web']);
+        $departmentManager = Role::create(['name' => 'Department Manager', 'guard_name' => 'web']);
+        $employee = Role::create(['name' => 'Employee', 'guard_name' => 'web']);
+
+        // Assign all permissions to Super Admin
+        $superAdmin->givePermissionTo(Permission::all());
 
         $admin->givePermissionTo([
             'create-user',
@@ -27,18 +31,47 @@ class RoleSeeder extends Seeder
             'delete-department'
         ]);
 
-        $departmentManager->givePermissionTo([
+        $hr->givePermissionTo([
+
+            // Dashboard
+            'view-dashboard',
+            
+            // User management
+            'create-user',
+            'edit-user',
+            'delete-user',
+
+            // Department management
             'create-department',
             'edit-department',
             'delete-department',
-            
-        ]);
-        $employee-> givePermissionTo([
+
+            // Role management
+            'create-role',
+            'edit-role',
+            'delete-role',
+            'view-role',
+
+            // Request (LMS)
             'create-request',
             'edit-request',
             'delete-request',
             'view-request',
-            'cancel-request'
+            'cancel-request',
+        ]);
+
+        $departmentManager->givePermissionTo([
+            'create-department',
+            'edit-department',
+            'delete-department',
+        ]);
+
+        $employee->givePermissionTo([
+            'create-request',
+            'edit-request',
+            'delete-request',
+            'view-request',
+            'cancel-request',
         ]);
     }
 }
