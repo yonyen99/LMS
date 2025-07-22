@@ -23,13 +23,15 @@
         }
 
         #departmentChart {
-            max-width: 500px !important;
+            max-width: 650px !important;
             height: 345px !important;
         }
 
         .card {
-            
-            
-            overflow: hidden;
+             overflow: hidden;
         }
-
+        .card-3{
+            display: flex;
+           margin: 0 auto;
+           overflow: visible;
+        }
