@@ -61,9 +61,14 @@ class RoleSeeder extends Seeder
         ]);
 
         $departmentManager->givePermissionTo([
-            'create-department',
-            'edit-department',
-            'delete-department',
+            'create-user',
+            'edit-user',
+            'delete-user',
+            'create-request',
+            'edit-request',
+            'delete-request',
+            'view-request',
+            'cancel-request',
         ]);
 
         $employee->givePermissionTo([

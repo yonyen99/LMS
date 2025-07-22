@@ -172,7 +172,7 @@
             @if (auth()->user()->hasRole('Employee') &&
                     !auth()->user()->hasRole('Admin') &&
                     !auth()->user()->hasRole('Super Admin') &&
-                    !auth()->user()->hasRole('Manager Department'))
+                    auth()->user()->hasRole('Manager'))
                 <div class="m-2">
                     <div class="card card-1 p-3 mb-4">
                         <form method="GET" action="{{ route('leave-requests.index') }}">
