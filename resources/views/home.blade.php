@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    @canany(['create-product', 'edit-product', 'delete-product'])
+    @canany(['create-department', 'edit-department', 'delete-department'])
         <div class="">
             <div class="row justify-content-center">
                 <div class="col-md-12">
