@@ -96,6 +96,7 @@
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
                     </a>
+
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,7 +120,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
                                             <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
@@ -132,23 +133,38 @@
 
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
-                                    'delete-request', 'view-request', 'cancel-request', 'create-department', 'edit-department',
-                                    'delete-department'])
+                                    'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
-                                            <li><a class="dropdown-item" href="#">Approved Users</a></li>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
+                                            <!-- Leaves Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">LEAVES</h6>
+                                            </li>
+                                           <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a leave</a></li>
+
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+
+                                            <!-- Overtime Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">OVERTIME</h6>
+                                            </li>
+                                            <li><a class="dropdown-item" href="#">List of OT Worked</a></li>
+                                            <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
 
+
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
-                                    'create-department', 'edit-department', 'delete-department'])
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -176,21 +192,22 @@
                         <ul class="navbar-nav ms-auto align-items-center">
 
                             <!-- Notification Bell Dropdown -->
-
+                            
                             @if (!Auth::user()->hasRole('Employee'))
-                                <li class="nav-item dropdown me-3">
-                                    <a class="nav-link position-relative" href="#" id="notificationDropdown"
-                                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-bell-fill fs-5"></i>
-                                        <!-- Optional badge for unread notifications -->
-                                        <span
-                                            class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
-                                            3
-                                            <span class="visually-hidden">unread messages</span>
-                                        </span>
-                                    </a>
-                                </li>
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link position-relative" href="#" id="notificationDropdown"
+                                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-bell-fill fs-5"></i>
+                                    <!-- Optional badge for unread notifications -->
+                                    <span
+                                        class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
+                                        3
+                                        <span class="visually-hidden">unread messages</span>
+                                    </span>
+                                </a>
+                            </li>   
                             @endif
+                            
 
                             @guest
                                 @if (Route::has('login'))
