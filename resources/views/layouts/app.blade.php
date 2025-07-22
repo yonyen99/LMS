@@ -28,8 +28,6 @@
             background-color: #f8f9fa;
         }
 
-
-
         .auth-card {
             border: 0;
             border-radius: 10px;
@@ -80,6 +78,13 @@
         .navbar .dropdown-menu {
             min-width: 150px;
         }
+
+        /* Active page styling */
+        .nav-link.active {
+            color: #3f80ea !important;
+            font-weight: 600;
+            border-bottom: 2px solid #3f80ea;
+        }
     </style>
 </head>
 
@@ -89,44 +94,51 @@
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
             <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
                 style="background-color: #fff; top: 0; z-index: 1030;">
-
                 <div class="container-fluid">
-                    <!-- Brand -->
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
-                            style="height: 40px; border-radius: 5px;">
+                            style="height: 60px; border-radius: 5px;">
                     </a>
 
-                    <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
 
-                    <!-- Collapsible Nav -->
                     <div class="collapse navbar-collapse" id="mainNavbar">
-                        <!-- Left Side Navigation -->
                         <ul class="navbar-nav me-auto align-items-center">
                             @auth
-                                <!-- Sidebar Icon -->
                                 <li class="nav-item me-3">
                                     <i class="bi bi-justify fs-5"></i>
                                 </li>
 
+                                <!-- Dashboard (only show if user is not Employee or Manager) -->
+                                @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
+                                    <li class="nav-item me-3">
+                                        <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
+                                            href="/">
+                                            Dashboard
+                                        </a>
+                                    </li>
+                                @endunless
+
                                 <!-- Permissions Dropdown -->
                                 @canany(['create-role', 'edit-role', 'delete-role'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="permissionDropdown" role="button"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
+                                            href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
                                             Permissions
                                         </a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
-                                            <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
-                                                    Departments</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-types.index') }}">Manage Leave
-                                                    Types</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'roles.index' ? 'active' : '' }}"
+                                                    href="{{ route('roles.index') }}">Manage Roles</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.index' ? 'active' : '' }}"
+                                                    href="{{ route('users.index') }}">Manage Users</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'departments.index' ? 'active' : '' }}"
+                                                    href="{{ route('departments.index') }}">Manage Departments</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-types.index' ? 'active' : '' }}"
+                                                    href="{{ route('leave-types.index') }}">Manage Leave Types</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
@@ -135,26 +147,24 @@
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar'])) ? 'active' : '' }}"
+                                            href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
                                             Requested
                                         </a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
-                                            <!-- Leaves Section -->
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
-                                            <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave
-                                                    requests</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a
-                                                    leave</a></li>
-
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'counters.index' ? 'active' : '' }}"
+                                                    href="{{ route('counters.index') }}">Counters</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.index' ? 'active' : '' }}"
+                                                    href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
+                                                    href="{{ route('leave-requests.create') }}">Request a leave</a></li>
                                             <li>
                                                 <hr class="dropdown-divider">
                                             </li>
-
-                                            <!-- Overtime Section -->
                                             <li>
                                                 <h6 class="dropdown-header">OVERTIME</h6>
                                             </li>
@@ -164,29 +174,21 @@
                                     </li>
                                 @endcanany
 
-
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                            Calendars
-                                        </a>
-                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.calendar') }}">All
-                                                    Calendars</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Add
-                                                    Calendar</a></li>
-                                        </ul>
-                                    </li>
+                                    @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
+                                        'create-department', 'edit-department', 'delete-department'])
+                                        <li class="nav-item me-3">
+                                            <a class="nav-link {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
+                                                href="{{ route('leave-requests.calendar') }}">Calendars</a>
+                                        </li>
+                                    @endcanany
 
                                     <!-- New Request Button -->
-
-
                                     <li class="nav-item me-2">
                                         <a href="{{ route('leave-requests.create') }}"
-                                            class="btn btn-warning fw-semibold text-white rounded px-3 py-1"
+                                            class="btn btn-warning fw-semibold text-white rounded px-3 py-1 {{ Route::currentRouteName() === 'leave-requests.create' ? 'active' : '' }}"
                                             style="background: #F5811E">New Request</a>
                                     </li>
                                 @endcanany
@@ -194,10 +196,9 @@
                         </ul>
 
                         <!-- Right Side User Dropdown -->
+                        <!-- Right Side User Dropdown -->
                         <ul class="navbar-nav ms-auto align-items-center">
-
                             <!-- Notification Bell Dropdown -->
-
                             @if (!Auth::user()->hasRole('Employee'))
                             <li class="nav-item dropdown me-3">
                                 <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
@@ -210,56 +211,52 @@
                             </li>   
                             @endif
 
-
                             @guest
                                 @if (Route::has('login'))
                                     <li class="nav-item">
-                                        <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                        <a class="nav-link {{ Route::currentRouteName() === 'login' ? 'active' : '' }}"
+                                            href="{{ route('login') }}">{{ __('Login') }}</a>
                                     </li>
                                 @endif
                             @else
-                                <!-- User Dropdown -->
                                 <li class="nav-item dropdown">
-                                    <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
+                                    <a id="navbarDropdown"
+                                        class="nav-link dropdown-toggle d-flex align-items-center {{ Route::currentRouteName() === 'users.show' ? 'active' : '' }}"
                                         href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
-                                                style="width: 32px; height: 32px; object-fit: cover;">
+                                                style="width: 45px; height: 45px; object-fit: cover;">
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif
-
                                         <span class="d-none d-lg-inline">{{ Auth::user()->name }}</span>
                                     </a>
-
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('users.show', Auth::user()->id) }}">
-                                                <i class="bi bi-person-circle me-2"></i> View Profile
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('logout') }}"
-                                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                                <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
-                                            </a>
+                                    <ul class="dropdown-menu dropdown-menu-end card-1 card-2"
+                                        aria-labelledby="navbarDropdown">
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.show' ? 'active' : '' }}"
+                                                href="{{ route('users.show', Auth::user()->id) }}">
+                                                @if (Auth::user()->images)
+                                                    <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
+                                                        class="rounded-circle circle me-2"
+                                                    style="width: 25px; height: 25px; object-fit: cover;">@else<i
+                                                        class="bi bi-person-circle me-2 fs-5"></i>
+                                                @endif View Profile
+                                            </a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'logout' ? 'active' : '' }}"
+                                                href="{{ route('logout') }}"
+                                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
+                                                    class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}</a>
                                             <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                                class="d-none">
-                                                @csrf
-                                            </form>
+                                                class="d-none">@csrf</form>
                                         </li>
                                     </ul>
                                 </li>
                             @endguest
                         </ul>
-
                     </div>
                 </div>
             </nav>
-
-
         @endunless
 
         <main>
