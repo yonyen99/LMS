@@ -129,7 +129,7 @@
                                         </div>
                                     @endif
 
-                                    <div class="mb-3">
+                                    {{-- <div class="mb-3">
                                         <p class="mb-1 text-muted small">Profile Image</p>
                                         <p class="fw-medium">
                                             @if ($user->images)
@@ -141,7 +141,7 @@
                                                 <span class="text-muted">No image uploaded</span>
                                             @endif
                                         </p>
-                                    </div>
+                                    </div> --}}
 
                                     <div class="mb-3">
                                         <p class="mb-1 text-muted small">Account Created</p>
