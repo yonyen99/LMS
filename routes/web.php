@@ -37,6 +37,7 @@ Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::cl
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])
     ->name('notifications.update-status');
+    
 Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar'])
     ->name('leave-requests.calendar')
     ->middleware('auth');

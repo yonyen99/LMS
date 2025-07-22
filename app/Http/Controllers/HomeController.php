@@ -7,6 +7,7 @@ use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\User;
 use App\Models\Department;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -65,7 +66,29 @@ class HomeController extends Controller
             });
         }
 
-        $totalRequests = LeaveRequest::count();
+        $requests = 0;
+
+        if (Auth::check()) {
+            $user = Auth::user();
+
+            if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+                $requests = LeaveRequest::where('status', 'Requested')->count();
+
+            } elseif ($user->hasRole('Manager')) {
+                $managerDeptId = $user->department_id;
+
+                $requests = LeaveRequest::where('status', 'Requested')
+                    ->whereHas('user', fn($q) => $q->where('department_id', $managerDeptId))
+                    ->count();
+
+            } elseif ($user->hasRole('Employee')) {
+                $requests = LeaveRequest::where('status', 'Requested')
+                    ->where('user_id', $user->id)
+                    ->count();
+            }
+        }
+
+
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
@@ -109,7 +132,7 @@ class HomeController extends Controller
             'totalEmployees',
             'totalDepartments',
             'totalLeaves',
-            'totalRequests',
+            'requests',
             'totalApproved'
         ));
     }

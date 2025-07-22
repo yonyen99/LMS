@@ -177,19 +177,13 @@
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                            href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Calendars
-                                        </a>
-                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.calendar') }}">All Calendars</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.create') }}">Add Calendar</a></li>
-                                        </ul>
-                                    </li>
+                                    @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
+                                        'create-department', 'edit-department', 'delete-department'])
+                                        <li class="nav-item me-3">
+                                            <a class="nav-link {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
+                                                href="{{ route('leave-requests.calendar') }}">Calendars</a>
+                                        </li>
+                                    @endcanany
 
                                     <!-- New Request Button -->
                                     <li class="nav-item me-2">
@@ -206,15 +200,15 @@
                         <ul class="navbar-nav ms-auto align-items-center">
                             <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
-                                <li class="nav-item dropdown me-3">
-                                    <a class="nav-link position-relative {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
-                                        href="{{ route('notifications.index') }}" id="notificationLink">
-                                        <i class="bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
-                                        <span
-                                            class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">{{ $totalRequests }}<span
-                                                class="visually-hidden">unread notifications</span></span>
-                                    </a>
-                                </li>
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
+                                    <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
+                                    <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ $requests }}
+                                        <span class="visually-hidden">unread notifications</span>
+                                    </span>
+                                </a>
+                            </li>   
                             @endif
 
                             @guest

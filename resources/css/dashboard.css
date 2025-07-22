@@ -38,3 +38,7 @@
         .card-2{
             background: #ffffff;
         }
+        .dropdown-item:hover {
+    color: #3f80ea;
+    
+}
