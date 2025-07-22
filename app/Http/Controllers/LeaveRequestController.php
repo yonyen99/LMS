@@ -165,20 +165,27 @@ class LeaveRequestController extends Controller
     }
 
 
-    public function cancel($id)
+   /**
+     * Cancel the specified leave request.
+     */
+    public function cancel(Request $request, LeaveRequest $leaveRequest)
     {
-        $leaveRequest = LeaveRequest::findOrFail($id);
+        $this->authorize('cancel-request', $leaveRequest);
+        $leaveRequest->update([
+            'status' => 'Canceled',
+            'last_changed_at' => now(),
+        ]);
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request canceled successfully.');
+    }
 
-        $this->authorize('cancel', $leaveRequest);
-
-        if (strtolower($leaveRequest->status) === 'canceled') {
-            return redirect()->back()->with('status', 'This request is already canceled.');
-        }
-
-        $leaveRequest->status = 'canceled';
-        $leaveRequest->last_changed_at = now();
-        $leaveRequest->save();
-
-        return redirect()->route('leave-requests.index')->with('status', 'Leave request canceled successfully.');
+    /**
+     * Display the calendar view of leave requests.
+     */
+    public function calendar()
+    {
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', Auth::id())->get();
+        $leaveTypes = LeaveType::all();
+        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes'));
     }
 }
+        
