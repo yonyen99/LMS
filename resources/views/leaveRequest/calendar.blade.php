@@ -7,7 +7,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
                 <h2 class="fw-bold mb-0 text-primary fs-4 fs-md-3">Leave Calendar</h2>
                 @can('create-request')
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+                <button class="btn btn-primary btn-sm" onclick="showCreateModal()">
                     <i class="bi bi-plus-circle me-1"></i> <span class="d-none d-md-inline">New Request</span>
                 </button>
                 @endcan
@@ -17,12 +17,12 @@
             <div id="calendar" class="fc-responsive"></div>
 
             <!-- View Request Modal -->
-            <div class="modal fade" id="viewRequestModal" tabindex="-1" aria-labelledby="viewRequestModalLabel" aria-hidden="true">
+            <div class="modal" id="viewRequestModal" tabindex="-1" aria-labelledby="viewRequestModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white py-2 py-md-3">
                             <h5 class="modal-title fw-bold fs-6 fs-md-5">Leave Details</h5>
-                            <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-white m-0" onclick="hideModal('viewRequestModal')" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-2 p-md-3">
                             <div class="row g-2 g-md-3">
@@ -67,7 +67,7 @@
                                     </button>
                                 </form>
                             @endcan
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="hideModal('viewRequestModal')">
                                 <i class="bi bi-x me-1"></i> Close
                             </button>
                         </div>
@@ -76,12 +76,12 @@
             </div>
 
             <!-- Create Request Modal -->
-            <div class="modal fade" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
+            <div class="modal" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header bg-primary text-white py-2 py-md-3">
                             <h5 class="modal-title fw-bold fs-6 fs-md-5">New Request</h5>
-                            <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close btn-close-white m-0" onclick="hideModal('createRequestModal')" aria-label="Close"></button>
                         </div>
                         <div class="modal-body p-2 p-md-3">
                             <form id="createRequestForm" action="{{ route('leave-requests.store') }}" method="POST">
@@ -130,7 +130,7 @@
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 mt-3 justify-content-end">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideModal('createRequestModal')">
                                         <i class="bi bi-x me-1"></i> Cancel
                                     </button>
                                     <button type="submit" name="status" value="planned" class="btn btn-primary btn-sm">
@@ -152,9 +152,6 @@
 <!-- FullCalendar Resources -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-
-<!-- Bootstrap JS Bundle with Popper -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
     /* Base Calendar Styles */
@@ -243,6 +240,86 @@
         background-color: #e6f7ff !important;
     }
     
+    /* Enhanced Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1050;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(2px);
+    }
+    
+    .modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .modal-dialog {
+        max-width: 500px;
+        width: 90%;
+        margin: 0 auto;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+    }
+    
+    .modal.show .modal-dialog {
+        transform: translateY(0);
+    }
+    
+    .modal-content {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .modal-header {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .btn-close {
+        background: transparent;
+        border: none;
+        font-size: 1.25rem;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        cursor: pointer;
+    }
+    
+    .btn-close:hover {
+        opacity: 1;
+    }
+    
+    .btn-close-white {
+        filter: invert(1);
+    }
+    
+    /* Form Elements */
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.1rem;
+    }
+    
     /* Mobile Optimizations */
     @media (max-width: 576px) {
         #calendar {
@@ -255,33 +332,22 @@
             padding: 0.5rem;
         }
         
-        .fc-toolbar-chunk {
-            display: flex;
-            justify-content: center;
-            width: 100%;
+        .modal-dialog {
+            width: 95%;
         }
         
-        .fc-toolbar-title {
-            font-size: 0.9rem;
-            margin: 0;
+        .modal-body {
+            padding: 0.75rem;
         }
         
-        .fc-button {
-            padding: 0.2rem 0.4rem !important;
-            font-size: 0.7rem !important;
+        .form-control, .form-select {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
         
-        .fc-view-harness {
-            font-size: 0.7rem;
-        }
-        
-        .fc-event {
-            font-size: 0.6rem !important;
-            padding: 0.05rem 0.15rem !important;
-        }
-        
-        .fc-daygrid-event {
-            margin: 0.05rem 0 !important;
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
         }
     }
     
@@ -305,44 +371,86 @@
         }
     }
     
-    /* Modal Optimizations */
-    .modal-header {
-        padding: 0.75rem 1rem;
+    /* Animation for buttons */
+    .btn {
+        transition: all 0.2s ease;
+        transform: translateY(0);
     }
     
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn:active {
+        transform: translateY(0);
+    }
+    
+    /* Focus styles for better accessibility */
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Smooth scroll for modal content */
     .modal-body {
-        padding: 1rem;
-    }
-    
-    .modal-footer {
-        padding: 0.75rem 1rem;
-    }
-    
-    .form-label {
-        font-weight: 500;
-        margin-bottom: 0.1rem;
-    }
-    
-    /* Better spacing for mobile forms */
-    @media (max-width: 576px) {
-        .modal-body {
-            padding: 0.75rem;
-        }
-        
-        .form-control, .form-select {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-        
-        .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
+        max-height: 60vh;
+        overflow-y: auto;
+        scroll-behavior: smooth;
     }
 </style>
 
 <script>
+// Enhanced modal control with animations
+function showModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        document.body.style.overflow = 'hidden';
+        modal.style.display = 'flex';
+        
+        // Trigger reflow to enable animation
+        void modal.offsetWidth;
+        
+        modal.classList.add('show');
+    }
+}
+
+function hideModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('show');
+        
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+}
+
+function showCreateModal() {
+    showModal('createRequestModal');
+}
+
+// Close modals when clicking outside or pressing Escape
 document.addEventListener('DOMContentLoaded', function() {
+    // Click outside
+    document.addEventListener('click', function(event) {
+        if (event.target.classList.contains('modal')) {
+            hideModal(event.target.id);
+        }
+    });
+    
+    // Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                hideModal(openModal.id);
+            }
+        }
+    });
+    
     // Initialize calendar only if element exists
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -393,12 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('start_date').value = info.dateStr;
                 document.getElementById('end_date').value = info.dateStr;
                 
-                // Show modal safely
-                var modalEl = document.getElementById('createRequestModal');
-                if (modalEl) {
-                    var modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                }
+                // Show modal
+                showModal('createRequestModal');
             @endcan
         },
         eventClick: function(info) {
@@ -411,11 +515,9 @@ document.addEventListener('DOMContentLoaded', function() {
             endDate.setDate(endDate.getDate() - 1); // Adjust for inclusive end date
             
             // Update modal content
-            document.getElementById('requestId').textContent = event.id;
             document.getElementById('requestType').textContent = event.extendedProps.type;
             document.getElementById('requestStart').textContent = startDate.toLocaleDateString() + ' (' + event.extendedProps.startTime + ')';
             document.getElementById('requestEnd').textContent = endDate.toLocaleDateString() + ' (' + event.extendedProps.endTime + ')';
-            document.getElementById('requestDuration').textContent = event.extendedProps.duration;
             document.getElementById('requestReason').textContent = event.extendedProps.reason;
             
             // Status badge
@@ -434,11 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
             @endcan
             
             // Show modal
-            var modalEl = document.getElementById('viewRequestModal');
-            if (modalEl) {
-                var modal = new bootstrap.Modal(modalEl);
-                modal.show();
-            }
+            showModal('viewRequestModal');
             
             info.jsEvent.preventDefault();
         },
@@ -450,17 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
         aspectRatio: window.innerWidth < 576 ? 1 : 1.8,
         nowIndicator: true,
         dayMaxEvents: window.innerWidth < 576 ? 1 : 2,
-        eventDidMount: function(info) {
-            // Add tooltip if Bootstrap is available and reason exists
-            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip && info.event.extendedProps.reason) {
-                new bootstrap.Tooltip(info.el, {
-                    title: info.event.extendedProps.reason,
-                    placement: 'top',
-                    trigger: 'hover',
-                    container: 'body'
-                });
-            }
-        },
         windowResize: function(view) {
             calendar.updateSize();
             calendar.setOption('dayMaxEvents', window.innerWidth < 576 ? 1 : 2);
@@ -478,14 +565,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!endDateField.value || new Date(endDateField.value) < new Date(this.value)) {
                 endDateField.value = this.value;
             }
-        });
-    }
-    
-    // Initialize tooltips if Bootstrap is available
-    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     }
 });
