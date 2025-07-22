@@ -243,7 +243,7 @@
 
         @endunless
 
-        <main class="py-4">
+        <main>
             <div class="p-4">
                 <div class="row justify-content-center ">
                     <div class="col-md-12">
