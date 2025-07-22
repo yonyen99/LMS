@@ -25,6 +25,6 @@ class LeaveRequestPolicy
 
     public function updateStatus(User $user, LeaveRequest $leaveRequest)
     {
-        return in_array($user->role, ['Super Admin', 'HR Manager', 'Department Head', 'Team Lead']);
+        return in_array($user->role, ['Super Admin', 'HR', 'Manager', 'Department Head', 'Team Lead']);
     }
 }

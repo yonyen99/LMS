@@ -164,10 +164,9 @@
                     </div>
                 </div>
             @endcanany
-            @if (auth()->user()->hasRole('Employee') &&
-                    !auth()->user()->hasRole('Admin') &&
-                    !auth()->user()->hasRole('Super Admin') &&
-                    !auth()->user()->hasRole('Manager Department'))
+            @if ((auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
+                !auth()->user()->hasRole('Admin') &&
+                !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
                     <div class="card card-1 p-3 mb-4">
                         <form method="GET" action="{{ route('leave-requests.index') }}">
