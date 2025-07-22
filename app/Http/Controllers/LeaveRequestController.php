@@ -13,7 +13,8 @@ class LeaveRequestController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = LeaveRequest::with(['leaveType', 'user'])->latest();
+        $query = LeaveRequest::with('leaveType')
+        ->where('user_id', auth()->id());
 
         if ($request->filled('statuses')) {
             // Normalize to lowercase if needed
@@ -32,12 +33,16 @@ class LeaveRequestController extends Controller
             });
         }
 
-        if ($request->filled('status_request')) {
-            // Map 'Pending' => 'requested', 'Approved' => 'accepted', etc
-            $statusMap = ['Pending' => 'requested', 'Approved' => 'accepted', 'Rejected' => 'rejected'];
-            if (isset($statusMap[$request->status_request])) {
-                $query->where('status', $statusMap[$request->status_request]);
-            }
+        $statusRequestOptions = [
+            'Planned',
+            'Accepted',
+            'Requested',
+            'Rejected',
+            'Cancellation',
+            'Canceled',
+        ];
+        if ($request->filled('status_request') && in_array($request->status_request, $statusRequestOptions)) {
+            $query->where('status', $request->status_request);
         }
 
         if ($request->filled('search')) {
@@ -63,6 +68,13 @@ class LeaveRequestController extends Controller
                 });
             });
         }
+        $sortOrder = $request->input('sort_order', 'new');
+
+       if ($sortOrder === 'new') {
+            $query->orderBy('id', 'desc');  // newest = highest ID first
+        } else {
+            $query->orderBy('id', 'asc');   // oldest = lowest ID first
+        }
 
         $statusColors = [
             'Planned'      => ['text' => '#ffffff', 'bg' => '#A59F9F'],
@@ -72,9 +84,12 @@ class LeaveRequestController extends Controller
             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
             'Canceled'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
+        
+        $leaveTypes = LeaveType::orderBy('name')->pluck('name'); 
         $leaveRequests = $query->paginate(10);
 
-        return view('leaveRequest.index', compact('leaveRequests', 'statusColors'));
+        return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
+
                 
     }
 
