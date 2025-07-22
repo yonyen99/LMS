@@ -192,9 +192,8 @@
                         <ul class="navbar-nav ms-auto align-items-center">
 
                             <!-- Notification Bell Dropdown -->
-
-
                             
+                            @if (!Auth::user()->hasRole('Employee'))
                             <li class="nav-item dropdown me-3">
                                 <a class="nav-link position-relative" href="#" id="notificationDropdown"
                                     role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -206,41 +205,9 @@
                                         <span class="visually-hidden">unread messages</span>
                                     </span>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown"
-                                    style="width: 300px;">
-                                    <li class="dropdown-header fw-bold text-center">Notifications</li>
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-
-                                    <!-- Example Notifications -->
-                                    <li>
-                                        <a class="dropdown-item small text-wrap" href="#">
-                                            🔔 New comment on your post
-                                            <div class="small text-muted">2 mins ago</div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item small text-wrap" href="#">
-                                            ✅ Your profile was updated
-                                            <div class="small text-muted">10 mins ago</div>
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="dropdown-item small text-wrap" href="#">
-                                            📦 Order #1234 has shipped
-                                            <div class="small text-muted">1 hour ago</div>
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <hr class="dropdown-divider">
-                                    </li>
-                                    <li class="text-center">
-                                        <a href="#" class="dropdown-item text-primary">View all</a>
-                                    </li>
-                                </ul>
-                            </li>
+                            </li>   
+                            @endif
+                            
 
                             @guest
                                 @if (Route::has('login'))
