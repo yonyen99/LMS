@@ -178,13 +178,6 @@
             @if ((auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
                 !auth()->user()->hasRole('Admin') &&
                 !auth()->user()->hasRole('Super Admin'))
-                <div class="m-2">
-                    <div class="card card-1 p-3 mb-4">
-                        <form method="GET" action="{{ route('leave-requests.index') }}">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
-                                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
-
             <div class="m-2">
                 <div class="card card-1 p-3 mb-4">
                     <form method="GET" action="{{ route('leave-requests.index') }}">
