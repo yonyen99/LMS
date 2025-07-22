@@ -12,7 +12,6 @@ class NotificationController extends Controller
     {
         $unreadCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
 
-        // Allowed statuses to show in the notification view
         $statusRequestOptions = ['Accepted', 'Requested', 'Rejected'];
         $statusColors = [
             'Accepted'     => ['text' => '#ffffff', 'bg' => '#447F44'],
@@ -20,24 +19,36 @@ class NotificationController extends Controller
             'Rejected'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
 
-        // Base query: only show allowed statuses
+
         $query = LeaveRequest::with(['user', 'leaveType'])
             ->whereIn('status', $statusRequestOptions);
 
-        // Filter by status_request (from dropdown)
+        if (auth()->user()->hasRole('Manager')) {
+            $departmentId = auth()->user()->department_id;
+
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        // ✅ Optional filters from form
+        if ($request->filled('status_request')) {
+            $query->where('status', $request->status_request);
+        }
+        
         if ($request->filled('status_request')) {
             $query->where('status', $request->status_request);
         }
 
-        // Optional: filter by leave_type_id if used
+
         if ($request->filled('leave_type_id')) {
             $query->where('leave_type_id', $request->leave_type_id);
         }
 
-        // Sort newest first
+
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        // All leave types for filter dropdown
+
         $leaveTypes = LeaveType::all();
 
         return view('notifications.index', compact(
@@ -49,6 +60,7 @@ class NotificationController extends Controller
         ));
     }
 
+    
     public function updateStatus(Request $request, $id)
     {
         $request->validate([

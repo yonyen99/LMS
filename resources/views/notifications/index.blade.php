@@ -155,7 +155,6 @@
 
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown{{ $request->id }}">
                                     @if(auth()->check())
-                                        {{-- <li><hr class="dropdown-divider"></li> --}}
                                         <li class="dropdown-header">Change Status</li>
                                         @foreach(['Accepted', 'Rejected', 'Cancellation', 'Canceled'] as $newStatus)
                                             <li>
