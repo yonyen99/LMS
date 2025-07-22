@@ -30,20 +30,29 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrapFive();
         View::composer('*', function ($view) {
-            $statusRequestOptions = ['Planned', 'Accepted', 'Requested', 'Rejected', 'Cancellation', 'Canceled'];
-            $view->with('statusRequestOptions', $statusRequestOptions);
+            $requests = 0;
+
+            if (Auth::check()) {
+                $user = Auth::user();
+
+                if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+                    $requests = LeaveRequest::where('status', 'Requested')->count();
+
+                } elseif ($user->hasRole('Manager')) {
+                    $managerDeptId = $user->department_id;
+
+                    $requests = LeaveRequest::where('status', 'Requested')
+                        ->whereHas('user', fn($q) => $q->where('department_id', $managerDeptId))
+                        ->count();
+
+                } elseif ($user->hasRole('Employee')) {
+                    $requests = LeaveRequest::where('status', 'Requested')
+                        ->where('user_id', $user->id)
+                        ->count();
+                }
+            }
+
+            $view->with('requests', $requests);
         });
-
-        View::composer('*', function ($view) {
-        $totalRequests = 0;
-
-        if (Auth::check() && !Auth::user()->hasRole('Employee')) {
-            $totalRequests = LeaveRequest::where('status', 'Requested')
-            ->where('user_id', '!=', Auth::id())
-            ->count();
-        }
-
-        $view->with('totalRequests', $totalRequests);
-    });
     }
 }

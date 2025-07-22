@@ -203,7 +203,7 @@
                                 <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
                                     <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
                                     <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
-                                            {{ $totalRequests }}
+                                            {{ $requests }}
                                         <span class="visually-hidden">unread notifications</span>
                                     </span>
                                 </a>
