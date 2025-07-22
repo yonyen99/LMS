@@ -96,7 +96,7 @@
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
                             style="height: 40px; border-radius: 5px;">
                     </a>
-                    
+
                     <!-- Toggler -->
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
                         aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,15 +123,17 @@
                                         <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage Departments</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-types.index') }}">Manage Leave Types</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
+                                                    Departments</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-types.index') }}">Manage Leave
+                                                    Types</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
 
                                 <!-- Requested Dropdown -->
-                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request', 'delete-request', 'view-request',
-                                    'cancel-request'])
+                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
+                                    'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="requestDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -145,8 +147,7 @@
                                 @endcanany
 
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request',
-                                    'cancel-request'])
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
@@ -162,14 +163,68 @@
 
 
                                     <li class="nav-item me-2">
-                                        <a href="{{ route('leave-requests.create') }}" class="btn btn-warning fw-semibold text-white rounded px-3 py-1" style="background: #F5811E">New Request</a>
+                                        <a href="{{ route('leave-requests.create') }}"
+                                            class="btn btn-warning fw-semibold text-white rounded px-3 py-1"
+                                            style="background: #F5811E">New Request</a>
                                     </li>
                                 @endcanany
                             @endauth
                         </ul>
 
                         <!-- Right Side User Dropdown -->
-                        <ul class="navbar-nav ms-auto">
+                        <ul class="navbar-nav ms-auto align-items-center">
+
+                            <!-- Notification Bell Dropdown -->
+
+
+                            
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link position-relative" href="#" id="notificationDropdown"
+                                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-bell-fill fs-5"></i>
+                                    <!-- Optional badge for unread notifications -->
+                                    <span
+                                        class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
+                                        3
+                                        <span class="visually-hidden">unread messages</span>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown"
+                                    style="width: 300px;">
+                                    <li class="dropdown-header fw-bold text-center">Notifications</li>
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+
+                                    <!-- Example Notifications -->
+                                    <li>
+                                        <a class="dropdown-item small text-wrap" href="#">
+                                            🔔 New comment on your post
+                                            <div class="small text-muted">2 mins ago</div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item small text-wrap" href="#">
+                                            ✅ Your profile was updated
+                                            <div class="small text-muted">10 mins ago</div>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item small text-wrap" href="#">
+                                            📦 Order #1234 has shipped
+                                            <div class="small text-muted">1 hour ago</div>
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <hr class="dropdown-divider">
+                                    </li>
+                                    <li class="text-center">
+                                        <a href="#" class="dropdown-item text-primary">View all</a>
+                                    </li>
+                                </ul>
+                            </li>
+
                             @guest
                                 @if (Route::has('login'))
                                     <li class="nav-item">
@@ -177,10 +232,10 @@
                                     </li>
                                 @endif
                             @else
+                                <!-- User Dropdown -->
                                 <li class="nav-item dropdown">
                                     <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center"
-                                        href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true"
-                                        aria-expanded="false">
+                                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
@@ -190,25 +245,30 @@
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif
 
-                                        {{ Auth::user()->name }}
+                                        <span class="d-none d-lg-inline">{{ Auth::user()->name }}</span>
                                     </a>
-                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                        <a href="{{ route('users.show', Auth::user()->id) }}" class="dropdown-item">
-                                            <i class="bi bi-person-circle me-2"></i> View Profile
-                                        </a>
-                                        <a class="dropdown-item" href="{{ route('logout') }}"
-                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                            <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
-                                        </a>
-                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
-                                            class="d-none">
-                                            @csrf
-                                        </form>
-                                    </div>
-                                </li>
 
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('users.show', Auth::user()->id) }}">
+                                                <i class="bi bi-person-circle me-2"></i> View Profile
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('logout') }}"
+                                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                                <i class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}
+                                            </a>
+                                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                                class="d-none">
+                                                @csrf
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
                             @endguest
                         </ul>
+
                     </div>
                 </div>
             </nav>
