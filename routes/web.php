@@ -38,6 +38,12 @@ Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar
     ->name('leave-requests.calendar')
     ->middleware('auth');
 
+
+// Add route for Counters page
+Route::get('/counters', [CounterController::class, 'index'])
+    ->name('counters.index')
+    ->middleware('auth');
+
 Route::resources([
     'roles' => RoleController::class,
     'users' => UserController::class,

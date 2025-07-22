@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
+use App\Models\LeaveType;
+
 class HomeController extends Controller
 {
     /**
@@ -17,39 +19,58 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
-        $query = LeaveRequest::with(['leaveType', 'user'])->latest();
+        $query = LeaveRequest::with('leaveType')
+        ->where('user_id', auth()->id());
 
+        // Filters...
         if ($request->filled('statuses')) {
-            // Normalize to lowercase if needed
-            $statuses = array_map('strtolower', $request->statuses);
-            $query->whereIn('status', $statuses);
+            $query->whereIn('status', $request->statuses);
         }
 
-        if ($request->filled('show_request') && $request->show_request == 'mine') {
+        if ($request->filled('show_request') && $request->show_request === 'mine') {
             $query->where('user_id', auth()->id());
         }
 
         if ($request->filled('type')) {
-            // Assuming leaveType->name matches type values
             $query->whereHas('leaveType', function ($q) use ($request) {
                 $q->where('name', $request->type);
             });
         }
 
-        if ($request->filled('status_request')) {
-            // Map 'Pending' => 'requested', 'Approved' => 'accepted', etc
-            $statusMap = ['Pending' => 'requested', 'Approved' => 'accepted', 'Rejected' => 'rejected'];
-            if (isset($statusMap[$request->status_request])) {
-                $query->where('status', $statusMap[$request->status_request]);
-            }
+        $statusRequestOptions = [
+            'Planned', 'Accepted', 'Requested', 'Rejected', 'Cancellation', 'Canceled',
+        ];
+
+        if ($request->filled('status_request') && in_array($request->status_request, $statusRequestOptions)) {
+            $query->where('status', $request->status_request);
         }
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('reason', 'like', "%{$search}%");
-            // Add more searchable fields if needed
+
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                    ->orWhere('duration', 'like', "%{$search}%")
+                    ->orWhere('start_date', 'like', "%{$search}%")
+                    ->orWhere('end_date', 'like', "%{$search}%")
+                    ->orWhere('start_time', 'like', "%{$search}%")
+                    ->orWhere('end_time', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('leaveType', fn($sub) => $sub->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('user', fn($sub) => $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%"));
+            });
         }
 
+        // Sorting
+        $sortOrder = $request->input('sort_order', 'new');
+        if ($sortOrder === 'new') {
+            $query->orderBy('id', 'desc');  // newest = highest ID first
+        } else {
+            $query->orderBy('id', 'asc');   // oldest = lowest ID first
+        }
+
+        // Badge colors
         $statusColors = [
             'Planned'      => ['text' => '#ffffff', 'bg' => '#A59F9F'],
             'Accepted'     => ['text' => '#ffffff', 'bg' => '#447F44'],
@@ -58,9 +79,22 @@ class HomeController extends Controller
             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
             'Canceled'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
-        $leaveRequests = $query->paginate(10);
 
-        return view('home', compact('leaveRequests', 'statusColors'));
+        // Leave types for dropdown
+        $leaveTypes = LeaveType::orderBy('name')->pluck('name');
+
+        // Pagination size control
+        $perPage = $request->input('per_page', 10);
+        $leaveRequests = $query->paginate($perPage);
+
+        return view('home', compact(
+            'leaveRequests',
+            'statusColors',
+            'leaveTypes',
+            'statusRequestOptions'
+        ));
     }
+
+
 
 }
