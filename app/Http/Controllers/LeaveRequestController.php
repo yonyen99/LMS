@@ -13,7 +13,8 @@ class LeaveRequestController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = LeaveRequest::with(['leaveType', 'user'])->latest();
+        $query = LeaveRequest::with('leaveType')
+        ->where('user_id', auth()->id());
 
         if ($request->filled('statuses')) {
             // Normalize to lowercase if needed

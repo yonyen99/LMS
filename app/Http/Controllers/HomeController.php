@@ -19,7 +19,8 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
-        $query = LeaveRequest::with(['leaveType', 'user']);
+        $query = LeaveRequest::with('leaveType')
+        ->where('user_id', auth()->id());
 
         // Filters...
         if ($request->filled('statuses')) {
