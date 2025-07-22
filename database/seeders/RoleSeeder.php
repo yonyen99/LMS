@@ -16,7 +16,7 @@ class RoleSeeder extends Seeder
         $superAdmin = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
         $admin = Role::create(['name' => 'Admin', 'guard_name' => 'web']);
         $hr = Role::create(['name' => 'HR', 'guard_name' => 'web']);
-        $departmentManager = Role::create(['name' => 'Department Manager', 'guard_name' => 'web']);
+        $departmentManager = Role::create(['name' => 'Manager', 'guard_name' => 'web']);
         $employee = Role::create(['name' => 'Employee', 'guard_name' => 'web']);
 
         // Assign all permissions to Super Admin
