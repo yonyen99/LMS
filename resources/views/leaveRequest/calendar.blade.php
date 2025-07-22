@@ -1,192 +1,493 @@
 @extends('layouts.app')
 
-   @section('content')
-   <div class="m-2">
-       <div class="card p-3 mb-4">
-           <h2 class="fw-bold mb-4">Leave Calendar</h2>
+@section('content')
+<div class="container-fluid px-0 px-md-2">
+    <div class="card shadow-sm rounded-lg">
+        <div class="card-body p-2 p-md-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
+                <h2 class="fw-bold mb-0 text-primary fs-4 fs-md-3">Leave Calendar</h2>
+                @can('create-request')
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+                    <i class="bi bi-plus-circle me-1"></i> <span class="d-none d-md-inline">New Request</span>
+                </button>
+                @endcan
+            </div>
 
-           <!-- Calendar Container -->
-           <div id="calendar"></div>
+            <!-- Calendar Container -->
+            <div id="calendar" class="fc-responsive"></div>
 
-           <!-- Modal for Viewing Leave Request -->
-           <div class="modal fade" id="viewRequestModal" tabindex="-1" aria-labelledby="viewRequestModalLabel" aria-hidden="true">
-               <div class="modal-dialog">
-                   <div class="modal-content">
-                       <div class="modal-header">
-                           <h5 class="modal-title" id="viewRequestModalLabel">Leave Request Details</h5>
-                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                       </div>
-                       <div class="modal-body">
-                           <p><strong>ID:</strong> <span id="requestId"></span></p>
-                           <p><strong>Type:</strong> <span id="requestType"></span></p>
-                           <p><strong>Start Date:</strong> <span id="requestStart"></span></p>
-                           <p><strong>End Date:</strong> <span id="requestEnd"></span></p>
-                           <p><strong>Duration:</strong> <span id="requestDuration"></span></p>
-                           <p><strong>Reason:</strong> <span id="requestReason"></span></p>
-                           <p><strong>Status:</strong> <span id="requestStatus"></span></p>
-                           <p><strong>Requested:</strong> <span id="requestRequested"></span></p>
-                           <p><strong>Last Changed:</strong> <span id="requestLastChanged"></span></p>
-                       </div>
-                       <div class="modal-footer">
-                           @can('cancel-request')
-                               <form id="cancelRequestForm" method="POST" onsubmit="return confirm('Are you sure you want to cancel this request?');">
-                                   @csrf
-                                   <button type="submit" class="btn btn-danger btn-sm">
-                                       <i class="bi bi-x-circle"></i> Cancel Request
-                                   </button>
-                               </form>
-                           @endcan
-                           <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
-                               <i class="bi bi-x"></i> Close
-                           </button>
-                       </div>
-                   </div>
-               </div>
-           </div>
+            <!-- View Request Modal -->
+            <div class="modal fade" id="viewRequestModal" tabindex="-1" aria-labelledby="viewRequestModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white py-2 py-md-3">
+                            <h5 class="modal-title fw-bold fs-6 fs-md-5">Leave Details</h5>
+                            <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-2 p-md-3">
+                            <div class="row g-2 g-md-3">
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Type</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="requestType"></p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Status</label>
+                                        <p class="mb-0"><span id="requestStatus" class="badge rounded-pill fs-6 fs-md-5"></span></p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Start</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="requestStart"></p>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">End</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="requestEnd"></p>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Reason</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="requestReason"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer py-2 py-md-3">
+                            @can('cancel-request')
+                                <form id="cancelRequestForm" method="POST" onsubmit="return confirm('Cancel this request?');">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </button>
+                                </form>
+                            @endcan
+                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                                <i class="bi bi-x me-1"></i> Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-           <!-- Modal for Creating New Leave Request -->
-           <div class="modal fade" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
-               <div class="modal-dialog">
-                   <div class="modal-content">
-                       <div class="modal-header">
-                           <h5 class="modal-title" id="createRequestModalLabel">New Leave Request</h5>
-                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                       </div>
-                       <div class="modal-body">
-                           <form id="createRequestForm" action="{{ route('leave-requests.store') }}" method="POST">
-                               @csrf
-                               <div class="mb-3">
-                                   <label for="leave_type_id" class="form-label">Leave Type</label>
-                                   <select name="leave_type_id" id="leave_type_id" class="form-select" required>
-                                       <option value="">Select leave type</option>
-                                       @foreach($leaveTypes as $leaveType)
-                                           <option value="{{ $leaveType->id }}">{{ $leaveType->name }}</option>
-                                       @endforeach
-                                   </select>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="start_date" class="form-label">Start Date</label>
-                                   <input type="date" name="start_date" id="start_date" class="form-control" required>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="end_date" class="form-label">End Date</label>
-                                   <input type="date" name="end_date" id="end_date" class="form-control" required>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="duration" class="form-label">Duration</label>
-                                   <input type="text" name="duration" id="duration" class="form-control" placeholder="e.g. 1.5 days" required>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="start_time" class="form-label">Start Time</label>
-                                   <select name="start_time" id="start_time" class="form-select" required>
-                                       <option value="">Select start time</option>
-                                       <option value="morning">Morning</option>
-                                       <option value="afternoon">Afternoon</option>
-                                   </select>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="end_time" class="form-label">End Time</label>
-                                   <select name="end_time" id="end_time" class="form-select" required>
-                                       <option value="">Select end time</option>
-                                       <option value="morning">Morning</option>
-                                       <option value="afternoon">Afternoon</option>
-                                   </select>
-                               </div>
-                               <div class="mb-3">
-                                   <label for="reason" class="form-label">Reason</label>
-                                   <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="Enter reason"></textarea>
-                               </div>
-                               <div class="d-flex gap-2">
-                                   <button type="submit" name="status" value="planned" class="btn btn-primary btn-sm">
-                                       <i class="bi bi-calendar2"></i> Planned
-                                   </button>
-                                   <button type="submit" name="status" value="requested" class="btn btn-info btn-sm text-white">
-                                       <i class="bi bi-check2-circle"></i> Requested
-                                   </button>
-                               </div>
-                           </form>
-                       </div>
-                   </div>
-               </div>
-           </div>
-       </div>
-   </div>
+            <!-- Create Request Modal -->
+            <div class="modal fade" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white py-2 py-md-3">
+                            <h5 class="modal-title fw-bold fs-6 fs-md-5">New Request</h5>
+                            <button type="button" class="btn-close btn-close-white m-0" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-2 p-md-3">
+                            <form id="createRequestForm" action="{{ route('leave-requests.store') }}" method="POST">
+                                @csrf
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-12 col-md-6">
+                                        <label for="leave_type_id" class="form-label small mb-0">Leave Type</label>
+                                        <select name="leave_type_id" id="leave_type_id" class="form-select form-select-sm" required>
+                                            <option value="">Select type</option>
+                                            @foreach($leaveTypes as $leaveType)
+                                                <option value="{{ $leaveType->id }}">{{ $leaveType->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="duration" class="form-label small mb-0">Duration</label>
+                                        <input type="text" name="duration" id="duration" class="form-control form-control-sm" placeholder="1.5 days" required>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="start_date" class="form-label small mb-0">Start Date</label>
+                                        <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="start_time" class="form-label small mb-0">Start Time</label>
+                                        <select name="start_time" id="start_time" class="form-select form-select-sm" required>
+                                            <option value="">Select time</option>
+                                            <option value="morning">Morning</option>
+                                            <option value="afternoon">Afternoon</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="end_date" class="form-label small mb-0">End Date</label>
+                                        <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="end_time" class="form-label small mb-0">End Time</label>
+                                        <select name="end_time" id="end_time" class="form-select form-select-sm" required>
+                                            <option value="">Select time</option>
+                                            <option value="morning">Morning</option>
+                                            <option value="afternoon">Afternoon</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="reason" class="form-label small mb-0">Reason</label>
+                                        <textarea name="reason" id="reason" class="form-control form-control-sm" rows="2" placeholder="Brief reason"></textarea>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 mt-3 justify-content-end">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                                        <i class="bi bi-x me-1"></i> Cancel
+                                    </button>
+                                    <button type="submit" name="status" value="planned" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-calendar2 me-1"></i> Plan
+                                    </button>
+                                    <button type="submit" name="status" value="requested" class="btn btn-success btn-sm">
+                                        <i class="bi bi-check2 me-1"></i> Submit
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-   <!-- FullCalendar CSS -->
-   <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-   <!-- FullCalendar JS -->
-   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<!-- FullCalendar Resources -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 
-   <script>
-   document.addEventListener('DOMContentLoaded', function() {
-       var calendarEl = document.getElementById('calendar');
-       var calendar = new FullCalendar.Calendar(calendarEl, {
-           initialView: 'dayGridMonth',
-           headerToolbar: {
-               left: 'prev,next today',
-               center: 'title',
-               right: 'dayGridMonth,timeGridWeek,timeGridDay'
-           },
-           events: [
-               @foreach($leaveRequests as $request)
-               {
-                   title: "{{ optional($request->leaveType)->name ?? 'Leave' }} ({{ ucfirst($request->status) }})",
-                   start: "{{ $request->start_date }}",
-                   end: "{{ \Carbon\Carbon::parse($request->end_date)->addDay() }}", // Add 1 day to include end date
-                   id: "{{ $request->id }}",
-                   color: @php
-                       $statusColors = [
-                           'Planned' => '#A59F9F',
-                           'Accepted' => '#447F44',
-                           'Requested' => '#FC9A1D',
-                           'Rejected' => '#F80300',
-                           'Cancellation' => '#F80300',
-                           'Canceled' => '#F80300',
-                       ];
-                       $status = ucfirst(strtolower($request->status)); // Normalize status case
-                       echo "'" . ($statusColors[$status] ?? '#e0e0e0') . "'"; // Fallback color
-                   @endphp
-               },
-               @endforeach
-           ],
-           dateClick: function(info) {
-               @can('create-request')
-                   // Open create request modal with pre-filled date
-                   document.getElementById('start_date').value = info.dateStr;
-                   document.getElementById('end_date').value = info.dateStr;
-                   new bootstrap.Modal(document.getElementById('createRequestModal')).show();
-               @endcan
-           },
-           eventClick: function(info) {
-               // Fetch request details via AJAX or pre-loaded data
-               var request = @json($leaveRequests).find(r => r.id == info.event.id);
-               if (request) {
-                   document.getElementById('requestId').textContent = request.id;
-                   document.getElementById('requestType').textContent = request.leave_type?.name ?? '-';
-                   document.getElementById('requestStart').textContent = request.start_date + ' (' + request.start_time + ')';
-                   document.getElementById('requestEnd').textContent = request.end_date + ' (' + request.end_time + ')';
-                   document.getElementById('requestDuration').textContent = request.duration;
-                   document.getElementById('requestReason').textContent = request.reason ?? '-';
-                   document.getElementById('requestStatus').textContent = request.status;
-                   document.getElementById('requestRequested').textContent = request.requested_at ?? '-';
-                   document.getElementById('requestLastChanged').textContent = request.last_changed_at ?? '-';
-                   @can('cancel-request')
-                       document.getElementById('cancelRequestForm').action = "{{ route('leave-requests.cancel', ':id') }}".replace(':id', request.id);
-                   @endcan
-                   new bootstrap.Modal(document.getElementById('viewRequestModal')).show();
-               }
-           },
-           editable: false,
-           selectable: true,
-           selectHelper: true,
-           eventTimeFormat: {
-               hour: 'numeric',
-               minute: '2-digit',
-               meridiem: 'short'
-           }
-       });
+<!-- Bootstrap JS Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-       calendar.render();
-   });
-   </script>
-   @endsection
+<style>
+    /* Base Calendar Styles */
+    #calendar {
+        min-height: 500px;
+        background-color: #fff;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    /* Calendar Header */
+    .fc-header-toolbar {
+        padding: 0.5rem;
+        margin-bottom: 0.25rem !important;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    /* Calendar Buttons */
+    .fc-button {
+        background-color: #fff !important;
+        color: #2c3e50 !important;
+        border: 1px solid #dee2e6 !important;
+        font-weight: 500 !important;
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .fc-button-active {
+        background-color: #e9ecef !important;
+    }
+    
+    /* Calendar Events */
+    .fc-event {
+        border-radius: 0.2rem !important;
+        padding: 0.1rem 0.25rem !important;
+        font-size: 0.7rem !important;
+        border: none !important;
+        margin: 0.1rem 0 !important;
+    }
+    
+    .fc-event-title {
+        font-weight: 500 !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    /* Status Badges */
+    .badge {
+        padding: 0.3em 0.6em;
+        font-size: 0.75em;
+        font-weight: 600;
+    }
+    
+    .badge-planned { background-color: #6c757d; }
+    .badge-accepted { background-color: #28a745; }
+    .badge-requested { background-color: #fd7e14; }
+    .badge-rejected,
+    .badge-cancellation,
+    .badge-canceled { background-color: #dc3545; }
+    
+    /* Day Headers */
+    .fc-col-header-cell {
+        background-color: #f8f9fa;
+        font-size: 0.7rem;
+    }
+    
+    .fc-col-header-cell .fc-scrollgrid-sync-inner {
+        padding: 0.25rem;
+    }
+    
+    /* Day Cells */
+    .fc-daygrid-day {
+        padding: 0.1rem !important;
+    }
+    
+    /* Today Highlight */
+    .fc-day-today {
+        background-color: #e6f7ff !important;
+    }
+    
+    /* Mobile Optimizations */
+    @media (max-width: 576px) {
+        #calendar {
+            min-height: 350px;
+        }
+        
+        .fc-header-toolbar {
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 0.5rem;
+        }
+        
+        .fc-toolbar-chunk {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        .fc-button {
+            padding: 0.2rem 0.4rem !important;
+            font-size: 0.7rem !important;
+        }
+        
+        .fc-view-harness {
+            font-size: 0.7rem;
+        }
+        
+        .fc-event {
+            font-size: 0.6rem !important;
+            padding: 0.05rem 0.15rem !important;
+        }
+        
+        .fc-daygrid-event {
+            margin: 0.05rem 0 !important;
+        }
+    }
+    
+    /* Tablet Optimizations */
+    @media (min-width: 577px) and (max-width: 768px) {
+        #calendar {
+            min-height: 450px;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 1.1rem;
+        }
+        
+        .fc-button {
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .fc-event {
+            font-size: 0.75rem !important;
+        }
+    }
+    
+    /* Modal Optimizations */
+    .modal-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-footer {
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.1rem;
+    }
+    
+    /* Better spacing for mobile forms */
+    @media (max-width: 576px) {
+        .modal-body {
+            padding: 0.75rem;
+        }
+        
+        .form-control, .form-select {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize calendar only if element exists
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: [
+            @foreach($leaveRequests as $request)
+            {
+                title: "{{ optional($request->leaveType)->name ?? 'Leave' }} ({{ ucfirst($request->status) }})",
+                start: "{{ $request->start_date }}",
+                end: "{{ \Carbon\Carbon::parse($request->end_date)->addDay() }}",
+                id: "{{ $request->id }}",
+                extendedProps: {
+                    type: "{{ optional($request->leaveType)->name ?? '-' }}",
+                    startTime: "{{ $request->start_time }}",
+                    endTime: "{{ $request->end_time }}",
+                    duration: "{{ $request->duration }}",
+                    reason: "{{ $request->reason ?? '-' }}",
+                    status: "{{ $request->status }}",
+                    requestedAt: "{{ $request->requested_at ? $request->requested_at->format('M j, Y g:i A') : '-' }}",
+                    lastChangedAt: "{{ $request->last_changed_at ? $request->last_changed_at->format('M j, Y g:i A') : '-' }}"
+                },
+                color: @php
+                    $statusColors = [
+                        'Planned' => '#6c757d',
+                        'Accepted' => '#28a745',
+                        'Requested' => '#fd7e14',
+                        'Rejected' => '#dc3545',
+                        'Cancellation' => '#dc3545',
+                        'Canceled' => '#dc3545',
+                    ];
+                    $status = ucfirst(strtolower($request->status));
+                    echo "'" . ($statusColors[$status] ?? '#adb5bd') . "'";
+                @endphp,
+                textColor: '#fff'
+            },
+            @endforeach
+        ],
+        dateClick: function(info) {
+            @can('create-request')
+                // Set dates in create form
+                document.getElementById('start_date').value = info.dateStr;
+                document.getElementById('end_date').value = info.dateStr;
+                
+                // Show modal safely
+                var modalEl = document.getElementById('createRequestModal');
+                if (modalEl) {
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                }
+            @endcan
+        },
+        eventClick: function(info) {
+            var event = info.event;
+            var status = event.extendedProps.status.toLowerCase();
+            
+            // Format dates for display
+            var startDate = new Date(event.startStr);
+            var endDate = event.end ? new Date(event.endStr) : new Date(event.startStr);
+            endDate.setDate(endDate.getDate() - 1); // Adjust for inclusive end date
+            
+            // Update modal content
+            document.getElementById('requestId').textContent = event.id;
+            document.getElementById('requestType').textContent = event.extendedProps.type;
+            document.getElementById('requestStart').textContent = startDate.toLocaleDateString() + ' (' + event.extendedProps.startTime + ')';
+            document.getElementById('requestEnd').textContent = endDate.toLocaleDateString() + ' (' + event.extendedProps.endTime + ')';
+            document.getElementById('requestDuration').textContent = event.extendedProps.duration;
+            document.getElementById('requestReason').textContent = event.extendedProps.reason;
+            
+            // Status badge
+            var statusElement = document.getElementById('requestStatus');
+            if (statusElement) {
+                statusElement.textContent = event.extendedProps.status;
+                statusElement.className = 'badge rounded-pill badge-' + status;
+            }
+            
+            // Update cancel form action if exists
+            @can('cancel-request')
+                var cancelForm = document.getElementById('cancelRequestForm');
+                if (cancelForm) {
+                    cancelForm.action = "{{ route('leave-requests.cancel', ':id') }}".replace(':id', event.id);
+                }
+            @endcan
+            
+            // Show modal
+            var modalEl = document.getElementById('viewRequestModal');
+            if (modalEl) {
+                var modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+            
+            info.jsEvent.preventDefault();
+        },
+        editable: false,
+        selectable: true,
+        selectHelper: true,
+        eventTimeFormat: { hour: 'numeric', minute: '2-digit', meridiem: 'short' },
+        height: 'auto',
+        aspectRatio: window.innerWidth < 576 ? 1 : 1.8,
+        nowIndicator: true,
+        dayMaxEvents: window.innerWidth < 576 ? 1 : 2,
+        eventDidMount: function(info) {
+            // Add tooltip if Bootstrap is available and reason exists
+            if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip && info.event.extendedProps.reason) {
+                new bootstrap.Tooltip(info.el, {
+                    title: info.event.extendedProps.reason,
+                    placement: 'top',
+                    trigger: 'hover',
+                    container: 'body'
+                });
+            }
+        },
+        windowResize: function(view) {
+            calendar.updateSize();
+            calendar.setOption('dayMaxEvents', window.innerWidth < 576 ? 1 : 2);
+            calendar.setOption('aspectRatio', window.innerWidth < 576 ? 1 : 1.8);
+        }
+    });
+
+    calendar.render();
+    
+    // Auto-set end date when start date changes
+    var startDateField = document.getElementById('start_date');
+    var endDateField = document.getElementById('end_date');
+    if (startDateField && endDateField) {
+        startDateField.addEventListener('change', function() {
+            if (!endDateField.value || new Date(endDateField.value) < new Date(this.value)) {
+                endDateField.value = this.value;
+            }
+        });
+    }
+    
+    // Initialize tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+@endsection
