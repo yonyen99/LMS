@@ -77,6 +77,7 @@ class RoleSeeder extends Seeder
             'delete-request',
             'view-request',
             'cancel-request',
+            'edit-user'
         ]);
     }
 }

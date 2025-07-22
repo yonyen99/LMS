@@ -45,7 +45,7 @@ Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar
 // Add route for Counters page
 Route::get('/counters', [CounterController::class, 'index'])
     ->name('counters.index')
-    ->middleware('auth');
+    ->middleware('auth');;
 
 Route::resources([
     'roles' => RoleController::class,
@@ -54,3 +54,5 @@ Route::resources([
     'leave-types' => LeaveTypeController::class,
     'leave-requests' => LeaveRequestController::class,
 ]);
+
+Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
