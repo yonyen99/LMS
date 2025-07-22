@@ -31,9 +31,8 @@ Route::get('/', function () {
 Auth::routes(['register' => false]);
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
-Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cancel'])
-    ->name('leave-requests.cancel')
-    ->middleware('auth');
+Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])
+    ->name('leave-requests.cancel');
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])

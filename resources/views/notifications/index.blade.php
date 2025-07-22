@@ -90,6 +90,7 @@
         <thead class="table-light">
             <tr class="text-center">
                 <th>ID</th>
+                <th>Name</th>
                 <th>Start Date</th>
                 <th>End Date</th>
                 <th>Reason</th>
@@ -118,6 +119,7 @@
                     @endphp
                     <tr class="text-center">
                         <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}</td>
+                        <td>{{ $request->user->name }}</td>
                         <td>{{ optional($request->start_date)->format('d/m/Y') }} ({{ ucfirst($request->start_time) }})</td>
                         <td>{{ optional($request->end_date)->format('d/m/Y') }} ({{ ucfirst($request->end_time) }})</td>
                         <td>{{ $request->reason ?? '-' }}</td>
@@ -177,10 +179,15 @@
             @endif
         </tbody>
     </table>
-
-    {{-- Pagination links --}}
-    <div class="d-flex justify-content-center mt-3">
-        {{ $leaveRequests->links() }}
-    </div>
+    @if($leaveRequests->hasPages())
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted">
+                Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of {{ $leaveRequests->total() }} entries
+            </div>
+            <div>
+                {{ $leaveRequests->onEachSide(1)->links() }}
+            </div>
+        </div>
+    @endif
 </div>
 @endsection

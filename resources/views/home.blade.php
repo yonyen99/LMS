@@ -35,6 +35,12 @@
                                                     <i class="bi bi-building"></i> Manage Departments
                                                 </a>
                                             </div>
+                                            <div class="col-md-2">
+                                                <a class="btn bg-info w-100" href="{{ route('leave-types.index') }}"
+                                                    style="color: white;">
+                                                    <i class="bi bi-clipboard-check" ></i> Manage Leave Types
+                                                </a>
+                                            </div>
                                         </div>
                                         <div class="row mt-4">
                                             <div class="col-md-2 col-6 mb-3">
@@ -44,9 +50,8 @@
                                                             <div class="icon-box bg-primary text-white mb-2">
                                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Manager</h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">5</p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Manager</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalManagers }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -58,10 +63,8 @@
                                                             <div class="icon-box bg-success text-white mb-2">
                                                                 <i class="bi bi-people-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Employee</h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">30
-                                                            </p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Employee</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalEmployees }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -73,10 +76,8 @@
                                                             <div class="icon-box bg-warning text-white mb-2">
                                                                 <i class="bi bi-building-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Department</h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">10
-                                                            </p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Department</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalDepartments }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -88,10 +89,8 @@
                                                             <div class="icon-box bg-danger text-white mb-2">
                                                                 <i class="bi bi-calendar-x" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Leave</h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">20
-                                                            </p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Leave</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalLeaves }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -103,10 +102,8 @@
                                                             <div class="icon-box bg-info text-white mb-2">
                                                                 <i class="bi bi-clipboard-check" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Request</h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">30
-                                                            </p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Request</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalRequests }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -118,10 +115,8 @@
                                                             <div class="icon-box bg-secondary text-white mb-2">
                                                                 <i class="bi bi-check-circle" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Approved </h6>
-                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">15
-                                                            </p>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Approved</h6>
+                                                            <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">{{ $totalApproved }}</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -138,21 +133,20 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card card-1  p-3">
+                                    <div class="card card-1 p-3">
                                         <h5>Department Request</h5>
                                         <div class="card-3">
                                             <canvas id="departmentChart" width="400" height="200"
                                                 style="max-width: 100%;"></canvas>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
                             <div class="row mt-4">
                                 <div class="col-md-12">
-                                    <div class="card card-1 p-4  rounded-3">
+                                    <div class="card card-1 p-4 rounded-3">
                                         <div class="d-flex align-items-center mb-3">
-                                            <div class="icon-box bg-primary text-white d-flex justify-content-center align-items-center rounded-circle"
+                                            <div class="icon-box bg-primary text-white d-flex justifyINGLE-content-center align-items-center rounded-circle"
                                                 style="width: 50px; height: 50px;">
                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
                                             </div>
@@ -161,6 +155,7 @@
                                         <div class="ps-1">
                                             <p class="mb-2 d-flex align-items-center">
                                                 <span class="me-2"><strong>Active:</strong></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -396,11 +391,16 @@
                             @endif
                         </tbody>
                     </table>
-
-                    {{-- Pagination links --}}
-                    <div class="d-flex justify-content-center mt-3">
-                        {{ $leaveRequests->links() }}
-                    </div>
+                    @if($leaveRequests->hasPages())
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <div class="text-muted">
+                                Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of {{ $leaveRequests->total() }} entries
+                            </div>
+                            <div>
+                                {{ $leaveRequests->onEachSide(1)->links() }}
+                            </div>
+                        </div>
+                    @endif
                 </div>
             @endif
         @endsection

@@ -1,9 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\User;
+use App\Models\Department;
 
 class HomeController extends Controller
 {
@@ -19,10 +22,11 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
+        // Fetch leave requests for the authenticated user
         $query = LeaveRequest::with('leaveType')
-        ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id());
 
-        // Filters...
+        // Filters
         if ($request->filled('statuses')) {
             $query->whereIn('status', $request->statuses);
         }
@@ -47,7 +51,6 @@ class HomeController extends Controller
 
         if ($request->filled('search')) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
                     ->orWhere('duration', 'like', "%{$search}%")
@@ -66,9 +69,9 @@ class HomeController extends Controller
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
-            $query->orderBy('id', 'desc');  // newest = highest ID first
+            $query->orderBy('id', 'desc'); // newest = highest ID first
         } else {
-            $query->orderBy('id', 'asc');   // oldest = lowest ID first
+            $query->orderBy('id', 'asc'); // oldest = lowest ID first
         }
 
         // Badge colors
@@ -84,6 +87,14 @@ class HomeController extends Controller
         // Leave types for dropdown
         $leaveTypes = LeaveType::orderBy('name')->pluck('name');
 
+        // Fetch counts for dashboard statistics
+        $totalManagers = User::role('Manager')->count();
+        $totalEmployees = User::role('Employee')->count();
+        $totalDepartments = Department::count();
+        $totalLeaves = LeaveRequest::count();
+        $totalRequests = LeaveRequest::where('status', 'Requested')->count();
+        $totalApproved = LeaveRequest::where('status', 'Accepted')->count();
+
         // Pagination size control
         $perPage = $request->input('per_page', 10);
         $leaveRequests = $query->paginate($perPage);
@@ -93,7 +104,13 @@ class HomeController extends Controller
             'statusColors',
             'leaveTypes',
             'statusRequestOptions',
-            'totalRequests'
+            'totalRequests',
+            'totalManagers',
+            'totalEmployees',
+            'totalDepartments',
+            'totalLeaves',
+            'totalRequests',
+            'totalApproved'
         ));
     }
 }

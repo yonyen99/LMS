@@ -186,10 +186,15 @@
             @endif
         </tbody>
     </table>
-
-    {{-- Pagination links --}}
-    <div class="d-flex justify-content-center mt-3">
-        {{ $leaveRequests->links() }}
-    </div>
+    @if($leaveRequests->hasPages())
+            <div class="d-flex justify-content-between align-items-center mt-4">
+            <div class="text-muted">
+                Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of {{ $leaveRequests->total() }} entries
+            </div>
+            <div>
+                {{ $leaveRequests->onEachSide(1)->links() }}
+            </div>
+        </div>
+    @endif
 </div>
 @endsection
