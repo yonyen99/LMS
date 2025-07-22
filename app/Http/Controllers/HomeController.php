@@ -65,6 +65,7 @@ class HomeController extends Controller
             });
         }
 
+        $totalRequests = LeaveRequest::count();
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
@@ -103,6 +104,7 @@ class HomeController extends Controller
             'statusColors',
             'leaveTypes',
             'statusRequestOptions',
+            'totalRequests',
             'totalManagers',
             'totalEmployees',
             'totalDepartments',

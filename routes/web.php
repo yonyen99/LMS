@@ -10,6 +10,8 @@ use App\Http\Controllers\EmployeeCounterController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AppController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +31,12 @@ Route::get('/', function () {
 Auth::routes(['register' => false]);
 
 Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])
+    ->name('leave-requests.cancel');
 
-Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cancel'])
-    ->name('leave-requests.cancel')
-    ->middleware('auth');
-
+Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])
+    ->name('notifications.update-status');
 Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar'])
     ->name('leave-requests.calendar')
     ->middleware('auth');
