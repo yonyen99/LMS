@@ -36,6 +36,6 @@ class SuperAdminSeeder extends Seeder
             'email' => 'muqeet@allphptricks.com',
             'password' => Hash::make('muqeet1234')
         ]);
-        $departmentManager->assignRole('Department Manager');
+        $departmentManager->assignRole('Manager');
     }
 }
