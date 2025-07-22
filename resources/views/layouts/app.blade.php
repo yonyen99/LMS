@@ -144,9 +144,11 @@
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
-                                           <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a leave</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave
+                                                    requests</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a
+                                                    leave</a></li>
 
                                             <li>
                                                 <hr class="dropdown-divider">
@@ -164,15 +166,18 @@
 
 
                                 <!-- Calendars Dropdown -->
-                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
+                                    'create-department', 'edit-department', 'delete-department'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle" href="#" id="calendarDropdown" role="button"
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.calendar') }}">All Calendars</a></li>
-                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Add Calendar</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.calendar') }}">All
+                                                    Calendars</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Add
+                                                    Calendar</a></li>
                                         </ul>
                                     </li>
 
@@ -192,22 +197,22 @@
                         <ul class="navbar-nav ms-auto align-items-center">
 
                             <!-- Notification Bell Dropdown -->
-                            
+
                             @if (!Auth::user()->hasRole('Employee'))
-                            <li class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative" href="#" id="notificationDropdown"
-                                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-bell-fill fs-5"></i>
-                                    <!-- Optional badge for unread notifications -->
-                                    <span
-                                        class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
-                                        3
-                                        <span class="visually-hidden">unread messages</span>
-                                    </span>
-                                </a>
-                            </li>   
+                                <li class="nav-item dropdown me-3">
+                                    <a class="nav-link position-relative" href="#" id="notificationDropdown"
+                                        role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-bell-fill fs-5"></i>
+                                        <!-- Optional badge for unread notifications -->
+                                        <span
+                                            class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
+                                            3
+                                            <span class="visually-hidden">unread messages</span>
+                                        </span>
+                                    </a>
+                                </li>
                             @endif
-                            
+
 
                             @guest
                                 @if (Route::has('login'))
