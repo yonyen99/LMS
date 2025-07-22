@@ -62,6 +62,7 @@ class HomeController extends Controller
             });
         }
 
+        $totalRequests = LeaveRequest::count();
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
@@ -91,10 +92,8 @@ class HomeController extends Controller
             'leaveRequests',
             'statusColors',
             'leaveTypes',
-            'statusRequestOptions'
+            'statusRequestOptions',
+            'totalRequests'
         ));
     }
-
-
-
 }

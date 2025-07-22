@@ -195,14 +195,11 @@
                             
                             @if (!Auth::user()->hasRole('Employee'))
                             <li class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative" href="#" id="notificationDropdown"
-                                    role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-bell-fill fs-5"></i>
-                                    <!-- Optional badge for unread notifications -->
-                                    <span
-                                        class="position-absolute top-3 start-100 translate-middle badge rounded-pill bg-danger">
-                                        3
-                                        <span class="visually-hidden">unread messages</span>
+                                <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
+                                    <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
+                                    <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
+                                            {{ $totalRequests }}
+                                        <span class="visually-hidden">unread notifications</span>
                                     </span>
                                 </a>
                             </li>   

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Policies;
 
 use App\Models\User;
@@ -16,11 +17,14 @@ class LeaveRequestPolicy
         return $user->id === $leaveRequest->user_id;
     }
 
-    // Add this cancel method
     public function cancel(User $user, LeaveRequest $leaveRequest)
     {
-        // For example: user can cancel if they own the request AND status is not accepted or rejected
-        return $user->id === $leaveRequest->user_id
-            && !in_array(strtolower($leaveRequest->status), ['accepted', 'rejected', 'canceled']);
+        return $user->id === $leaveRequest->user_id &&
+            !in_array(strtolower($leaveRequest->status), ['accepted', 'rejected', 'canceled']);
+    }
+
+    public function updateStatus(User $user, LeaveRequest $leaveRequest)
+    {
+        return in_array($user->role, ['Super Admin', 'HR Manager', 'Department Head', 'Team Lead']);
     }
 }
