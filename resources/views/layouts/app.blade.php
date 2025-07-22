@@ -177,19 +177,13 @@
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                            href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Calendars
-                                        </a>
-                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.calendar') }}">All Calendars</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.create') }}">Add Calendar</a></li>
-                                        </ul>
-                                    </li>
+                                    @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
+                                        'create-department', 'edit-department', 'delete-department'])
+                                        <li class="nav-item me-3">
+                                            <a class="nav-link {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
+                                                href="{{ route('leave-requests.calendar') }}">Calendars</a>
+                                        </li>
+                                    @endcanany
 
                                     <!-- New Request Button -->
                                     <li class="nav-item me-2">
