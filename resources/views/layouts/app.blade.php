@@ -154,9 +154,9 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item" href="#">All Calendars</a></li>
-                                            <li><a class="dropdown-item" href="#">Add Calendar</a></li>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.calendar') }}">All Calendars</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Add Calendar</a></li>
                                         </ul>
                                     </li>
 

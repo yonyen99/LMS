@@ -28,11 +28,16 @@ Route::get('/', function () {
 
 Auth::routes(['register' => false]);
 
-
 Route::get('/home', [HomeController::class, 'index'])->name('home');
+
 Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cancel'])
     ->name('leave-requests.cancel')
     ->middleware('auth');
+
+Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar'])
+    ->name('leave-requests.calendar')
+    ->middleware('auth');
+
 
 // Add route for Counters page
 Route::get('/counters', [CounterController::class, 'index'])
