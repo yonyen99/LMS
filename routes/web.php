@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\CounterController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\EmployeeCounterController;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
@@ -32,6 +34,10 @@ Route::post('leave-requests/{id}/cancel', [LeaveRequestController::class, 'cance
     ->name('leave-requests.cancel')
     ->middleware('auth');
 
+// Add route for Counters page
+Route::get('/counters', [CounterController::class, 'index'])
+    ->name('counters.index')
+    ->middleware('auth');
 
 Route::resources([
     'roles' => RoleController::class,

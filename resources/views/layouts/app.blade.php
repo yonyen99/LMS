@@ -120,7 +120,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item" href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item" href="{{ route('users.index') }}">Manage Users</a></li>
                                             <li><a class="dropdown-item" href="{{ route('departments.index') }}">Manage
@@ -139,12 +139,29 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Requested
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="requestDropdown">
-                                            <li><a class="dropdown-item" href="#">User Requests</a></li>
-                                            <li><a class="dropdown-item" href="#">Approved Users</a></li>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
+                                            <!-- Leaves Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">LEAVES</h6>
+                                            </li>
+                                           <li><a class="dropdown-item" href="{{ route('counters.index') }}">Counters</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('leave-requests.create') }}">Request a leave</a></li>
+
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+
+                                            <!-- Overtime Section -->
+                                            <li>
+                                                <h6 class="dropdown-header">OVERTIME</h6>
+                                            </li>
+                                            <li><a class="dropdown-item" href="#">List of OT Worked</a></li>
+                                            <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
+
 
                                 <!-- Calendars Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
@@ -153,7 +170,7 @@
                                             data-bs-toggle="dropdown" aria-expanded="false">
                                             Calendars
                                         </a>
-                                        <ul class="dropdown-menu" aria-labelledby="calendarDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
                                             <li><a class="dropdown-item" href="#">All Calendars</a></li>
                                             <li><a class="dropdown-item" href="#">Add Calendar</a></li>
                                         </ul>
@@ -276,7 +293,7 @@
 
         @endunless
 
-        <main class="py-4">
+        <main>
             <div class="p-4">
                 <div class="row justify-content-center ">
                     <div class="col-md-12">
