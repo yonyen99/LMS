@@ -36,11 +36,24 @@
                                                 </a>
                                             </div>
                                             <div class="col-md-2">
+                                                <a class="btn bg-danger w-100" href="{{ route('counters.index') }}"
+                                                    style="color: white;">
+                                                    <i class="bi bi-calculator"></i> Manage Counter Request
+                                                </a>
+                                            </div>
+                                            <div class="col-md-2">
                                                 <a class="btn bg-info w-100" href="{{ route('leave-types.index') }}"
                                                     style="color: white;">
                                                     <i class="bi bi-clipboard-check"></i> Manage Leave Types
                                                 </a>
                                             </div>
+                                            <div class="col-md-2">
+                                                <a class="btn bg-secondary w-100" href="{{ route('notifications.index') }}"
+                                                    style="color: white;">
+                                                    <i class="bi bi-bell-fill "></i> All Leave Request
+                                                </a>
+                                            </div>
+                                            
                                         </div>
                                         <div class="row mt-4">
                                             <div class="col-md-2 col-6 mb-3">
