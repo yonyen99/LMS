@@ -16,12 +16,9 @@
                             @csrf
 
                             <div class="mb-4 row">
-                                <label for="name" class="col-md-4 col-form-label text-md-end text-start fw-bold">Role
-                                    Name</label>
+                                <label for="name" class="col-md-4 col-form-label text-md-end text-start fw-bold">Role Name</label>
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                        id="name" name="name" value="{{ old('name') }}"
-                                        placeholder="Enter role name">
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Enter role name">
                                     @error('name')
                                         <span class="text-danger">{{ $message }}</span>
                                     @enderror
@@ -42,10 +39,7 @@
                                     <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
                                         @forelse ($permissions as $permission)
                                             <div class="form-check">
-                                                <input class="form-check-input permission-checkbox" type="checkbox"
-                                                    name="permissions[]" id="permission_{{ $permission->id }}"
-                                                    value="{{ $permission->id }}"
-                                                    {{ in_array($permission->id, old('permissions') ?? []) ? 'checked' : '' }}>
+                                                <input class="form-check-input permission-checkbox" type="checkbox" name="permissions[]" id="permission_{{ $permission->id }}" value="{{ $permission->id }}" {{ in_array($permission->id, old('permissions') ?? []) ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="permission_{{ $permission->id }}">
                                                     {{ $permission->name }}
                                                 </label>
@@ -73,14 +67,15 @@
             </div>
         </div>
     </div>
+@endsection
 
-    @section('scripts')
-        <script>
-            document.getElementById('selectAllPermissions').addEventListener('change', function() {
-                const checkboxes = document.querySelectorAll('.permission-checkbox');
-                checkboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                });
+@section('scripts')
+    <script>
+        document.getElementById('selectAllPermissions').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.permission-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
             });
-        </script>
-    @endsection
+        });
+    </script>
+@endsection

@@ -92,7 +92,7 @@
     {{-- main content --}}
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
-            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100"
+            <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100 t-0"
                 style="background-color: #fff; top: 0; z-index: 1030;">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
