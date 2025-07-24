@@ -50,10 +50,9 @@
                                             <div class="col-md-2">
                                                 <a class="btn bg-secondary w-100" href="{{ route('notifications.index') }}"
                                                     style="color: white;">
-                                                    <i class="bi bi-bell-fill "></i> All Leave Request
+                                                    <i class="bi bi-bell-fill"></i> All Leave Request
                                                 </a>
                                             </div>
-                                            
                                         </div>
                                         <div class="row mt-4">
                                             <div class="col-md-2 col-6 mb-3">
@@ -63,8 +62,7 @@
                                                             <div class="icon-box bg-primary text-white mb-2">
                                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Manager</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Manager</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalManagers }}</p>
                                                         </div>
@@ -78,8 +76,7 @@
                                                             <div class="icon-box bg-success text-white mb-2">
                                                                 <i class="bi bi-people-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Employee</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Employee</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalEmployees }}</p>
                                                         </div>
@@ -93,8 +90,7 @@
                                                             <div class="icon-box bg-warning text-white mb-2">
                                                                 <i class="bi bi-building-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Department</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Department</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalDepartments }}</p>
                                                         </div>
@@ -108,8 +104,7 @@
                                                             <div class="icon-box bg-danger text-white mb-2">
                                                                 <i class="bi bi-calendar-x" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Leave</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Leave</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalLeaves }}</p>
                                                         </div>
@@ -123,8 +118,7 @@
                                                             <div class="icon-box bg-info text-white mb-2">
                                                                 <i class="bi bi-clipboard-check" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Request</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Request</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalRequests }}</p>
                                                         </div>
@@ -138,8 +132,7 @@
                                                             <div class="icon-box bg-secondary text-white mb-2">
                                                                 <i class="bi bi-check-circle" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
-                                                                Approved</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Approved</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalApproved }}</p>
                                                         </div>
@@ -159,10 +152,13 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="card card-1 p-3">
-                                        <h5>Department Request</h5>
+                                        <h5>Members per Department</h5>
                                         <div class="card-3">
-                                            <canvas id="departmentChart" width="400" height="200"
-                                                style="max-width: 100%;"></canvas>
+                                            @if (!empty($departmentData))
+                                                <canvas id="departmentChart" width="400" height="200" style="max-width: 100%;"></canvas>
+                                            @else
+                                                <p class="text-muted text-center">No department data available.</p>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -171,7 +167,7 @@
                                 <div class="col-md-12">
                                     <div class="card card-1 p-4 rounded-3">
                                         <div class="d-flex align-items-center mb-3">
-                                            <div class="icon-box bg-primary text-white d-flex justifyINGLE-content-center align-items-center rounded-circle"
+                                            <div class="icon-box bg-primary text-white d-flex justify-content-center align-items-center rounded-circle"
                                                 style="width: 50px; height: 50px;">
                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
                                             </div>
@@ -180,6 +176,7 @@
                                         <div class="ps-1">
                                             <p class="mb-2 d-flex align-items-center">
                                                 <span class="me-2"><strong>Active:</strong></span>
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -222,7 +219,6 @@
                                             $textColor = $colors[$status]['text'];
                                             $bgColor = $colors[$status]['bg'];
                                         @endphp
-
                                         <div>
                                             <label for="status_{{ $status }}"
                                                 class="d-flex align-items-center fw-semibold"
@@ -240,7 +236,6 @@
                                 </div>
                             </div>
 
-                            {{-- Search & Filters --}}
                             <div class="d-flex flex-wrap gap-3 align-items-end mt-3 mb-2">
                                 <div class="d-flex align-items-center border rounded px-2" style="width:20%;">
                                     <input type="text" name="search" value="{{ request('search') }}"
@@ -249,8 +244,7 @@
                                 </div>
 
                                 <div class="d-flex align-items-center gap-2 mt-2" style="width:27%;">
-                                    <label for="showRequest" class="fw-semibold small mb-0" style="width:50%;">Show
-                                        Request</label>
+                                    <label for="showRequest" class="fw-semibold small mb-0" style="width:50%;">Show Request</label>
                                     <select class="form-select" id="showRequest" name="sort_order"
                                         onchange="this.form.submit()">
                                         <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
@@ -275,8 +269,7 @@
                                 </div>
 
                                 <div class="d-flex align-items-center gap-2" style="width:26%;">
-                                    <label for="statusRequest" class="fw-semibold small mb-0" style="width:50%;">Status
-                                        Request</label>
+                                    <label for="statusRequest" class="fw-semibold small mb-0" style="width:50%;">Status Request</label>
                                     <select class="form-select" id="statusRequest" name="status_request"
                                         onchange="this.form.submit()">
                                         <option value="">All</option>
@@ -292,7 +285,6 @@
                         </form>
                     </div>
 
-                    {{-- Leave Requests Table --}}
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr class="text-center">
@@ -335,33 +327,28 @@
                                         ];
                                     @endphp
                                     <tr class="text-center">
-                                        <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}
-                                        </td>
+                                        <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}</td>
                                         <td>{{ optional($request->start_date)->format('d/m/Y') }}
-                                            ({{ ucfirst($request->start_time) }})
-                                        </td>
+                                            ({{ ucfirst($request->start_time) }})</td>
                                         <td>{{ optional($request->end_date)->format('d/m/Y') }}
                                             ({{ ucfirst($request->end_time) }})</td>
                                         <td>{{ $request->reason ?? '-' }}</td>
                                         <td>{{ number_format($request->duration, 2) }}</td>
                                         <td>{{ optional($request->leaveType)->name ?? '-' }}</td>
                                         <td>
-                                            <span
-                                                style="
-                                            color: {{ $colors['text'] }};
-                                            background-color: {{ $colors['bg'] }};
-                                            padding: 2px 8px;
-                                            border-radius: 10px;
-                                            font-weight: 500;
-                                            display: inline-block;
-                                        ">
+                                            <span style="
+                                                color: {{ $colors['text'] }};
+                                                background-color: {{ $colors['bg'] }};
+                                                padding: 2px 8px;
+                                                border-radius: 10px;
+                                                font-weight: 500;
+                                                display: inline-block;
+                                            ">
                                                 {{ $displayStatus }}
                                             </span>
                                         </td>
-                                        <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}
-                                        </td>
-                                        <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}
-                                        </td>
+                                        <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}</td>
+                                        <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}</td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
@@ -373,14 +360,12 @@
                                                 </button>
                                                 <ul class="dropdown-menu dropdown-menu-end"
                                                     aria-labelledby="actionsDropdown{{ $request->id }}">
-
                                                     <li>
                                                         <a class="dropdown-item d-flex align-items-center"
                                                             href="{{ route('leave-requests.show', $request->id) }}">
                                                             <i class="bi bi-eye me-2 text-primary"></i> View
                                                         </a>
                                                     </li>
-
                                                     <li>
                                                         <form action="{{ route('leave-requests.destroy', $request->id) }}"
                                                             method="POST"
@@ -393,7 +378,6 @@
                                                             </button>
                                                         </form>
                                                     </li>
-
                                                     <li>
                                                         <form action="{{ route('leave-requests.cancel', $request->id) }}"
                                                             method="POST"
@@ -405,7 +389,6 @@
                                                             </button>
                                                         </form>
                                                     </li>
-
                                                 </ul>
                                             </div>
                                         </td>
@@ -426,5 +409,9 @@
                         </div>
                     @endif
                 </div>
-        @endif
+            @endif
+            <script>
+                const departmentData = @json($departmentData);
+            </script>
+        </section>
     @endsection

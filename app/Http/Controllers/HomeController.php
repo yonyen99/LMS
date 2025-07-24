@@ -73,14 +73,11 @@ class HomeController extends Controller
 
             if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
                 $requests = LeaveRequest::where('status', 'Requested')->count();
-
             } elseif ($user->hasRole('Manager')) {
                 $managerDeptId = $user->department_id;
-
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->whereHas('user', fn($q) => $q->where('department_id', $managerDeptId))
                     ->count();
-
             } elseif ($user->hasRole('Employee')) {
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->where('user_id', $user->id)
@@ -88,13 +85,12 @@ class HomeController extends Controller
             }
         }
 
-
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
-            $query->orderBy('id', 'desc'); // newest = highest ID first
+            $query->orderBy('id', 'desc');
         } else {
-            $query->orderBy('id', 'asc'); // oldest = lowest ID first
+            $query->orderBy('id', 'asc');
         }
 
         // Badge colors
@@ -118,6 +114,21 @@ class HomeController extends Controller
         $totalRequests = LeaveRequest::where('status', 'Requested')->count();
         $totalApproved = LeaveRequest::where('status', 'Accepted')->count();
 
+        // Fetch department user counts (all users, regardless of role)
+        $departmentData = Department::withCount('users')
+            ->get()
+            ->map(function ($department) {
+                return [
+                    'name' => $department->name,
+                    'user_count' => $department->users_count,
+                ];
+            })
+            ->filter(function ($department) {
+                return $department['user_count'] > 0; // Only include departments with users
+            })
+            ->values()
+            ->toArray();
+
         // Pagination size control
         $perPage = $request->input('per_page', 10);
         $leaveRequests = $query->paginate($perPage);
@@ -133,7 +144,8 @@ class HomeController extends Controller
             'totalDepartments',
             'totalLeaves',
             'requests',
-            'totalApproved'
+            'totalApproved',
+            'departmentData'
         ));
     }
 }
