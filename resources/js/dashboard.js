@@ -87,9 +87,19 @@ if (typeof departmentData !== 'undefined' && departmentData.length > 0) {
                     enabled: true,
                     callbacks: {
                         label: function(context) {
-                            let label = context.label || '';
-                            let value = context.parsed || 0;
-                            return `${label}: ${value} members`;
+                            const index = context.dataIndex;
+                            const department = departmentData[index] || {};
+                            const label = department.name || 'Unknown Department';
+                            const total = department.user_count || 0;
+                            const managers = department.manager_names || [];
+                            const employees = department.employee_names || [];
+                            const managerText = managers.length > 0 ? `Manager${managers.length > 1 ? 's' : ''}: ${managers.join(', ')}` : 'No Managers';
+                            const employeeText = employees.length > 0 ? `Employee${employees.length > 1 ? 's' : ''}: ${employees.join(', ')}` : 'No Employees';
+                            return [
+                                `${label}: ${total} member${total !== 1 ? 's' : ''}`,
+                                managerText,
+                                employeeText
+                            ];
                         }
                     },
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
