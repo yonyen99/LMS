@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Models\NonWorkingDay;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -198,9 +199,26 @@ class LeaveRequestController extends Controller
      */
     public function calendar()
     {
-        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', Auth::id())->get();
+        $user = Auth::user();
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
+        
+        // Get non-working days based on user role
+        $nonWorkingDaysQuery = NonWorkingDay::query();
+        
+        if (!$user->hasRole('Super Admin')) {
+            if ($user->hasRole('Manager')) {
+                // Managers see their department's non-working days
+                $nonWorkingDaysQuery->where('department_id', $user->department_id);
+            } else {
+                // Regular users see global non-working days (department_id = null)
+                $nonWorkingDaysQuery->whereNull('department_id');
+            }
+        }
+        
+        $nonWorkingDays = $nonWorkingDaysQuery->get();
         $leaveTypes = LeaveType::all();
-        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes'));
+        
+        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 }
         

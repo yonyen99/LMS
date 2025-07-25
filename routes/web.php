@@ -12,6 +12,7 @@ use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\NonWorkingDayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,11 +43,10 @@ Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar
     ->name('leave-requests.calendar')
     ->middleware('auth');
 
-
 // Add route for Counters page
 Route::get('/counters', [CounterController::class, 'index'])
     ->name('counters.index')
-    ->middleware('auth');;
+    ->middleware('auth');
 
 Route::resources([
     'roles' => RoleController::class,
@@ -54,6 +54,7 @@ Route::resources([
     'departments' => DepartmentController::class,
     'leave-types' => LeaveTypeController::class,
     'leave-requests' => LeaveRequestController::class,
+    'non-working-days' => NonWorkingDayController::class,
 ]);
 
 Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
