@@ -31,12 +31,8 @@ class User extends Authenticatable
         'phone',
         'is_active',
         'last_login_at',
-<<<<<<< HEAD
-        'department_id',
-=======
         'department_id',  
         'google_id',
->>>>>>> 9eed77af2bd2ef27f949aa70bf58c07a952969a1
     ];
 
     /**

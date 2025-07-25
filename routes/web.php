@@ -13,6 +13,7 @@ use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\OTController;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,3 +62,6 @@ Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.vie
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
+Route::get('/ot', [OTController::class, 'index'])->name('ot.index');
+Route::get('/create_ot', [OTController::class, 'create'])->name('ot.create');
+Route::post('/ot', [OTController::class, 'store'])->name('ot.store');
