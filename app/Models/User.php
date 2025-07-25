@@ -11,6 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Department;
+use NotificationChannels\Telegram\TelegramChannel;
 
 class User extends Authenticatable
 {
@@ -30,7 +31,7 @@ class User extends Authenticatable
         'phone',
         'is_active',
         'last_login_at',
-        'department_id',  
+        'department_id',
     ];
 
     /**
@@ -61,9 +62,9 @@ class User extends Authenticatable
     // Add accessor for easy image URL retrieval
     public function getImageUrlAttribute()
     {
-        return $this->images 
-            ? asset('storage/' . $this->images) 
-            : asset('images/default-avatar.png'); 
+        return $this->images
+            ? asset('storage/' . $this->images)
+            : asset('images/default-avatar.png');
     }
 
     protected static function booted()
@@ -85,4 +86,12 @@ class User extends Authenticatable
         return $this->hasMany(LeaveRequest::class);
     }
 
+
+
+
+
+    public function routeNotificationForTelegram()
+    {
+        return $this->telegram_chat_id;
+    }
 }

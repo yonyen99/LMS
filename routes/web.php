@@ -12,6 +12,8 @@ use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\OTController;
+use Illuminate\Support\Facades\Http;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,7 +39,7 @@ Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::cl
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])
     ->name('notifications.update-status');
-    
+
 Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar'])
     ->name('leave-requests.calendar')
     ->middleware('auth');
@@ -57,3 +59,9 @@ Route::resources([
 ]);
 
 Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
+
+Route::get('/ot', [OTController::class, 'index'])->name('ot.index');
+Route::get('/create_ot', [OTController::class, 'create'])->name('ot.create');
+Route::post('/ot', [OTController::class, 'store'])->name('ot.store');
+
+

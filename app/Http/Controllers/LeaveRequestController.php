@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
+use App\Notifications\LeaveRequestSubmitted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\User;
 
 
 class LeaveRequestController extends Controller
@@ -14,7 +16,7 @@ class LeaveRequestController extends Controller
     public function index(Request $request): View
     {
         $query = LeaveRequest::with('leaveType')
-        ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id());
 
         if ($request->filled('statuses')) {
             // Normalize to lowercase if needed
@@ -50,12 +52,12 @@ class LeaveRequestController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
-                ->orWhere('duration', 'like', "%{$search}%")
-                ->orWhere('start_date', 'like', "%{$search}%")
-                ->orWhere('end_date', 'like', "%{$search}%")
-                ->orWhere('start_time', 'like', "%{$search}%")
-                ->orWhere('end_time', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('duration', 'like', "%{$search}%")
+                    ->orWhere('start_date', 'like', "%{$search}%")
+                    ->orWhere('end_date', 'like', "%{$search}%")
+                    ->orWhere('start_time', 'like', "%{$search}%")
+                    ->orWhere('end_time', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
 
                 // Optional: Join with leave_types and users
                 $q->orWhereHas('leaveType', function ($sub) use ($search) {
@@ -70,7 +72,7 @@ class LeaveRequestController extends Controller
         }
         $sortOrder = $request->input('sort_order', 'new');
 
-       if ($sortOrder === 'new') {
+        if ($sortOrder === 'new') {
             $query->orderBy('id', 'desc');  // newest = highest ID first
         } else {
             $query->orderBy('id', 'asc');   // oldest = lowest ID first
@@ -84,13 +86,11 @@ class LeaveRequestController extends Controller
             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
             'Canceled'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
-        
-        $leaveTypes = LeaveType::orderBy('name')->pluck('name'); 
+
+        $leaveTypes = LeaveType::orderBy('name')->pluck('name');
         $leaveRequests = $query->paginate(10);
 
         return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
-
-                
     }
 
 
@@ -113,7 +113,7 @@ class LeaveRequestController extends Controller
             'status' => 'required|in:planned,requested',
         ]);
 
-        LeaveRequest::create([
+        $leaveRequest = LeaveRequest::create([
             'user_id' => Auth::id(),
             'leave_type_id' => $request->leave_type_id,
             'start_date' => $request->start_date,
@@ -127,6 +127,9 @@ class LeaveRequestController extends Controller
             'last_changed_at' => now(),
         ]);
 
+        // Notify the user
+        auth()->user()->notify(new LeaveRequestSubmitted($leaveRequest));
+
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
     }
 
@@ -135,42 +138,6 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.show', compact('leaveRequest'));
     }
 
-    // public function edit(LeaveRequest $leaveRequest)
-    // {
-    //     $this->authorize('update', $leaveRequest); // Optional policy check
-    //     $leaveTypes = LeaveType::all();
-    //     return view('leaveRequest.edit', compact('leaveRequest', 'leaveTypes'));
-    // }
-
-    // public function update(Request $request, LeaveRequest $leaveRequest)
-    // {
-    //     $this->authorize('update', $leaveRequest);
-
-    //     $request->validate([
-    //         'leave_type_id' => 'required|exists:leave_types,id',
-    //         'start_date' => 'required|date',
-    //         'start_time' => 'required|in:morning,afternoon,full',
-    //         'end_date' => 'required|date|after_or_equal:start_date',
-    //         'end_time' => 'required|in:morning,afternoon,full',
-    //         'duration' => 'required|numeric|min:0.5',
-    //         'reason' => 'nullable|string',
-    //         'status' => 'required|in:requested,accepted,rejected,canceled',
-    //     ]);
-
-    //     $leaveRequest->update([
-    //         'leave_type_id' => $request->leave_type_id,
-    //         'start_date' => $request->start_date,
-    //         'start_time' => $request->start_time,
-    //         'end_date' => $request->end_date,
-    //         'end_time' => $request->end_time,
-    //         'duration' => $request->duration,
-    //         'reason' => $request->reason,
-    //         'status' => $request->status,
-    //         'last_changed_at' => now(),
-    //     ]);
-
-    //     return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
-    // }
 
     public function destroy(LeaveRequest $leaveRequest)
     {
@@ -180,7 +147,7 @@ class LeaveRequestController extends Controller
     }
 
 
-   /**
+    /**
      * Cancel the specified leave request.
      */
     public function cancel(Request $request, LeaveRequest $leaveRequest)
@@ -203,4 +170,3 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes'));
     }
 }
-        
