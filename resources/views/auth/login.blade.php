@@ -69,6 +69,9 @@
                 @endif
 
                 <input type="submit" class="btn" value="{{ __('Login') }}">
+                <a href="{{ route('google.redirect') }}" style="display: inline-block; margin-top: 15px; text-align: center;">
+                    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Sign in with Google" style="height: 40px; border-radius: 4px;">
+                </a>
             </form>
         </div>
     </div>
