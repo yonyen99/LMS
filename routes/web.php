@@ -12,8 +12,7 @@ use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
-use App\Http\Controllers\OTController;
-use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\GoogleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,8 +59,5 @@ Route::resources([
 
 Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
 
-Route::get('/ot', [OTController::class, 'index'])->name('ot.index');
-Route::get('/create_ot', [OTController::class, 'create'])->name('ot.create');
-Route::post('/ot', [OTController::class, 'store'])->name('ot.store');
-
-
+Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
+Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
