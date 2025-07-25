@@ -73,14 +73,11 @@ class HomeController extends Controller
 
             if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
                 $requests = LeaveRequest::where('status', 'Requested')->count();
-
             } elseif ($user->hasRole('Manager')) {
                 $managerDeptId = $user->department_id;
-
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->whereHas('user', fn($q) => $q->where('department_id', $managerDeptId))
                     ->count();
-
             } elseif ($user->hasRole('Employee')) {
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->where('user_id', $user->id)
@@ -88,13 +85,12 @@ class HomeController extends Controller
             }
         }
 
-
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
-            $query->orderBy('id', 'desc'); // newest = highest ID first
+            $query->orderBy('id', 'desc');
         } else {
-            $query->orderBy('id', 'asc'); // oldest = lowest ID first
+            $query->orderBy('id', 'asc');
         }
 
         // Badge colors
@@ -118,6 +114,47 @@ class HomeController extends Controller
         $totalRequests = LeaveRequest::where('status', 'Requested')->count();
         $totalApproved = LeaveRequest::where('status', 'Accepted')->count();
 
+        // Fetch department user counts with manager and employee names
+        $departmentData = Department::with([
+            'users' => function ($query) {
+                $query->select('users.id', 'users.name', 'users.department_id')
+                    ->with('roles:name');
+            }
+        ])
+            ->withCount([
+                'users',
+                'users as manager_count' => function ($query) {
+                    $query->role('Manager');
+                },
+                'users as employee_count' => function ($query) {
+                    $query->role('Employee');
+                }
+            ])
+            ->get()
+            ->map(function ($department) {
+                $managers = $department->users->filter(function ($user) {
+                    return $user->hasRole('Manager');
+                })->pluck('name')->toArray();
+
+                $employees = $department->users->filter(function ($user) {
+                    return $user->hasRole('Employee');
+                })->pluck('name')->toArray();
+
+                return [
+                    'name' => $department->name,
+                    'user_count' => $department->users_count,
+                    'manager_count' => $department->manager_count,
+                    'employee_count' => $department->employee_count,
+                    'manager_names' => $managers,
+                    'employee_names' => $employees,
+                ];
+            })
+            ->filter(function ($department) {
+                return $department['user_count'] > 0; // Only include departments with users
+            })
+            ->values()
+            ->toArray();
+
         // Pagination size control
         $perPage = $request->input('per_page', 10);
         $leaveRequests = $query->paginate($perPage);
@@ -133,7 +170,8 @@ class HomeController extends Controller
             'totalDepartments',
             'totalLeaves',
             'requests',
-            'totalApproved'
+            'totalApproved',
+            'departmentData'
         ));
     }
 }

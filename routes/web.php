@@ -49,7 +49,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user-leaves', [LeaveSummaryController::class, 'userLeave'])->name('user-leave.index');
 });
 
-
 Route::resources([
     'roles' => RoleController::class,
     'users' => UserController::class,
@@ -57,3 +56,5 @@ Route::resources([
     'leave-types' => LeaveTypeController::class,
     'leave-requests' => LeaveRequestController::class,
 ]);
+
+Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);

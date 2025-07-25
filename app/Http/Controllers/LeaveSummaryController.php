@@ -162,5 +162,4 @@ class LeaveSummaryController extends Controller
 
         return view('user_leaves.index', compact('summaries'));
     }
-
 }
