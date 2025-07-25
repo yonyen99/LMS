@@ -24,7 +24,9 @@ class AppServiceProvider extends ServiceProvider
 
     protected $policies = [
         \App\Models\LeaveRequest::class => \App\Policies\LeaveRequestPolicy::class,
+        \App\Models\LeaveSummary::class => \App\Policies\LeaveSummaryPolicy::class,
     ];
+
 
     public function boot()
     {

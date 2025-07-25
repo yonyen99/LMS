@@ -11,6 +11,7 @@ use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Department;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
@@ -86,4 +87,8 @@ class User extends Authenticatable
         return $this->hasMany(LeaveRequest::class);
     }
 
+    public function leaveSummaries(): HasMany
+    {
+        return $this->hasMany(LeaveSummary::class);
+    }
 }

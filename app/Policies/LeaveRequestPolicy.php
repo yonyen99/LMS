@@ -19,6 +19,7 @@ class LeaveRequestPolicy
 
     public function cancel(User $user, LeaveRequest $leaveRequest)
     {
+        
         return $user->id === $leaveRequest->user_id &&
             !in_array(strtolower($leaveRequest->status), ['accepted', 'rejected', 'canceled']);
     }

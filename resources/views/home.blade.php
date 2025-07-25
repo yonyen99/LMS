@@ -36,7 +36,7 @@
                                                 </a>
                                             </div>
                                             <div class="col-md-2">
-                                                <a class="btn bg-danger w-100" href="{{ route('counters.index') }}"
+                                                <a class="btn bg-danger w-100" href="{{ route('leave-summaries.index') }}"
                                                     style="color: white;">
                                                     <i class="bi bi-calculator"></i> Manage Counter Request
                                                 </a>

@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use App\Models\LeaveSummary;
 
 
 class LeaveRequestController extends Controller
@@ -88,9 +89,7 @@ class LeaveRequestController extends Controller
         $leaveTypes = LeaveType::orderBy('name')->pluck('name'); 
         $leaveRequests = $query->paginate(10);
 
-        return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
-
-                
+        return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));        
     }
 
 
@@ -101,20 +100,67 @@ class LeaveRequestController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'leave_type_id' => 'required|exists:leave_types,id',
-            'start_date' => 'required|date',
-            'start_time' => 'required|in:morning,afternoon,full',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'end_time' => 'required|in:morning,afternoon,full',
-            'duration' => 'required|numeric|min:0.5',
-            'reason' => 'nullable|string',
-            'status' => 'required|in:planned,requested',
-        ]);
+{
+    $request->validate([
+        'leave_type_id' => 'required|exists:leave_types,id',
+        'start_date' => 'required|date',
+        'start_time' => 'required|in:morning,afternoon,full',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'end_time' => 'required|in:morning,afternoon,full',
+        'duration' => 'required|numeric|min:0.5',
+        'reason' => 'nullable|string',
+        'status' => 'required|in:planned,requested',
+    ]);
 
+    $user = auth()->user();
+
+    DB::transaction(function () use ($request, $user) {
+        // Get the LeaveSummary record for the user's department and leave type
+        $summary = LeaveSummary::where('department_id', $user->department_id)
+            ->where('leave_type_id', $request->leave_type_id)
+            ->lockForUpdate()
+            ->first();
+
+        if (!$summary) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'leave_type_id' => 'Leave summary not found for your department.',
+            ]);
+        }
+
+        // Calculate entitled days including Manager bonus
+        $entitled = $summary->entitled;
+        if ($user->hasRole('Manager')) {
+            $entitled += 2; // Add 2 extra days for Manager
+        }
+
+        // Calculate taken and requested leaves for this user from LeaveRequest table
+        $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
+            ->where('leave_type_id', $request->leave_type_id)
+            ->whereIn('status', ['Accepted', 'Planned'])
+            ->sum('duration');
+
+        $requested = \App\Models\LeaveRequest::where('user_id', $user->id)
+            ->where('leave_type_id', $request->leave_type_id)
+            ->where('status', 'Requested')
+            ->sum('duration');
+
+        // Calculate available leave
+        $available = $entitled - ($taken + $requested);
+
+        if ($available < $request->duration) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'duration' => "Not enough leave available. You can request up to $available days.",
+            ]);
+        }
+
+        // Update LeaveSummary requested count for department-level tracking
+        $summary->requested += $request->duration;
+        $summary->available_actual = max($entitled - $summary->taken, 0);
+        $summary->save();
+
+        // Create leave request record
         LeaveRequest::create([
-            'user_id' => Auth::id(),
+            'user_id' => $user->id,
             'leave_type_id' => $request->leave_type_id,
             'start_date' => $request->start_date,
             'start_time' => $request->start_time,
@@ -122,55 +168,23 @@ class LeaveRequestController extends Controller
             'end_time' => $request->end_time,
             'duration' => $request->duration,
             'reason' => $request->reason,
-            'status' => $request->status,
+            'status' => 'Requested',
             'requested_at' => now(),
             'last_changed_at' => now(),
         ]);
+    });
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted successfully.');
-    }
+    return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and quota updated.');
+}
+
+
+
 
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
     }
 
-    // public function edit(LeaveRequest $leaveRequest)
-    // {
-    //     $this->authorize('update', $leaveRequest); // Optional policy check
-    //     $leaveTypes = LeaveType::all();
-    //     return view('leaveRequest.edit', compact('leaveRequest', 'leaveTypes'));
-    // }
-
-    // public function update(Request $request, LeaveRequest $leaveRequest)
-    // {
-    //     $this->authorize('update', $leaveRequest);
-
-    //     $request->validate([
-    //         'leave_type_id' => 'required|exists:leave_types,id',
-    //         'start_date' => 'required|date',
-    //         'start_time' => 'required|in:morning,afternoon,full',
-    //         'end_date' => 'required|date|after_or_equal:start_date',
-    //         'end_time' => 'required|in:morning,afternoon,full',
-    //         'duration' => 'required|numeric|min:0.5',
-    //         'reason' => 'nullable|string',
-    //         'status' => 'required|in:requested,accepted,rejected,canceled',
-    //     ]);
-
-    //     $leaveRequest->update([
-    //         'leave_type_id' => $request->leave_type_id,
-    //         'start_date' => $request->start_date,
-    //         'start_time' => $request->start_time,
-    //         'end_date' => $request->end_date,
-    //         'end_time' => $request->end_time,
-    //         'duration' => $request->duration,
-    //         'reason' => $request->reason,
-    //         'status' => $request->status,
-    //         'last_changed_at' => now(),
-    //     ]);
-
-    //     return redirect()->route('leave-requests.index')->with('success', 'Leave request updated successfully.');
-    // }
 
     public function destroy(LeaveRequest $leaveRequest)
     {
