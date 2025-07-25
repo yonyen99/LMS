@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class LeaveType extends Model
 {
@@ -18,5 +19,10 @@ class LeaveType extends Model
     public function leaveRequests()
     {
         return $this->hasMany(LeaveRequest::class);
+    }
+
+    public function leaveSummaries(): HasMany
+    {
+        return $this->hasMany(LeaveSummary::class);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\CounterController;
+use App\Http\Controllers\LeaveSummaryController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
@@ -44,9 +44,11 @@ Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar
 
 
 // Add route for Counters page
-Route::get('/counters', [CounterController::class, 'index'])
-    ->name('counters.index')
-    ->middleware('auth');
+Route::middleware(['auth'])->group(function () {
+    Route::resource('leave-summaries', LeaveSummaryController::class);
+    Route::get('/user-leaves', [LeaveSummaryController::class, 'userLeave'])->name('user-leave.index');
+});
+
 
 Route::resources([
     'roles' => RoleController::class,

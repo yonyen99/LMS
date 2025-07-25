@@ -156,8 +156,24 @@
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'counters.index' ? 'active' : '' }}"
-                                                    href="{{ route('counters.index') }}">Counters</a></li>
+                                           @php
+                                                $allowedRoles = ['Super Admin', 'Admin', 'HR'];
+                                                $userRoles = auth()->user()->roles()->pluck('name')->map(fn($r) => strtolower($r))->toArray();
+                                                $allowedRolesLower = array_map('strtolower', $allowedRoles);
+                                                $isAdmin = count(array_intersect($userRoles, $allowedRolesLower)) > 0;
+
+                                                $routeName = $isAdmin ? 'leave-summaries.index' : 'user-leave.index';
+                                                $isActive = $isAdmin
+                                                    ? request()->routeIs('leave-summaries.*')
+                                                    : request()->routeIs('user-leave.index');
+                                            @endphp
+
+                                            <li>
+                                                <a class="dropdown-item {{ $isActive ? 'active' : '' }}" href="{{ route($routeName) }}">
+                                                    Counters
+                                                </a>
+                                            </li>
+
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.index' ? 'active' : '' }}"
                                                     href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
