@@ -130,7 +130,7 @@ class LeaveRequestController extends Controller
 
         // Calculate entitled days including Manager bonus
         $entitled = $summary->entitled;
-        if ($user->hasRole('Manager')) {
+        if ($user->role === 'Manager') {
             $entitled += 2; // Add 2 extra days for Manager
         }
 
@@ -219,8 +219,9 @@ class LeaveRequestController extends Controller
         // Get non-working days based on user role
         $nonWorkingDaysQuery = NonWorkingDay::query();
         
-        if (!$user->hasRole('Super Admin')) {
-            if ($user->hasRole('Manager')) {
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Super Admin') {
+            if ($user->role === 'Manager') {
                 // Managers see their department's non-working days
                 $nonWorkingDaysQuery->where('department_id', $user->department_id);
             } else {
