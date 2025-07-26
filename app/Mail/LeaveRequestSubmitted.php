@@ -4,7 +4,6 @@ namespace App\Mail;
 
 use App\Models\LeaveRequest;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -40,7 +39,7 @@ class LeaveRequestSubmitted extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.leave_request_submitted',
+            view: 'emails.leave_request_submitted', // Updated to correct view
         );
     }
 
