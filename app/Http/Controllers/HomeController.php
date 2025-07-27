@@ -72,18 +72,20 @@ class HomeController extends Controller
             $user = Auth::user();
 
             if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+                // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
+
             } elseif ($user->hasRole('Manager')) {
-                $managerDeptId = $user->department_id;
+                // Manager sees requests from others in the same department (not their own)
                 $requests = LeaveRequest::where('status', 'Requested')
-                    ->whereHas('user', fn($q) => $q->where('department_id', $managerDeptId))
-                    ->count();
-            } elseif ($user->hasRole('Employee')) {
-                $requests = LeaveRequest::where('status', 'Requested')
-                    ->where('user_id', $user->id)
+                    ->whereHas('user', function ($q) use ($user) {
+                        $q->where('department_id', $user->department_id)
+                        ->where('id', '!=', $user->id); // exclude own requests
+                    })
                     ->count();
             }
         }
+
 
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');

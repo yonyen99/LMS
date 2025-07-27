@@ -130,7 +130,7 @@ class LeaveRequestController extends Controller
         // Calculate entitled days including Manager bonus
         $entitled = $summary->entitled;
         if ($user->hasRole('Manager')) {
-            $entitled += 2; // Add 2 extra days for Manager
+            $entitled += 2;
         }
 
         // Calculate taken and requested leaves for this user from LeaveRequest table
@@ -215,6 +215,13 @@ class LeaveRequestController extends Controller
         $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', Auth::id())->get();
         $leaveTypes = LeaveType::all();
         return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes'));
+    }
+
+    public function history($id)
+    {
+        $leaveRequest = LeaveRequest::with(['user', 'approvedBy', 'leaveType'])->findOrFail($id);
+
+        return view('leaveRequest.history', compact('leaveRequest'));
     }
 }
         

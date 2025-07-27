@@ -54,6 +54,15 @@
                     </div>
 
                     <div class="col-md-6">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <select name="start_time" id="start_time" class="form-select" style="cursor: pointer;" required>
+                            <option value="">Select start time</option>
+                            <option value="morning" {{ old('start_time') == 'morning' ? 'selected' : '' }}>Morning</option>
+                            <option value="afternoon" {{ old('start_time') == 'afternoon' ? 'selected' : '' }}>Afternoon</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
                         <label for="end_date" class="form-label">End Date</label>
                         <div class="position-relative" onclick="document.getElementById('end_date').showPicker()">
                             <input 
@@ -66,16 +75,6 @@
                                 required
                             >
                         </div>
-                    </div>
-
-
-                    <div class="col-md-6">
-                        <label for="start_time" class="form-label">Start Time</label>
-                        <select name="start_time" id="start_time" class="form-select" style="cursor: pointer;" required>
-                            <option value="">Select start time</option>
-                            <option value="morning" {{ old('start_time') == 'morning' ? 'selected' : '' }}>Morning</option>
-                            <option value="afternoon" {{ old('start_time') == 'afternoon' ? 'selected' : '' }}>Afternoon</option>
-                        </select>
                     </div>
 
                     <div class="col-md-6">

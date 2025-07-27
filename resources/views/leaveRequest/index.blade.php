@@ -160,6 +160,12 @@
                                 </li>
 
                                 <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('leave-requests.history', $request->id) }}">
+                                    <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> History
+                                    </a>
+                                </li>
+
+                                <li>
                                     <form action="{{ route('leave-requests.destroy', $request->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this request?');">
                                     @csrf
                                     @method('DELETE')
