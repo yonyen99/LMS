@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\LeaveSummary;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 
 class LeaveRequestController extends Controller
@@ -179,10 +180,15 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-        // Send email to the user
-        Mail::to($user->email)->send(new LeaveRequestSubmitted($leaveRequest));
+        // ✅ Send email to Super Admin and Manager users only
+        $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and email sent.');
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        }
+
+
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
 
 

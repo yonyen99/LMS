@@ -65,3 +65,10 @@ Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.vie
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
+
+Route::middleware(['signed'])->group(function () {
+    Route::get('/leave-requests/email/accept/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'accept'])
+        ->name('leave-request.email.accept');
+    Route::get('/leave-requests/email/reject/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'reject'])
+        ->name('leave-request.email.reject');
+});
