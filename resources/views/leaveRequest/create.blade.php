@@ -41,15 +41,17 @@
                     <!-- Start Date/Time Row -->
                     <div class="col-md-6">
                         <label for="start_date" class="form-label">Start Date</label>
-                        <input 
-                            type="date" 
-                            name="start_date" 
-                            id="start_date" 
-                            class="form-control" 
-                            value="{{ old('start_date') }}" 
-                            style="cursor: pointer;"
-                            required
-                        >
+                        <div class="position-relative" onclick="document.getElementById('start_date').showPicker()">
+                            <input 
+                                type="date" 
+                                name="start_date" 
+                                id="start_date" 
+                                class="form-control pe-7" 
+                                value="{{ old('start_date') }}" 
+                                style="cursor: pointer;"
+                                required
+                            >
+                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -64,15 +66,17 @@
                     <!-- End Date/Time Row -->
                     <div class="col-md-6">
                         <label for="end_date" class="form-label">End Date</label>
-                        <input 
-                            type="date" 
-                            name="end_date" 
-                            id="end_date" 
-                            class="form-control" 
-                            value="{{ old('end_date') }}" 
-                            style="cursor: pointer;"
-                            required
-                        >
+                        <div class="position-relative" onclick="document.getElementById('end_date').showPicker()">
+                            <input 
+                                type="date" 
+                                name="end_date" 
+                                id="end_date" 
+                                class="form-control pe-7" 
+                                value="{{ old('end_date') }}" 
+                                style="cursor: pointer;"
+                                required
+                            >
+                        </div>
                     </div>
 
                     <div class="col-md-6">
