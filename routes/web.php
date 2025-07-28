@@ -74,3 +74,4 @@ Route::middleware(['signed'])->group(function () {
     Route::get('/leave-requests/email/cancel/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'cancel'])
         ->name('leave-request.email.cancel');
 });
+Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');

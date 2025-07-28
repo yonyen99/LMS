@@ -27,9 +27,11 @@ class NotificationController extends Controller
         // Limit to Manager's department if applicable
         if (auth()->user()->hasRole('Manager')) {
             $departmentId = auth()->user()->department_id;
+            $userId = auth()->id();
 
-            $query->whereHas('user', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
+            $query->whereHas('user', function ($q) use ($departmentId, $userId) {
+                $q->where('department_id', $departmentId)
+                ->where('id', '!=', $userId); // exclude own requests
             });
         }
 
@@ -60,7 +62,20 @@ class NotificationController extends Controller
             'status' => 'required|in:Accepted,Rejected,Canceled,Cancellation',
         ]);
 
-        $leaveRequest = LeaveRequest::findOrFail($id);
+        $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
+        $actingUser = auth()->user();
+        $requestUser = $leaveRequest->user;
+
+        // ❌ Managers cannot modify their own requests
+        if ($actingUser->id === $requestUser->id && $actingUser->hasRole('Manager')) {
+            return redirect()->route('notifications.index')->with('error', 'Managers cannot update their own leave requests.');
+        }
+
+        // ❌ Only Admin, HR, or Super Admin can modify Manager requests
+        if ($requestUser->hasRole('Manager') && !$actingUser->hasAnyRole(['Admin', 'HR', 'Super Admin'])) {
+            return redirect()->route('notifications.index')->with('error', 'You are not authorized to update a Manager’s leave request.');
+        }
+
         $oldStatus = $leaveRequest->status;
         $newStatus = $request->status;
 
@@ -115,4 +130,5 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index')->with('success', 'Leave approved.');
     }
+    
 }

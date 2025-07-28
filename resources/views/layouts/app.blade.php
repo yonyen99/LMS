@@ -143,6 +143,35 @@
                                     </li>
                                 @endcanany
 
+                                <!-- Approval section -->
+                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
+                                    'delete-request', 'view-request', 'cancel-request'])
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index']) ? 'active' : '' }}"
+                                            href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                            Approval
+                                        </a>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' ? 'active' : '' }}"
+                                                    href="#">Delegations</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' ? 'active' : '' }}"
+                                                    href="#">My Subordinates</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
+                                                    href="#">Leave Balance</a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <h6 class="dropdown-header">APPROVAL</h6>
+                                            </li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
+                                                    href="{{ route('notifications.index') }}">Leave Requests</a></li>
+                                            <li><a class="dropdown-item" href="#">Overtime</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
+
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
