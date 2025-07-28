@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\LeaveSummary;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class LeaveRequestController extends Controller
 {
@@ -93,6 +95,7 @@ class LeaveRequestController extends Controller
         $leaveTypes = LeaveType::orderBy('name')->pluck('name');
         $leaveRequests = $query->paginate(10);
 
+
         return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
     }
 
@@ -113,81 +116,21 @@ class LeaveRequestController extends Controller
 
     public function store(Request $request)
     {
-    $request->validate([
-        'leave_type_id' => 'required|exists:leave_types,id',
-        'start_date' => 'required|date',
-        'start_time' => 'required|in:morning,afternoon,full',
-        'end_date' => 'required|date|after_or_equal:start_date',
-        'end_time' => 'required|in:morning,afternoon,full',
-        'duration' => 'required|numeric|min:0.5',
-        'reason' => 'nullable|string',
-        'status' => 'required|in:planned,requested',
-    ]);
-
-    $user = auth()->user();
-
-    DB::transaction(function () use ($request, $user) {
-        // Get the LeaveSummary record for the user's department and leave type
-        $summary = LeaveSummary::where('department_id', $user->department_id)
-            ->where('leave_type_id', $request->leave_type_id)
-            ->lockForUpdate()
-            ->first();
-
-        if (!$summary) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'leave_type_id' => 'Leave summary not found for your department.',
-            ]);
-        }
-
-        // Calculate entitled days including Manager bonus
-        $entitled = $summary->entitled;
-        if ($user->hasRole('Manager')) {
-            $entitled += 2;
-        }
-
-        // Calculate taken and requested leaves for this user from LeaveRequest table
-        $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
-            ->where('leave_type_id', $request->leave_type_id)
-            ->whereIn('status', ['Accepted', 'Planned'])
-            ->sum('duration');
-
-        $requested = \App\Models\LeaveRequest::where('user_id', $user->id)
-            ->where('leave_type_id', $request->leave_type_id)
-            ->where('status', 'Requested')
-            ->sum('duration');
-
-        // Calculate available leave
-        $available = $entitled - ($taken + $requested);
-
-        if ($available < $request->duration) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'duration' => "Not enough leave available. You can request up to $available days.",
-            ]);
-        }
-
-        // Update LeaveSummary requested count for department-level tracking
-        $summary->requested += $request->duration;
-        $summary->available_actual = max($entitled - $summary->taken, 0);
-        $summary->save();
-
-        // Create leave request record
-        LeaveRequest::create([
-            'user_id' => $user->id,
-            'leave_type_id' => $request->leave_type_id,
-            'start_date' => $request->start_date,
-            'start_time' => $request->start_time,
-            'end_date' => $request->end_date,
-            'end_time' => $request->end_time,
-            'duration' => $request->duration,
-            'reason' => $request->reason,
-            'status' => 'Requested',
-            'requested_at' => now(),
-            'last_changed_at' => now(),
+        $request->validate([
+            'leave_type_id' => 'required|exists:leave_types,id',
+            'start_date' => 'required|date',
+            'start_time' => 'required|in:morning,afternoon,full',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'end_time' => 'required|in:morning,afternoon,full',
+            'duration' => 'required|numeric|min:0.5',
+            'reason' => 'nullable|string',
+            'status' => 'required|in:planned,requested',
         ]);
 
         $user = auth()->user();
 
         $leaveRequest = DB::transaction(function () use ($request, $user) {
+            // Get the LeaveSummary record for the user's department and leave type
             $summary = LeaveSummary::where('department_id', $user->department_id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->lockForUpdate()
@@ -199,21 +142,24 @@ class LeaveRequestController extends Controller
                 ]);
             }
 
+            // Calculate entitled days including Manager bonus
             $entitled = $summary->entitled;
-            if ($user->role === 'Manager') {
+            if ($user->hasRole('Manager')) { // Consistent role checking
                 $entitled += 2;
             }
 
-            $taken = LeaveRequest::where('user_id', $user->id)
+            // Calculate taken and requested leaves for this user
+            $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->whereIn('status', ['Accepted', 'Planned'])
                 ->sum('duration');
 
-            $requested = LeaveRequest::where('user_id', $user->id)
+            $requested = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->where('status', 'Requested')
                 ->sum('duration');
 
+            // Calculate available leave
             $available = $entitled - ($taken + $requested);
 
             if ($available < $request->duration) {
@@ -222,10 +168,12 @@ class LeaveRequestController extends Controller
                 ]);
             }
 
+            // Update LeaveSummary requested count for department-level tracking
             $summary->requested += $request->duration;
             $summary->available_actual = max($entitled - $summary->taken, 0);
             $summary->save();
 
+            // Create leave request record
             return LeaveRequest::create([
                 'user_id' => $user->id,
                 'leave_type_id' => $request->leave_type_id,
@@ -241,17 +189,17 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-       
-        $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
+        // Send email to Super Admin and Manager users
+        // $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
 
-        if (!empty($adminEmails)) {
-            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
-        }
-
+        // if (!empty($adminEmails)) {
+        //     Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        // }
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
-    });
     }
+
+    
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
@@ -314,5 +262,84 @@ class LeaveRequestController extends Controller
         $latestStatusChange = $changs->statusChanges->sortByDesc('changed_at')->first();
 
         return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
+    }
+
+    public function exportPDF(Request $request)
+    {
+        ini_set('memory_limit', '256M');
+        ini_set('max_execution_time', 60);
+        Log::info('PDF Export initiated by user: ' . auth()->id(), $request->all());
+
+        if (!auth()->check()) {
+            abort(401, 'Unauthorized');
+        }
+
+        try {
+            $query = LeaveRequest::with('leaveType')->where('user_id', auth()->id());
+            if ($request->filled('statuses')) {
+                $statuses = array_map('strtolower', (array) $request->input('statuses'));
+                $query->whereIn('status', $statuses);
+            }
+            if ($request->filled('type')) {
+                $query->whereHas('leaveType', function ($q) use ($request) {
+                    $q->where('name', $request->type);
+                });
+            }
+            if ($request->filled('status_request')) {
+                $query->where('status', $request->status_request);
+            }
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('reason', 'like', "%{$search}%")
+                        ->orWhere('duration', 'like', "%{$search}%")
+                        ->orWhere('start_date', 'like', "%{$search}%")
+                        ->orWhere('end_date', 'like', "%{$search}%")
+                        ->orWhere('start_time', 'like', "%{$search}%")
+                        ->orWhere('end_time', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%")
+                        ->orWhereHas('leaveType', function ($sub) use ($search) {
+                            $sub->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('user', function ($sub) use ($search) {
+                            $sub->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%");
+                        });
+                });
+            }
+            $sortOrder = $request->input('sort_order', 'new');
+            $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
+            $leaveRequests = $query->get();
+            Log::info('Leave Requests Count', ['count' => $leaveRequests->count()]);
+
+            $statusColors = [
+                'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+            ];
+
+            $data = [
+                'leaveRequests' => $leaveRequests,
+                'statusColors' => $statusColors,
+                'title' => 'My Leave Requests',
+                'generatedAt' => now()->format('d/m/Y H:i:s'),
+            ];
+
+            $pdf = Pdf::loadView('leave_requests.pdf', $data)
+                ->setPaper('A4', 'landscape')
+                ->setOption('dpi', 150)
+                ->setOption('isRemoteEnabled', true);
+            ob_clean();
+            return $pdf->download('my-leave-requests-' . now()->format('Ymd-His') . '.pdf');
+        } catch (\Exception $e) {
+            Log::error('PDF Export Error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->withErrors('Failed to generate PDF: ' . $e->getMessage());
+        }
     }
 }

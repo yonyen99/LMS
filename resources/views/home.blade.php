@@ -190,59 +190,58 @@
                 !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
                     <div class="card card-1 p-4 mb-4">
-                        <form method="GET" action="{{ route('leave-requests.index') }}">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
-                                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
-                                </div>
-                                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4 mt-4">
-                                    <div class="d-flex align-items-center border rounded px-2" style="width:30%;">
-                                        <input type="text" name="search" value="{{ request('search') }}"
-                                            class="form-control border-0" placeholder="Search request...">
-                                        <i class="bi bi-search text-primary"></i>
-                                    </div>
+        <form method="GET" action="{{ route('leave-requests.index') }}">
+            <div>
+                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
+                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
+                </div>
+                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4 mt-4">
+                    <div class="d-flex align-items-center border rounded px-2" style="width:30%;">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            class="form-control border-0" placeholder="Search request...">
+                        <i class="bi bi-search text-primary"></i>
+                    </div>
                                     
-                                    @php
-                                        $statuses = [
-                                            'Planned',
-                                            'Accepted',
-                                            'Requested',
-                                            'Rejected',
-                                            'Cancellation',
-                                            'Canceled',
-                                        ];
-                                        $colors = [
-                                            'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-                                            'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-                                            'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                                            'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                                            'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                                        ];
-                                    @endphp
+                    @php
+                        $statuses = [
+                            'Planned',
+                            'Accepted',
+                            'Requested',
+                            'Rejected',
+                            'Cancellation',
+                            'Canceled',
+                        ];
+                        $colors = [
+                            'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                            'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                            'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                            'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                            'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],                             
+                        ];
+                        @endphp
 
-                                    @foreach ($statuses as $status)
-                                        @php
-                                            $textColor = $colors[$status]['text'];
-                                            $bgColor = $colors[$status]['bg'];
-                                        @endphp
-                                        <div>
-                                            <label for="status_{{ $status }}"
-                                                class="d-flex align-items-center fw-semibold"
-                                                style="color: {{ $textColor }}; background-color: {{ $bgColor }};
-                                                padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
-                                                <input type="checkbox" name="statuses[]" value="{{ $status }}"
-                                                    id="status_{{ $status }}"
-                                                    {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
-                                                    onchange="this.form.submit()" class="form-check-input me-2 mb-1"
-                                                    style="width: 1.2em; height: 1.1em;">
+                        @foreach ($statuses as $status)
+                            @php
+                                $textColor = $colors[$status]['text'];
+                                $bgColor = $colors[$status]['bg']                                       
+                            @endphp
+                            <div>
+                                <label for="status_{{ $status }}"
+                                    class="d-flex align-items-center fw-semibold"
+                                    style="color: {{ $textColor }}; background-color: {{ $bgColor }};
+                                        padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
+                                    <input type="checkbox" name="statuses[]" value="{{ $status }}"
+                                        id="status_{{ $status }}"
+                                        {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
+                                        onchange="this.form.submit()" class="form-check-input me-2 mb-1"
+                                        style="width: 1.2em; height: 1.1em;">
                                                 {{ $status }}
-                                            </label>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                
+                                </label>
                             </div>
+                            @endforeach
+                    </div>
+                </div>
 
                             <div class="d-flex flex-wrap gap-4 align-items-end mt-4 mb-2">
                                 
@@ -271,22 +270,28 @@
                                                 {{ $type }}
                                             </option>
                                         @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
-                                    <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
-                                    <select class="form-select" id="showRequest" name="sort_order"
-                                        onchange="this.form.submit()">
-                                        <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
-                                            Newest</option>
-                                        <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>
-                                            Oldest</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </form>
+                        </select>
                     </div>
+
+                    <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
+                        <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
+                        <select class="form-select" id="showRequest" name="sort_order"
+                                        onchange="this.form.submit()">
+                            <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
+                                 Newest</option>
+                            <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>
+                                 Oldest</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3" style="margin-left: 23%">
+                        <a href="{{ route('leave-requests.exportPDF') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-2 shadow-sm" title="Export to PDF">
+                            <i class="bi bi-file-earmark-pdf fs-5"></i> 
+                            <span>Export PDF</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
 
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
@@ -371,7 +376,7 @@
                                                     </li>
 
                                                     @php
-                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled'];
+                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled', 'cancellation'];
                                                     @endphp
 
                                                     @if (in_array(strtolower($request->status), $showHistoryStatuses))
@@ -384,7 +389,7 @@
                                                     @endif
                                                     
                                                     @php
-                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled'];
+                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled','cancellation'];
                                                     @endphp
                                                     @if (!in_array(strtolower($request->status), $showHistoryStatuses))
                                                         <li>

@@ -54,7 +54,7 @@
                                     $status = strtolower($changs->status);
                                     $badgeColor = match ($status) {
                                         'accepted' => 'bg-success',
-                                        'rejected', 'canceled' => 'bg-danger',
+                                        'rejected', 'canceled', 'cancellation' => 'bg-danger',
                                         'requested' => 'bg-warning',
                                         default => 'bg-secondary'
                                     };
@@ -78,7 +78,7 @@
                                     $status = strtolower($latestStatusChange->new_status ?? $changs->status);
                                     $badgeColor = match ($status) {
                                         'accepted' => 'bg-success',
-                                        'rejected', 'canceled' => 'bg-danger',
+                                        'rejected', 'canceled', 'cancellation' => 'bg-danger',
                                         'requested' => 'bg-warning',
                                         default => 'bg-secondary'
                                     };

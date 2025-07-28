@@ -83,3 +83,5 @@ Route::middleware(['signed'])->group(function () {
         ->name('leave-request.email.cancel');
 });
 Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
+
+Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'exportPDF'])->name('leave-requests.exportPDF');
