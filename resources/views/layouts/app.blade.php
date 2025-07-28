@@ -142,36 +142,37 @@
                                         </ul>
                                     </li>
                                 @endcanany
-
                                 <!-- Approval section -->
-                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
-                                    'delete-request', 'view-request', 'cancel-request'])
-                                    <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index']) ? 'active' : '' }}"
-                                            href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Approval
-                                        </a>
-                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' ? 'active' : '' }}"
-                                                    href="#">Delegations</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' ? 'active' : '' }}"
-                                                    href="#">My Subordinates</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === '#' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
-                                                    href="#">Leave Balance</a></li>
-                                            <li>
-                                                <hr class="dropdown-divider">
-                                            </li>
-                                            <li>
-                                                <h6 class="dropdown-header">APPROVAL</h6>
-                                            </li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
-                                                    href="{{ route('notifications.index') }}">Leave Requests</a></li>
-                                            <li><a class="dropdown-item" href="#">Overtime</a></li>
-                                        </ul>
-                                    </li>
-                                @endcanany
-
+                                @unless (Auth::user()->hasRole('Employee'))
+                                    @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
+                                        'delete-request', 'view-request', 'cancel-request'])
+                                        <li class="nav-item dropdown me-3">
+                                            <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
+                                                href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
+                                                aria-expanded="false">
+                                                Approval
+                                            </a>
+                                            <ul class="dropdown-menu card-1" aria-labelledby="permissionDropdown">
+                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
+                                                        href="#" disabled>Delegations</a></li>
+                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
+                                                        href="{{ route('subordinates.index') }}">My Subordinates</a></li>
+                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-balance.index' ? 'active' : '' }}"
+                                                        href="#" disabled>Leave Balance</a></li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <h6 class="dropdown-header">APPROVAL</h6>
+                                                </li>
+                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
+                                                        href="{{ route('notifications.index') }}">Leave Requests</a></li>
+                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'overtime.index' ? 'active' : '' }}"
+                                                        href="#" disabled>Overtime</a></li>
+                                            </ul>
+                                        </li>
+                                    @endcanany
+                                @endunless
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
@@ -185,9 +186,14 @@
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
                                             </li>
-                                           @php
+                                            @php
                                                 $allowedRoles = ['Super Admin', 'Admin', 'HR'];
-                                                $userRoles = auth()->user()->roles()->pluck('name')->map(fn($r) => strtolower($r))->toArray();
+                                                $userRoles = auth()
+                                                    ->user()
+                                                    ->roles()
+                                                    ->pluck('name')
+                                                    ->map(fn($r) => strtolower($r))
+                                                    ->toArray();
                                                 $allowedRolesLower = array_map('strtolower', $allowedRoles);
                                                 $isAdmin = count(array_intersect($userRoles, $allowedRolesLower)) > 0;
 
@@ -198,7 +204,8 @@
                                             @endphp
 
                                             <li>
-                                                <a class="dropdown-item {{ $isActive ? 'active' : '' }}" href="{{ route($routeName) }}">
+                                                <a class="dropdown-item {{ $isActive ? 'active' : '' }}"
+                                                    href="{{ route($routeName) }}">
                                                     Counters
                                                 </a>
                                             </li>
@@ -245,15 +252,17 @@
                         <ul class="navbar-nav ms-auto align-items-center">
                             <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
-                            <li class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
-                                    <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
-                                    <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
+                                <li class="nav-item dropdown me-3">
+                                    <a class="nav-link position-relative" href="{{ route('notifications.index') }}"
+                                        id="notificationLink">
+                                        <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
+                                        <span
+                                            class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
                                             {{ $requests }}
-                                        <span class="visually-hidden">unread notifications</span>
-                                    </span>
-                                </a>
-                            </li>   
+                                            <span class="visually-hidden">unread notifications</span>
+                                        </span>
+                                    </a>
+                                </li>
                             @endif
 
                             @guest
