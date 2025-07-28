@@ -115,7 +115,7 @@
                 <div class="d-flex justify-content-end gap-3 mt-2">
                     @if (Auth::user()->hasAnyRole(['Admin', 'Super Admin']))
                         @can('edit-user')
-                            <a href="{{ route('users.edit', $user->id) }}" class="btn  card-1 btn-primary px-4">
+                            <a href="{{ route('users.edit', $user->id) }}" class="btn  card-1 btn-primary btn-lg px-4">
                                 <i class="bi bi-pencil-square me-2"></i> Edit User
                             </a>
                         @endcan
@@ -125,7 +125,7 @@
                             <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-lg rounded-pill px-4"
+                                <button type="submit" class="btn btn-danger btn-lg  px-4"
                                         onclick="return confirm('Are you sure you want to delete this user?')">
                                     <i class="bi bi-trash me-2"></i> Delete User
                                 </button>

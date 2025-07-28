@@ -20,10 +20,10 @@
                     <tr style="border: 1px solid #000;">
                         <th scope="col" style="padding: 0.75rem; border: 1px solid #d4d4d4;">Leave Type</th>
                         <th scope="col"
-                            style="padding: 0.75rem; text-align: center; border: 1px solid #d4d4d4; background: #0d6efd; color: #fff;">
+                            style="padding: 0.75rem; text-align: center; border: 1px solid #d4d4d4;  color: #000000;">
                             Available (Actual)</th>
                         <th scope="col"
-                            style="padding: 0.75rem; text-align: center; border: 1px solid #d4d4d4; background: #0d6efd; color: #fff;">
+                            style="padding: 0.75rem; text-align: center; border: 1px solid #d4d4d4; color: #000000;">
                             Available (Simulated)</th>
                         <th scope="col" style="padding: 0.75rem; text-align: center; border: 1px solid #d4d4d4;">Entitled
                         </th>
@@ -40,10 +40,10 @@
                     @foreach ($summaries as $counter)
                         <tr class="shadow-sm">
                             <td class="fw-medium">{{ $counter->leaveType->name }}</td>
-                            <td class="text-center" style="background:#0d6dfd48">
+                            <td class="text-center" style="background:#bfbfc148">
                                 <span class="badge bg-primary rounded-pill">{{ $counter->available_actual }}</span>
                             </td>
-                            <td class="text-center" style="background:#0d6dfd55">
+                            <td class="text-center"  style="background:#bfbfc148">
                                 <span class="badge bg-info rounded-pill">{{ $counter->available_simulated }}</span>
                             </td>
                             <td class="text-center">{{ $counter->entitled }}</td>
