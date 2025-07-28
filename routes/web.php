@@ -40,7 +40,7 @@ Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::cl
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])
     ->name('notifications.update-status');
-    
+
 Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar'])
     ->name('leave-requests.calendar')
     ->middleware('auth');
@@ -63,8 +63,20 @@ Route::resources([
     'subordinates' => SubordinateController::class,
 ]);
 
+Route::get('leave-request/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
+
 Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.view')->middleware(['auth', 'role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
+Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
+
+Route::middleware(['signed'])->group(function () {
+    Route::get('/leave-requests/email/accept/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'accept'])
+        ->name('leave-request.email.accept');
+    Route::get('/leave-requests/email/reject/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'reject'])
+        ->name('leave-request.email.reject');
+    Route::get('/leave-requests/email/cancel/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'cancel'])
+        ->name('leave-request.email.cancel');
+});
 Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');

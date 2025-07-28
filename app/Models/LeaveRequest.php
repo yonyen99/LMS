@@ -40,6 +40,7 @@ class LeaveRequest extends Model
     {
         return $this->belongsTo(LeaveType::class);
     }
+    
 
     public function updatedBy()
     {
