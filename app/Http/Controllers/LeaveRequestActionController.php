@@ -50,4 +50,19 @@ class LeaveRequestActionController extends Controller
             'status' => 'Rejected',
         ]);
     }
+
+    public function cancel(Request $request, $id)
+    {
+        $this->authorizeAction($request);
+
+        $leaveRequest = LeaveRequest::findOrFail($id);
+        $leaveRequest->status = 'Canceled';
+        $leaveRequest->last_changed_at = now();
+        $leaveRequest->save();
+
+        return view('emails.leave_action_response', [
+            'message' => '✅ Leave request has been canceled.',
+            'status' => 'Canceled',
+        ]);
+    }
 }

@@ -69,6 +69,12 @@ class LeaveRequestSubmitted extends Mailable
             ['id' => $this->leaveRequest->id]
         );
 
+        $cancelUrl = URL::temporarySignedRoute(
+            'leave-request.email.cancel',
+            now()->addDays(7),
+            ['id' => $this->leaveRequest->id]
+        );
+
         $admins = \App\Models\User::role(['Super Admin', 'Manager'])->get();
 
         return $this->view('emails.leave_request_submitted')
@@ -77,6 +83,7 @@ class LeaveRequestSubmitted extends Mailable
                 'admins' => $admins,
                 'acceptUrl' => $acceptUrl,
                 'rejectUrl' => $rejectUrl,
+                'cancelUrl' => $cancelUrl,
             ]);
     }
 }
