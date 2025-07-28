@@ -15,22 +15,11 @@ class NotificationController extends Controller
     {
         $unreadCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
 
-        $statusRequestOptions = [
-            'Planned',
-            'Accepted',
-            'Requested',
-            'Rejected',
-            'Cancellation',
-            'Canceled',
-        ];
-
+        $statusRequestOptions = ['Accepted', 'Requested', 'Rejected'];
         $statusColors = [
-            'Accepted'    => ['text' => '#ffffff', 'bg' => '#447F44'],
-            'Requested'   => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-            'Rejected'    => ['text' => '#ffffff', 'bg' => '#F80300'],
-            'Canceled'    => ['text' => '#ffffff', 'bg' => '#AAAAAA'],
-            'Planned'     => ['text' => '#000000', 'bg' => '#F8E71C'],
-            'Cancellation'=> ['text' => '#000000', 'bg' => '#F5A623'],
+            'Accepted'  => ['text' => '#ffffff', 'bg' => '#447F44'],
+            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+            'Rejected'  => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
 
         $query = LeaveRequest::with(['user', 'leaveType'])

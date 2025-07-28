@@ -1,245 +1,134 @@
+<!-- This is a partial updated example of edit.blade.php styled like show.blade.php -->
 @extends('layouts.app')
 
 @section('content')
+<div class="container">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Edit User</h5>
-                        @if (Auth::user()->hasRole('Employee'))
-                            <a href="{{ url('/') }}" class="btn btn-light btn-sm">
-                                <i class="bi bi-arrow-left me-1"></i> Back
-                            </a>
+        <div class="col-lg-10">
+            <!-- Profile Cover and Header -->
+            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden;">
+                <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover;">
+                <div class="profile-details position-absolute" style="bottom: -5px; left: 20px; z-index: 1;">
+                    <div class="d-flex align-items-end gap-3">
+                        @if ($user->images)
+                            <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
+                                 class="shadow-sm" style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #fff;">
                         @else
-                            <a href="{{ route('users.index') }}" class="btn btn-light btn-sm">
-                                <i class="bi bi-arrow-left me-1"></i> Back
-                            </a>
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm"
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-person text-dark" style="font-size: 1.5rem;"></i>
+                            </div>
                         @endif
+                        <div>
+                            <h3 class="mb-0 fw-bold text-black">Edit Profile - {{ $user->name }}</h3>
+                            <div class="text-muted">
+                                <span class="text-black">Role: {{ $user->getRoleNames()->first() ?? 'No Role' }}</span> |
+                                <span class="text-black">Department: {{ $user->department ? $user->department->name : 'Not specified' }}</span> |
+                                <span class="text-black">Joined: {{ $user->created_at->format('M Y') }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data"
-                        class="needs-validation" novalidate>
+            </div>
+
+            <!-- Form Card -->
+            <div class="card mt-5 shadow-sm">
+                <div class="card-body p-4">
+                    <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                         @csrf
                         @method('PUT')
-
-                        <div class="row g-3">
-                            <!-- Personal Information Section -->
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Full Name <span
-                                            class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                        id="name" name="name" value="{{ old('name', $user->name) }}" required>
-                                    @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email Address <span
-                                            class="text-danger">*</span></label>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
-                                        id="email" name="email" value="{{ old('email', $user->email) }}" required>
-                                    @error('email')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="text" class="form-control @error('phone') is-invalid @enderror"
-                                        id="phone" name="phone" value="{{ old('phone', $user->phone) }}">
-                                    @error('phone')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="images" class="form-label">Profile Image</label>
-                                    <input type="file" class="form-control @error('images') is-invalid @enderror"
-                                        id="images" name="images" accept="image/jpeg,image/png,image/jpg">
-                                    <div class="form-text">Max size: 2MB (JPG, JPEG, PNG)</div>
-                                    @if ($user->images)
-                                        <div class="mt-2">
-                                            <img src="{{ asset('storage/' . $user->images) }}" class="img-thumbnail"
-                                                style="max-height: 150px;">
-                                        </div>
-                                    @endif
-                                    @error('images')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                <label class="form-label">Full Name</label>
+                                <input type="text" name="name" value="{{ old('name', $user->name) }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" name="email" value="{{ old('email', $user->email) }}" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone Number</label>
+                                <input type="text" name="phone" value="{{ old('phone', $user->phone) }}" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Profile Image</label>
+                                <input type="file" name="images" class="form-control">
+                                @if ($user->images)
+                                    <img src="{{ asset('storage/' . $user->images) }}" class="img-thumbnail mt-2" style="max-height: 150px;">
+                                @endif
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password</label>
+                                <input type="password" name="password" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="password_confirmation" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Department</label>
+                                <select name="department_id" class="form-select">
+                                    <option value="">-- Select Department --</option>
+                                    @foreach ($departments as $id => $name)
+                                        <option value="{{ $id }}" {{ old('department_id', $user->department_id) == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="is_active">Active User</label>
                                 </div>
                             </div>
-
-                            <!-- Account Information Section -->
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                        id="password" name="password">
-                                    @error('password')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="password_confirmation"
-                                        name="password_confirmation">
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="department_id" class="form-label">Department</label>
-                                    <select class="form-select @error('department_id') is-invalid @enderror"
-                                        id="department_id" name="department_id">
-                                        <option value="">-- Select Department --</option>
-                                        @foreach ($departments as $id => $name)
-                                            <option value="{{ $id }}"
-                                                {{ old('department_id', $user->department_id) == $id ? 'selected' : '' }}>
-                                                {{ $name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('department_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="is_active"
-                                            name="is_active" value="1"
-                                            {{ old('is_active', $user->is_active) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="is_active">Active User</label>
-                                    </div>
-                                    @error('is_active')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Roles Section (Full Width) -->
                             @unless (Auth::user()->hasRole('Employee'))
                                 <div class="col-12">
-                                    <div class="mb-3">
-                                        <label class="form-label">Roles <span class="text-danger">*</span></label>
-                                        <div class="border p-3 rounded @error('roles') border-danger @enderror">
-                                            <div class="row">
-                                                @foreach ($roles as $role)
-                                                    @if ($role != 'Super Admin')
-                                                        <div class="col-md-3 col-6">
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="role_{{ $role }}" name="roles[]"
-                                                                    value="{{ $role }}"
-                                                                    {{ in_array($role, old('roles', $userRoles ?? [])) ? 'checked' : '' }}>
-                                                                <label class="form-check-label"
-                                                                    for="role_{{ $role }}">
-                                                                    {{ $role }}
-                                                                </label>
-                                                            </div>
+                                    <label class="form-label">Roles</label>
+                                    <div class="border rounded p-3">
+                                        <div class="row">
+                                            @foreach ($roles as $role)
+                                                @if ($role !== 'Super Admin' || Auth::user()->hasRole('Super Admin'))
+                                                    <div class="col-md-3 col-6">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" name="roles[]" value="{{ $role }}" id="role_{{ $role }}" class="form-check-input" {{ in_array($role, old('roles', $userRoles ?? [])) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="role_{{ $role }}">{{ $role }}</label>
                                                         </div>
-                                                    @elseif (Auth::user()->hasRole('Super Admin'))
-                                                        <div class="col-md-3 col-6">
-                                                            <div class="form-check mb-2">
-                                                                <input class="form-check-input" type="checkbox"
-                                                                    id="role_{{ $role }}" name="roles[]"
-                                                                    value="{{ $role }}"
-                                                                    {{ in_array($role, old('roles', $userRoles ?? [])) ? 'checked' : '' }}>
-                                                                <label class="form-check-label"
-                                                                    for="role_{{ $role }}">
-                                                                    {{ $role }}
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    @endif
-                                                @endforeach
-                                            </div>
+                                                    </div>
+                                                @endif
+                                            @endforeach
                                         </div>
-                                        @error('roles')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
                                     </div>
                                 </div>
                             @endunless
+                        </div>
 
-                            <!-- Submit Button -->
-                            <div class="col-12">
-                                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <button type="submit" class="btn btn-primary px-4">
-                                        <i class="bi bi-save me-2"></i> Update User
-                                    </button>
-                                </div>
-                            </div>
-
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-2"></i> Update User
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
+</div>
 @endsection
 
 @section('styles')
-    <style>
-        .card {
-            border-radius: 0.5rem;
-        }
-
-        .card-header {
-            border-radius: 0.5rem 0.5rem 0 0 !important;
-        }
-
-        .form-label {
-            font-weight: 500;
-        }
-
-        .form-text {
-            font-size: 0.8rem;
-        }
-
-        .form-switch .form-check-input {
-            width: 2.5em;
-            height: 1.5em;
-        }
-
-        .border-danger {
-            border-color: #dc3545 !important;
-        }
-
-        .form-check-input {
-            margin-top: 0.2em;
-        }
-
-        .img-thumbnail {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
-@endsection
-
-@section('scripts')
-    <script>
-        // Enable Bootstrap 5 form validation
-        (function() {
-            'use strict'
-
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            const forms = document.querySelectorAll('.needs-validation')
-
-            // Loop over them and prevent submission
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
-    </script>
+<style>
+    .cover-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+    }
+    .profile-details {
+        position: absolute;
+        z-index: 1;
+    }
+    .img-thumbnail {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
 @endsection

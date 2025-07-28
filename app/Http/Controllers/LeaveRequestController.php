@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Controllers;
+
+use App\Mail\LeaveRequestSubmitted;
 use Illuminate\Support\Facades\DB;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
@@ -9,14 +11,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\LeaveSummary;
-
+use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 
 class LeaveRequestController extends Controller
 {
     public function index(Request $request): View
     {
         $query = LeaveRequest::with('leaveType')
-        ->where('user_id', auth()->id());
+            ->where('user_id', auth()->id());
 
         if ($request->filled('statuses')) {
             // Normalize to lowercase if needed
@@ -52,12 +55,12 @@ class LeaveRequestController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
-                ->orWhere('duration', 'like', "%{$search}%")
-                ->orWhere('start_date', 'like', "%{$search}%")
-                ->orWhere('end_date', 'like', "%{$search}%")
-                ->orWhere('start_time', 'like', "%{$search}%")
-                ->orWhere('end_time', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('duration', 'like', "%{$search}%")
+                    ->orWhere('start_date', 'like', "%{$search}%")
+                    ->orWhere('end_date', 'like', "%{$search}%")
+                    ->orWhere('start_time', 'like', "%{$search}%")
+                    ->orWhere('end_time', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
 
                 // Optional: Join with leave_types and users
                 $q->orWhereHas('leaveType', function ($sub) use ($search) {
@@ -72,7 +75,7 @@ class LeaveRequestController extends Controller
         }
         $sortOrder = $request->input('sort_order', 'new');
 
-       if ($sortOrder === 'new') {
+        if ($sortOrder === 'new') {
             $query->orderBy('id', 'desc');  // newest = highest ID first
         } else {
             $query->orderBy('id', 'asc');   // oldest = lowest ID first
@@ -86,22 +89,30 @@ class LeaveRequestController extends Controller
             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
             'Canceled'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
-        
-        $leaveTypes = LeaveType::orderBy('name')->pluck('name'); 
+
+        $leaveTypes = LeaveType::orderBy('name')->pluck('name');
         $leaveRequests = $query->paginate(10);
 
-        return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));        
+        return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
     }
 
 
     public function create()
     {
         $leaveTypes = LeaveType::all();
+
+        // Check if leaveTypes is empty
+        if ($leaveTypes->isEmpty()) {
+            return redirect()->route('leave-requests.index')
+                ->with('error', 'No leave types are available. Please contact the administrator.');
+        }
+
         return view('leaveRequest.create', compact('leaveTypes'));
     }
 
+
     public function store(Request $request)
-{
+    {
     $request->validate([
         'leave_type_id' => 'required|exists:leave_types,id',
         'start_date' => 'required|date',
@@ -173,14 +184,74 @@ class LeaveRequestController extends Controller
             'requested_at' => now(),
             'last_changed_at' => now(),
         ]);
+
+        $user = auth()->user();
+
+        $leaveRequest = DB::transaction(function () use ($request, $user) {
+            $summary = LeaveSummary::where('department_id', $user->department_id)
+                ->where('leave_type_id', $request->leave_type_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$summary) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'leave_type_id' => 'Leave summary not found for your department.',
+                ]);
+            }
+
+            $entitled = $summary->entitled;
+            if ($user->role === 'Manager') {
+                $entitled += 2;
+            }
+
+            $taken = LeaveRequest::where('user_id', $user->id)
+                ->where('leave_type_id', $request->leave_type_id)
+                ->whereIn('status', ['Accepted', 'Planned'])
+                ->sum('duration');
+
+            $requested = LeaveRequest::where('user_id', $user->id)
+                ->where('leave_type_id', $request->leave_type_id)
+                ->where('status', 'Requested')
+                ->sum('duration');
+
+            $available = $entitled - ($taken + $requested);
+
+            if ($available < $request->duration) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'duration' => "Not enough leave available. You can request up to $available days.",
+                ]);
+            }
+
+            $summary->requested += $request->duration;
+            $summary->available_actual = max($entitled - $summary->taken, 0);
+            $summary->save();
+
+            return LeaveRequest::create([
+                'user_id' => $user->id,
+                'leave_type_id' => $request->leave_type_id,
+                'start_date' => $request->start_date,
+                'start_time' => $request->start_time,
+                'end_date' => $request->end_date,
+                'end_time' => $request->end_time,
+                'duration' => $request->duration,
+                'reason' => $request->reason,
+                'status' => 'Requested',
+                'requested_at' => now(),
+                'last_changed_at' => now(),
+            ]);
+        });
+
+       
+        $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
+
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        }
+
+
+        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     });
-
-    return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and quota updated.');
-}
-
-
-
-
+    }
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
@@ -195,7 +266,7 @@ class LeaveRequestController extends Controller
     }
 
 
-   /**
+    /**
      * Cancel the specified leave request.
      */
     public function cancel(Request $request, LeaveRequest $leaveRequest)
@@ -215,12 +286,13 @@ class LeaveRequestController extends Controller
     {
         $user = Auth::user();
         $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
-        
+
         // Get non-working days based on user role
         $nonWorkingDaysQuery = NonWorkingDay::query();
-        
-        if (!$user->hasRole('Super Admin')) {
-            if ($user->hasRole('Manager')) {
+
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Super Admin') {
+            if ($user->role === 'Manager') {
                 // Managers see their department's non-working days
                 $nonWorkingDaysQuery->where('department_id', $user->department_id);
             } else {
@@ -228,10 +300,10 @@ class LeaveRequestController extends Controller
                 $nonWorkingDaysQuery->whereNull('department_id');
             }
         }
-        
+
         $nonWorkingDays = $nonWorkingDaysQuery->get();
         $leaveTypes = LeaveType::all();
-        
+
         return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 
@@ -244,4 +316,3 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
 }
-        

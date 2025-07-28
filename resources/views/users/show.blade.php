@@ -1,206 +1,247 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">User Details</h5>
-                        @if (Auth::user()->hasRole('Employee'))
-                            <a href="{{ url('/') }}" class="btn btn-light btn-sm">
-                                <i class="bi bi-arrow-left me-1"></i> Back
-                            </a>
+            <!-- Cover Section -->
+            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden;">
+                <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover;">
+                <!-- Profile Details Section -->
+                <div class="profile-details position-absolute" style="bottom: -5px; left: 20px; z-index: 1;">
+                    <div class="d-flex align-items-end gap-3">
+                        @if ($user->images)
+                            <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
+                                 class="shadow-sm" style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #fff;">
                         @else
-                            <a href="{{ route('users.index') }}" class="btn btn-light btn-sm">
-                                <i class="bi bi-arrow-left me-1"></i> Back
-                            </a>
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm"
+                                 style="width: 60px; height: 60px;">
+                                <i class="bi bi-person text-dark" style="font-size: 1.5rem;"></i>
+                            </div>
                         @endif
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Profile Header Section -->
-                    <div class="row align-items-center mb-4">
-                        <div class="col-md-2 text-center mb-3 mb-md-0">
-                            @if ($user->images)
-                                <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
-                                    class="img-thumbnail rounded-circle"
-                                    style="width: 100px; height: 100px; object-fit: cover;">
-                            @else
-                                <div class="d-flex align-items-center justify-content-center bg-secondary rounded-circle mx-auto"
-                                    style="width: 100px; height: 100px;">
-                                    <i class="bi bi-person text-white" style="font-size: 2rem;"></i>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="col-md-10">
-                            <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
-                                <h3 class="mb-0">{{ $user->name }}</h3>
-                                <span class="badge bg-{{ $user->is_active ? 'success' : 'secondary' }} py-2">
-                                    {{ $user->is_active ? 'Active' : 'Inactive' }}
-                                </span>
-                            </div>
-
-                            <div class="d-flex flex-wrap gap-2 mb-2">
-                                @forelse ($user->getRoleNames() as $role)
-                                    <span class="badge bg-primary">{{ $role }}</span>
-                                @empty
-                                    <span class="badge bg-secondary">No Roles Assigned</span>
-                                @endforelse
-                            </div>
-
-                            @if ($user->department)
-                                <div class="text-muted">
-                                    <i class="bi bi-building me-1"></i>
-                                    {{ $user->department->name }}
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Main Information Sections -->
-                    <div class="row">
-                        <!-- Left Column -->
-                        <div class="col-md-6">
-                            <div class="card mb-4 border-0 shadow-sm">
-                                <div class="card-body">
-                                    <h6 class="card-title text-primary mb-3">
-                                        <i class="bi bi-person-lines-fill me-2"></i>Basic Information
-                                    </h6>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Full Name</p>
-                                        <p class="fw-medium">{{ $user->name }}</p>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Email Address</p>
-                                        <p class="fw-medium">
-                                            <a href="mailto:{{ $user->email }}">{{ $user->email }}</a>
-                                        </p>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Phone Number</p>
-                                        <p class="fw-medium">
-                                            @if ($user->phone)
-                                                <a href="tel:{{ $user->phone }}">{{ $user->phone }}</a>
-                                            @else
-                                                <span class="text-muted">Not provided</span>
-                                            @endif
-                                        </p>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Account Status</p>
-                                        <p class="fw-medium">
-                                            <span class="badge bg-{{ $user->is_active ? 'success' : 'secondary' }}">
-                                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                                            </span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right Column -->
-                        <div class="col-md-6">
-                            <div class="card mb-4 border-0 shadow-sm">
-                                <div class="card-body">
-                                    <h6 class="card-title text-primary mb-3">
-                                        <i class="bi bi-gear-fill me-2"></i>Account Details
-                                    </h6>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">User Roles</p>
-                                        <div class="d-flex flex-wrap gap-2">
-                                            @forelse ($user->getRoleNames() as $role)
-                                                <span class="badge bg-primary">{{ $role }}</span>
-                                            @empty
-                                                <span class="badge bg-secondary">No Roles</span>
-                                            @endforelse
-                                        </div>
-                                    </div>
-
-                                    @if ($user->department)
-                                        <div class="mb-3">
-                                            <p class="mb-1 text-muted small">Department</p>
-                                            <p class="fw-medium">{{ $user->department->name }}</p>
-                                        </div>
-                                    @endif
-
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Account Created</p>
-                                        <p class="fw-medium">
-                                            {{ $user->created_at->format('M d, Y \a\t h:i A') }}
-                                        </p>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <p class="mb-1 text-muted small">Last Updated</p>
-                                        <p class="fw-medium">
-                                            {{ $user->updated_at->format('M d, Y \a\t h:i A') }}
-                                        </p>
-                                    </div>
-                                </div>
+                        <div>
+                            <h3 class="mb-0 fw-bold text-black">{{ $user->name }}</h3>
+                            <div class="text-muted">
+                                <span class="text-black">Role: {{ $user->getRoleNames()->first() ?? 'No Role' }}</span> |
+                                <span class="text-black">Department: {{ $user->department ? $user->department->name : 'Not specified' }}</span> |
+                                <span class="text-black">Joined: {{ $user->created_at->format('M Y') }}</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Action Buttons -->
-                    @canany(['edit-user', 'delete-user'])
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            @if (Auth::user()->hasAnyRole(['Admin', 'Super Admin']))
-                                @can('edit-user')
-                                    <a href="{{ route('users.edit', $user->id) }}" class="btn btn-primary">
-                                        <i class="bi bi-pencil-square me-1"></i> Edit User
-                                    </a>
-                                @endcan
-                            @endif
-
-                            @can('delete-user')
-                                @if (!$user->hasRole('Super Admin') && $user->id != auth()->user()->id)
-                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger"
-                                            onclick="return confirm('Are you sure you want to delete this user?')">
-                                            <i class="bi bi-trash me-1"></i> Delete User
-                                        </button>
-                                    </form>
-                                @endif
-                            @endcan
-                        </div>
-                    @endcanany
-
                 </div>
             </div>
+
+            <!-- Spacer Card -->
+            <div class="bg-white mb-4 card-1" style="height: 10px; overflow: hidden;"></div>
+
+            <!-- Columns Section -->
+            <div class="d-flex flex-column flex-md-row gap-4 align-items-stretch">
+                <!-- Left Column -->
+                <div class="col-md-6 flex-fill">
+                    <div class="card-1 border-0 bg-white  h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-primary mb-4 fw-bold">
+                                <i class="bi bi-person-lines-fill me-2"></i>Basic Information
+                            </h5>
+                            <div class="info-item mb-3">
+                                <p class="mb-1 text-muted small text-uppercase">Full Name</p>
+                                <p class="fw-medium text-dark">{{ $user->name }}</p>
+                            </div>
+                            <div class="info-item mb-3">
+                                <p class="mb-1 text-muted small text-uppercase">Email Address</p>
+                                <p class="fw-medium">
+                                    <a href="mailto:{{ $user->email }}" class="text-primary text-decoration-none">{{ $user->email }}</a>
+                                </p>
+                            </div>
+                            <div class="info-item mb-3">
+                                <p class="mb-1 text-muted small text-uppercase">Phone Number</p>
+                                <p class="fw-medium">
+                                    @if ($user->phone)
+                                        <a href="tel:{{ $user->phone }}" class="text-primary text-decoration-none">{{ $user->phone }}</a>
+                                    @else
+                                        <span class="text-muted">Not provided</span>
+                                    @endif
+                                </p>
+                            </div>
+                            <div class="info-item mb-0">
+                                <p class="mb-1 text-muted small text-uppercase">Account Status</p>
+                                <p class="fw-medium">
+                                    <span class="badge bg-{{ $user->is_active ? 'success' : 'secondary' }} py-2 px-3 rounded-pill">
+                                        {{ $user->is_active ? 'Active' : 'Inactive' }}
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column -->
+                <div class="col-md-6 flex-fill">
+                    <div class="card-1 border-0 bg-white  h-100">
+                        <div class="card-body p-4">
+                            <h5 class="card-title text-primary mb-4 fw-bold">
+                                <i class="bi bi-gear-fill me-2"></i>Account Details
+                            </h5>
+                            <div class="info-item mb-3">
+                                <p class="mb-1 text-muted small text-uppercase">User Roles</p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    @forelse ($user->getRoleNames() as $role)
+                                        <span class="badge bg-primary py-2 px-3 rounded-pill">{{ $role }}</span>
+                                    @empty
+                                        <span class="badge bg-secondary py-2 px-3 rounded-pill">No Roles</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                            @if ($user->department)
+                                <div class="info-item mb-3">
+                                    <p class="mb-1 text-muted small text-uppercase">Department</p>
+                                    <p class="fw-medium text-dark">{{ $user->department->name }}</p>
+                                </div>
+                            @endif
+                            <div class="info-item mb-3">
+                                <p class="mb-1 text-muted small text-uppercase">Account Created</p>
+                                <p class="fw-medium text-dark">{{ $user->created_at->format('M d, Y \a\t h:i A') }}</p>
+                            </div>
+                            <div class="info-item mb-0">
+                                <p class="mb-1 text-muted small text-uppercase">Last Updated</p>
+                                <p class="fw-medium text-dark">{{ $user->updated_at->format('M d, Y \a\t h:i A') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            @canany(['edit-user', 'delete-user'])
+                <div class="d-flex justify-content-end gap-3 mt-2">
+                    @if (Auth::user()->hasAnyRole(['Admin', 'Super Admin']))
+                        @can('edit-user')
+                            <a href="{{ route('users.edit', $user->id) }}" class="btn  card-1 btn-primary px-4">
+                                <i class="bi bi-pencil-square me-2"></i> Edit User
+                            </a>
+                        @endcan
+                    @endif
+                    @can('delete-user')
+                        @if (!$user->hasRole('Super Admin') && $user->id != auth()->user()->id)
+                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-lg rounded-pill px-4"
+                                        onclick="return confirm('Are you sure you want to delete this user?')">
+                                    <i class="bi bi-trash me-2"></i> Delete User
+                                </button>
+                            </form>
+                        @endif
+                    @endcan
+                </div>
+            @endcanany
         </div>
     </div>
+</div>
 @endsection
 
 @section('styles')
-    <style>
-        .card {
-            border-radius: 0.5rem;
+<style>
+    .profile-cover {
+        position: relative;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        width: 100%;
+    }
+
+    .cover-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+    }
+
+    .profile-details {
+        position: absolute;
+        z-index: 1;
+    }
+
+    .profile-details:hover {
+        transform: translateY(-2px);
+    }
+    /* .card:hover, .card-1:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+    } */
+
+    .info-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .info-item:last-child {
+        border-bottom: none;
+    }
+
+    .text-muted.small {
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+    }
+
+    .fw-medium {
+        font-weight: 500;
+    }
+
+   
+
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .col-md-6.flex-fill {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    @media (max-width: 768px) {
+        .profile-cover {
+            height: 150px;
         }
 
-        .card-header {
-            border-radius: 0.5rem 0.5rem 0 0 !important;
+        .profile-details {
+            bottom: -40px;
+            left: 10px;
+        }
+
+        .profile-details img,
+        .profile-details .rounded-circle {
+            width: 80px !important;
+            height: 80px !important;
+        }
+
+        .profile-details .d-flex {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .profile-details .bg-white {
+            padding: 1.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
         }
 
         .text-muted.small {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
         }
 
-        .fw-medium {
-            font-weight: 500;
+        .d-flex.flex-md-row {
+            flex-direction: column !important;
         }
 
-        .badge {
-            font-size: 0.8em;
-            padding: 0.35em 0.65em;
+        .card-1 {
+            height: auto;
         }
-    </style>
+    }
+</style>
 @endsection
