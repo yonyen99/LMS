@@ -41,8 +41,8 @@ class LeaveRequest extends Model
         return $this->belongsTo(LeaveType::class);
     }
 
-    public function approvedBy() 
+    public function updatedBy()
     {
-        return $this->belongsTo(User::class, 'approved_by');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

@@ -1,4 +1,4 @@
-{{-- @extends('layouts.app')
+@extends('layouts.app')
 
 @section('content')
 <div class="container-fluid py-4">
@@ -14,7 +14,6 @@
                         <tr>
                             <th>Change Type</th>
                             <th>Changed Date</th>
-                            <th>Changed By</th>
                             <th>Start Date</th>
                             <th>End Date</th>
                             <th>Reason</th>
@@ -24,27 +23,36 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($leaveRequest->history as $change)
+                        @forelse ($leaveRequests as $change)
                             <tr>
                                 <td class="text-center">
-                                    @switch($change->type)
-                                        @case('create') <span class="fs-5">➕</span> @break
-                                        @case('update') <span class="fs-5">✏️</span> @break
-                                        @case('approve') <span class="fs-5">➡️</span> @break
-                                        @default <span class="fs-5">❓</span>
-                                    @endswitch
+                                    @if ($loop->first)
+                                        <span title="Created" class="fs-5">➕</span>
+                                    @elseif ($change->status === 'Requested')
+                                        <span title="Updated" class="fs-5">✏️</span>
+                                    @elseif (in_array($change->status, ['Accepted', 'Rejected']))
+                                        <span title="Status Changed" class="fs-5">➡️</span>
+                                    @else
+                                        <span class="fs-5">❓</span>
+                                    @endif
                                 </td>
-                                <td class="text-nowrap">{{ \Carbon\Carbon::parse($change->changed_at)->format('m/d/Y') }}</td>
-                                <td class="text-nowrap">{{ $change->changed_by }}</td>
-                                <td class="text-nowrap">{{ $change->start_date }} ({{ $change->start_period }})</td>
-                                <td class="text-nowrap">{{ $change->end_date }} ({{ $change->end_period }})</td>
-                                <td>{{ $change->reason }}</td>
+                                <td class="text-center">
+                                    {{ \Carbon\Carbon::parse($change->last_changed_at ?? $change->updated_at)->format('d/m/Y') }}
+                                </td>
+                                <td class="text-center">
+                                    {{ \Carbon\Carbon::parse($change->start_date)->format('d/m/Y') }} ({{ ucfirst($change->start_time) }})
+                                </td>
+                                <td class="text-center">
+                                    {{ \Carbon\Carbon::parse($change->end_date)->format('d/m/Y') }} ({{ ucfirst($change->end_time) }})
+                                </td>
+                                <td class="text-center">{{ $change->reason }}</td>
                                 <td class="text-end">{{ number_format($change->duration, 3) }}</td>
-                                <td>{{ $change->type_name }}</td>
-                                <td>
+                                <td class="text-center">{{ $change->leaveType->name ?? '' }}</td>
+                                <td class="text-center">
                                     <span class="badge rounded-pill 
                                         @if ($change->status === 'Accepted') bg-success
                                         @elseif ($change->status === 'Requested') bg-warning text-dark
+                                        @elseif ($change->status === 'Rejected') bg-danger
                                         @else bg-secondary
                                         @endif">
                                         {{ $change->status }}
@@ -52,9 +60,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="9" class="text-center text-muted">No history found.</td>
-                            </tr>
+                            <tr><td colspan="8" class="text-center text-muted">No history found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -66,15 +72,17 @@
         </div>
     </div>
 </div>
-@endsection --}}
+@endsection
 
+
+{{-- 
 @extends('layouts.app')
 
 @section('content')
 <div class="container-fluid py-4">
     <div class="card shadow border-0">
         <div class="card-header bg-light">
-            <h4 class="mb-0">Leave Request Summary</h4>
+            <h4 class="mb-0">Leave Change History</h4>
         </div>
 
         <div class="card-body p-3">
@@ -96,8 +104,8 @@
                     <tbody>
                         <tr class="text-center">
                             <td>{{ $leaveRequest->user->name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d/m/Y') }} ({{ $leaveRequest->start_period }})</td>
-                            <td>{{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d/m/Y') }} ({{ $leaveRequest->end_period }})</td>
+                            <td>{{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d/m/Y') }} ({{ ucfirst($leaveRequest->start_time) }})</td>
+                            <td>{{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d/m/Y') }} ({{ ucfirst($leaveRequest->end_time) }})</td>
                             <td>{{ $leaveRequest->reason ?? '-' }}</td>
                             <td>{{ number_format($leaveRequest->duration, 2) }}</td>
                             <td>{{ $leaveRequest->leaveType->name }}</td>
@@ -129,4 +137,4 @@
         </div>
     </div>
 </div>
-@endsection
+@endsection --}}
