@@ -14,6 +14,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\NonWorkingDayController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\SubordinateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,7 +45,9 @@ Route::get('/leave-requests/calendar', [LeaveRequestController::class, 'calendar
     ->name('leave-requests.calendar')
     ->middleware('auth');
 
-// Add route for Counters page
+// Add route for Subordinates page
+Route::get('/subordinates', [SubordinateController::class, 'index'])->name('subordinates.index')->middleware('auth');
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('leave-summaries', LeaveSummaryController::class);
     Route::get('/user-leaves', [LeaveSummaryController::class, 'userLeave'])->name('user-leave.index');
@@ -57,6 +60,7 @@ Route::resources([
     'leave-types' => LeaveTypeController::class,
     'leave-requests' => LeaveRequestController::class,
     'non-working-days' => NonWorkingDayController::class,
+    'subordinates' => SubordinateController::class,
 ]);
 
 Route::get('leave-request/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
@@ -65,6 +69,7 @@ Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.vie
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
+Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
 
 Route::middleware(['signed'])->group(function () {
     Route::get('/leave-requests/email/accept/{id}', [App\Http\Controllers\LeaveRequestActionController::class, 'accept'])

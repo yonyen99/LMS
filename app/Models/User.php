@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +22,6 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
-
     protected $fillable = [
         'name',
         'email',
@@ -57,10 +56,31 @@ class User extends Authenticatable
         'is_active' => 'boolean'
     ];
 
+    /**
+     * Get the user's first name.
+     *
+     * @return string
+     */
+    public function getFirstNameAttribute()
+    {
+        $nameParts = explode(' ', trim($this->name));
+        return $nameParts[0] ?? '-';
+    }
 
-    // Add to the model class
+    /**
+     * Get the user's last name.
+     *
+     * @return string
+     */
+    public function getLastNameAttribute()
+    {
+        $nameParts = explode(' ', trim($this->name));
+        return isset($nameParts[1]) ? $nameParts[1] : '-';
+    }
 
-    // Add accessor for easy image URL retrieval
+    /**
+     * Add accessor for easy image URL retrieval
+     */
     public function getImageUrlAttribute()
     {
         return $this->images 
