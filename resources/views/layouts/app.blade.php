@@ -146,13 +146,13 @@
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
-                                        <li class="nav-item dropdown me-3">
+                                        <li class="nav-item  dropdown me-3">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
                                                 href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">
                                                 Approval
                                             </a>
-                                            <ul class="dropdown-menu card-1" aria-labelledby="permissionDropdown">
+                                            <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
                                                         href="#" disabled>Delegations</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
