@@ -14,6 +14,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\NonWorkingDayController;
 use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\MessageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -64,3 +65,5 @@ Route::get('/users/view/{id}', [UserController::class, 'view'])->name('users.vie
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
 Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
+Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+Route::post('/notifications/{id}/mark-read', [MessageController::class, 'markAsRead']);

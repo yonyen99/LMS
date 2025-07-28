@@ -237,16 +237,11 @@ class LeaveRequestController extends Controller
 
     public function history($id)
     {
-        $target = LeaveRequest::findOrFail($id);
+        $changs = LeaveRequest::with(['user', 'leaveType', 'statusChanges.user'])->findOrFail($id);
 
-        $leaveRequests = LeaveRequest::where('user_id', $target->user_id)
-            ->where('leave_type_id', $target->leave_type_id)
-            ->orderByDesc('last_changed_at')
-            ->get();
+        $latestStatusChange = $changs->statusChanges->sortByDesc('changed_at')->first();
 
-        return view('leaveRequest.history', compact('leaveRequests'));
+        return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
-
-
 }
         

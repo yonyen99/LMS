@@ -246,7 +246,7 @@
                             <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
                             <li class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative" href="{{ route('notifications.index') }}" id="notificationLink">
+                                <a class="nav-link position-relative" href="{{ route('messages.index') }}" id="notificationLink">
                                     <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
                                     <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
                                             {{ $requests }}
