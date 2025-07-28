@@ -23,7 +23,7 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label for="leave_type_id" class="form-label">Leave type</label>
-                        <select name="leave_type_id" id="leave_type_id" style="cursor: pointer;" class="form-select" required>
+                        <select name="leave_type_id" id="leave_type_id" class="form-select" style="cursor: pointer;" required>
                             <option value="">Select leave type</option>
                             @foreach($leaveTypes as $leaveType)
                                 <option value="{{ $leaveType->id }}" {{ old('leave_type_id') == $leaveType->id ? 'selected' : '' }}>
@@ -34,10 +34,11 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="duration" class="form-label">Duration</label>
-                        <input type="text" name="duration" id="duration" style="cursor: pointer;" value="{{ old('duration') }}" class="form-control" placeholder="e.g. 1.5 days" required>
+                        <label for="duration" class="form-label">Duration (days)</label>
+                        <input type="number" name="duration" id="duration" class="form-control" style="cursor: pointer;" value="{{ old('duration') }}" placeholder="e.g. 1.5" step="0.5" readonly>
                     </div>
 
+                    <!-- Start Date/Time Row -->
                     <div class="col-md-6">
                         <label for="start_date" class="form-label">Start Date</label>
                         <div class="position-relative" onclick="document.getElementById('start_date').showPicker()">
@@ -56,12 +57,13 @@
                     <div class="col-md-6">
                         <label for="start_time" class="form-label">Start Time</label>
                         <select name="start_time" id="start_time" class="form-select" style="cursor: pointer;" required>
-                            <option value="">Select start time</option>
+                            <option value="">Select time</option>
                             <option value="morning" {{ old('start_time') == 'morning' ? 'selected' : '' }}>Morning</option>
                             <option value="afternoon" {{ old('start_time') == 'afternoon' ? 'selected' : '' }}>Afternoon</option>
                         </select>
                     </div>
 
+                    <!-- End Date/Time Row -->
                     <div class="col-md-6">
                         <label for="end_date" class="form-label">End Date</label>
                         <div class="position-relative" onclick="document.getElementById('end_date').showPicker()">
@@ -80,15 +82,23 @@
                     <div class="col-md-6">
                         <label for="end_time" class="form-label">End Time</label>
                         <select name="end_time" id="end_time" class="form-select" style="cursor: pointer;" required>
-                            <option value="">Select end time</option>
+                            <option value="">Select time</option>
                             <option value="morning" {{ old('end_time') == 'morning' ? 'selected' : '' }}>Morning</option>
                             <option value="afternoon" {{ old('end_time') == 'afternoon' ? 'selected' : '' }}>Afternoon</option>
                         </select>
                     </div>
 
+                    <!-- Visual Day Range Indicator -->
+                    <div class="col-12 mt-2" id="day-range-container" style="display: none;">
+                        <label class="form-label">Leave Range</label>
+                        <div class="d-flex flex-wrap gap-2" id="day-range-visual">
+                            <!-- Squares will be added here by JavaScript -->
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <label for="reason" class="form-label">Reason</label>
-                        <textarea name="reason" id="reason" style="cursor: pointer;" class="form-control" rows="3" placeholder="Enter reason">{{ old('reason') }}</textarea>
+                        <textarea name="reason" id="reason" class="form-control" style="cursor: pointer;" rows="3" placeholder="Enter reason">{{ old('reason') }}</textarea>
                     </div>
                 </div>
 
@@ -103,12 +113,12 @@
                         <i class="bi bi-x-circle"></i> Cancel
                     </a>
                 </div>
-
             </form>
         </div>
     </div>
 </div>
 @endsection
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const startDate = document.getElementById('start_date');
@@ -116,6 +126,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const startTime = document.getElementById('start_time');
     const endTime = document.getElementById('end_time');
     const durationInput = document.getElementById('duration');
+    const dayRangeContainer = document.getElementById('day-range-container');
+    const dayRangeVisual = document.getElementById('day-range-visual');
 
     function calculateDuration() {
         const start = new Date(startDate.value);
@@ -125,25 +137,68 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (isNaN(start) || isNaN(end) || !startT || !endT) {
             durationInput.value = '';
+            dayRangeContainer.style.display = 'none';
             return;
         }
 
         let daysBetween = (end - start) / (1000 * 60 * 60 * 24);
         if (daysBetween < 0) {
-            durationInput.value = 'Invalid range';
+            durationInput.value = '';
+            dayRangeContainer.style.display = 'none';
             return;
         }
 
-        let duration = daysBetween;
+        let duration = daysBetween + 1; // Add 1 because the difference between same dates is 0 but it's 1 day
 
-        // Subtract half-day if start is afternoon
         if (startT === 'afternoon') duration -= 0.5;
+        if (endT === 'afternoon') duration += 0.5;
+        else if (endT === 'morning') duration -= 0.5;
 
-        // Add based on end time
-        if (endT === 'afternoon') duration += 1;
-        else if (endT === 'morning') duration += 0.5;
+        // Ensure duration is at least 0.5 (half day)
+        duration = Math.max(0.5, duration);
 
-        durationInput.value = duration.toFixed(2);
+        durationInput.value = duration.toFixed(1);
+        updateDayRangeVisual(start, end, startT, endT);
+    }
+
+    function updateDayRangeVisual(start, end, startT, endT) {
+        dayRangeVisual.innerHTML = '';
+        
+        if (start.toDateString() === end.toDateString()) {
+            // Single day
+            dayRangeContainer.style.display = 'block';
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day-square';
+            if (startT === 'morning' && endT === 'afternoon') {
+                dayDiv.classList.add('full-day');
+            } else {
+                dayDiv.classList.add('half-day');
+            }
+            dayRangeVisual.appendChild(dayDiv);
+        } else {
+            // Multiple days
+            dayRangeContainer.style.display = 'block';
+            const currentDate = new Date(start);
+            
+            while (currentDate <= end) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-square';
+                
+                if (currentDate.toDateString() === start.toDateString()) {
+                    // First day
+                    dayDiv.classList.add(startT === 'morning' ? 'full-day' : 'half-day');
+                } else if (currentDate.toDateString() === end.toDateString()) {
+                    // Last day
+                    dayDiv.classList.add(endT === 'afternoon' ? 'full-day' : 'half-day');
+                } else {
+                    // Middle days
+                    dayDiv.classList.add('full-day');
+                }
+                
+                dayRangeVisual.appendChild(dayDiv);
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+        }
     }
 
     startDate.addEventListener('change', calculateDuration);
@@ -152,3 +207,20 @@ document.addEventListener('DOMContentLoaded', function () {
     endTime.addEventListener('change', calculateDuration);
 });
 </script>
+
+<style>
+.day-square {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #333;
+    display: inline-block;
+}
+
+.full-day {
+    background-color: black;
+}
+
+.half-day {
+    background: linear-gradient(to right, black 50%, white 50%);
+}
+</style>

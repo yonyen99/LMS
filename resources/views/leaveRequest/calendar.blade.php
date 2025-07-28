@@ -6,11 +6,19 @@
         <div class="card-body p-2 p-md-4">
             <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
                 <h2 class="fw-bold mb-0 text-primary fs-4 fs-md-3">Leave Calendar</h2>
-                @can('create-request')
-                <button class="btn btn-primary btn-sm" onclick="showCreateModal()">
-                    <i class="bi bi-plus-circle me-1"></i> <span class="d-none d-md-inline">New Request</span>
-                </button>
-                @endcan
+                <div>
+                    @can('create-request')
+                    <button class="btn btn-primary btn-sm me-2" onclick="showCreateModal()">
+                        <i class="bi bi-plus-circle me-1"></i> <span class="d-none d-md-inline">New Request</span>
+                    </button>
+                    @endcan
+                    
+                    @canany(['create-non-working-day', 'Super Admin'])
+                    <button class="btn btn-secondary btn-sm" onclick="showNonWorkingDayModal()">
+                        <i class="bi bi-calendar-x me-1"></i> <span class="d-none d-md-inline">Add Non-Working Day</span>
+                    </button>
+                    @endcanany
+                </div>
             </div>
 
             <!-- Calendar Container -->
@@ -56,6 +64,18 @@
                                         <p class="mb-0 fw-semibold fs-6 fs-md-5" id="requestReason"></p>
                                     </div>
                                 </div>
+                                <div class="col-12" id="nwdDepartmentContainer" style="display: none;">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Department</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="nwdDepartment"></p>
+                                    </div>
+                                </div>
+                                <div class="col-12" id="nwdCreatorContainer" style="display: none;">
+                                    <div class="mb-2 mb-md-3">
+                                        <label class="form-label text-muted small mb-0">Added By</label>
+                                        <p class="mb-0 fw-semibold fs-6 fs-md-5" id="nwdCreator"></p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="modal-footer py-2 py-md-3">
@@ -64,6 +84,22 @@
                                     @csrf
                                     <button type="submit" class="btn btn-danger btn-sm">
                                         <i class="bi bi-x-circle me-1"></i> Cancel
+                                    </button>
+                                </form>
+                            @endcan
+                            @can('edit-non-working-day')
+                                <form id="editNonWorkingDayForm" method="GET" style="display: none;">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-pencil me-1"></i> Edit
+                                    </button>
+                                </form>
+                            @endcan
+                            @can('delete-non-working-day')
+                                <form id="deleteNonWorkingDayForm" method="POST" onsubmit="return confirm('Delete this non-working day?');" style="display: none;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash me-1"></i> Delete
                                     </button>
                                 </form>
                             @endcan
@@ -145,6 +181,94 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Non-Working Day Modal -->
+            <div class="modal" id="nonWorkingDayModal" tabindex="-1" aria-labelledby="nonWorkingDayModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white py-2 py-md-3">
+                            <h5 class="modal-title fw-bold fs-6 fs-md-5" id="nonWorkingDayModalTitle">Add Non-Working Day</h5>
+                            <button type="button" class="btn-close btn-close-white m-0" onclick="hideModal('nonWorkingDayModal')" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-2 p-md-3">
+                            <form id="nonWorkingDayForm" action="{{ route('non-working-days.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="_method" id="nwd_method" value="POST">
+                                <input type="hidden" name="id" id="nwd_id">
+                                <div class="row g-2 g-md-3">
+                                    <div class="col-12">
+                                        <label for="nwd_title" class="form-label small mb-0">Title</label>
+                                        <input type="text" name="title" id="nwd_title" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="nwd_type" class="form-label small mb-0">Type</label>
+                                        <select name="type" id="nwd_type" class="form-select form-select-sm" required>
+                                            <option value="">Select type</option>
+                                            <option value="holiday">Holiday</option>
+                                            <option value="meeting">Meeting</option>
+                                            <option value="event">Event</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="training">Training</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="nwd_start_date" class="form-label small mb-0">Start Date</label>
+                                        <input type="date" name="start_date" id="nwd_start_date" class="form-control form-control-sm" required>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="nwd_start_time" class="form-label small mb-0">Start Time (optional)</label>
+                                        <select name="start_time" id="nwd_start_time" class="form-select form-select-sm">
+                                            <option value="">Select time</option>
+                                            <option value="morning">Morning</option>
+                                            <option value="afternoon">Afternoon</option>
+                                            <option value="full">Full Day</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="nwd_end_date" class="form-label small mb-0">End Date (optional)</label>
+                                        <input type="date" name="end_date" id="nwd_end_date" class="form-control form-control-sm">
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <label for="nwd_end_time" class="form-label small mb-0">End Time (optional)</label>
+                                        <select name="end_time" id="nwd_end_time" class="form-select form-select-sm">
+                                            <option value="">Select time</option>
+                                            <option value="morning">Morning</option>
+                                            <option value="afternoon">Afternoon</option>
+                                            <option value="full">Full Day</option>
+                                        </select>
+                                    </div>
+                                    @if(auth()->user()->hasRole('Super Admin'))
+                                    <div class="col-12">
+                                        <label for="nwd_department_id" class="form-label small mb-0">Department (leave blank for global)</label>
+                                        <select name="department_id" id="nwd_department_id" class="form-select form-select-sm">
+                                            <option value="">Global (All Departments)</option>
+                                            @foreach(\App\Models\Department::all() as $department)
+                                                <option value="{{ $department->id }}">{{ $department->name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    @elseif(auth()->user()->hasRole('Manager'))
+                                    <input type="hidden" name="department_id" value="{{ auth()->user()->department_id }}">
+                                    @endif
+                                    <div class="col-12">
+                                        <label for="nwd_description" class="form-label small mb-0">Description</label>
+                                        <textarea name="description" id="nwd_description" class="form-control form-control-sm" rows="2"></textarea>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2 mt-3 justify-content-end">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideModal('nonWorkingDayModal')">
+                                        <i class="bi bi-x me-1"></i> Cancel
+                                    </button>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-save me-1"></i> Save
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -219,6 +343,7 @@
     .badge-rejected,
     .badge-cancellation,
     .badge-canceled { background-color: #dc3545; }
+    .badge-non-working { background-color: #6c757d; }
     
     /* Day Headers */
     .fc-col-header-cell {
@@ -238,6 +363,18 @@
     /* Today Highlight */
     .fc-day-today {
         background-color: #e6f7ff !important;
+    }
+    
+    /* Non-working day styles */
+    .fc-non-working-day {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+        border-left: 3px solid #dc3545 !important;
+        border-right: 3px solid #dc3545 !important;
+    }
+    
+    .fc-non-working-day-title {
+        font-weight: bold;
+        color: #dc3545;
     }
     
     /* Enhanced Modal Styles */
@@ -432,6 +569,45 @@ function showCreateModal() {
     showModal('createRequestModal');
 }
 
+function showNonWorkingDayModal(nwd = null) {
+    const form = document.getElementById('nonWorkingDayForm');
+    const title = document.getElementById('nonWorkingDayModalTitle');
+    if (nwd) {
+        // Edit mode
+        title.textContent = 'Edit Non-Working Day';
+        form.action = "{{ url('non-working-days') }}/" + nwd.id;
+        document.getElementById('nwd_method').value = 'PUT';
+        document.getElementById('nwd_id').value = nwd.id;
+        document.getElementById('nwd_title').value = nwd.title;
+        document.getElementById('nwd_type').value = nwd.type || '';
+        document.getElementById('nwd_start_date').value = nwd.start;
+        document.getElementById('nwd_start_time').value = nwd.start_time || '';
+        document.getElementById('nwd_end_date').value = nwd.end ? new Date(new Date(nwd.end).setDate(new Date(nwd.end).getDate() - 1)).toISOString().split('T')[0] : '';
+        document.getElementById('nwd_end_time').value = nwd.end_time || '';
+        document.getElementById('nwd_description').value = nwd.description || '';
+        @if(auth()->user()->hasRole('Super Admin'))
+            document.getElementById('nwd_department_id').value = nwd.department_id || '';
+        @endif
+    } else {
+        // Create mode
+        title.textContent = 'Add Non-Working Day';
+        form.action = "{{ route('non-working-days.store') }}";
+        document.getElementById('nwd_method').value = 'POST';
+        document.getElementById('nwd_id').value = '';
+        document.getElementById('nwd_title').value = '';
+        document.getElementById('nwd_type').value = '';
+        document.getElementById('nwd_start_date').value = '';
+        document.getElementById('nwd_start_time').value = '';
+        document.getElementById('nwd_end_date').value = '';
+        document.getElementById('nwd_end_time').value = '';
+        document.getElementById('nwd_description').value = '';
+        @if(auth()->user()->hasRole('Super Admin'))
+            document.getElementById('nwd_department_id').value = '';
+        @endif
+    }
+    showModal('nonWorkingDayModal');
+}
+
 // Close modals when clicking outside or pressing Escape
 document.addEventListener('DOMContentLoaded', function() {
     // Click outside
@@ -463,6 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         events: [
+            // Leave requests
             @foreach($leaveRequests as $request)
             {
                 title: "{{ optional($request->leaveType)->name ?? 'Leave' }} ({{ ucfirst($request->status) }})",
@@ -470,7 +647,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 end: "{{ \Carbon\Carbon::parse($request->end_date)->addDay() }}",
                 id: "{{ $request->id }}",
                 extendedProps: {
-                    type: "{{ optional($request->leaveType)->name ?? '-' }}",
+                    type: "leave",
+                    leaveType: "{{ optional($request->leaveType)->name ?? '-' }}",
                     startTime: "{{ $request->start_time }}",
                     endTime: "{{ $request->end_time }}",
                     duration: "{{ $request->duration }}",
@@ -494,6 +672,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 textColor: '#fff'
             },
             @endforeach
+            
+            // Non-working days
+            @foreach($nonWorkingDays as $nwd)
+            {
+                title: "{{ $nwd->title }}",
+                start: "{{ $nwd->start_date }}",
+                end: "{{ $nwd->end_date ? \Carbon\Carbon::parse($nwd->end_date)->addDay()->format('Y-m-d') : '' }}",
+                id: "nwd_{{ $nwd->id }}",
+                display: 'background',
+                className: 'fc-non-working-day',
+                extendedProps: {
+                    type: "non_working_day",
+                    description: "{{ $nwd->description ?? '' }}",
+                    department: "{{ $nwd->department ? $nwd->department->name : 'Global' }}",
+                    department_id: "{{ $nwd->department_id ?? '' }}",
+                    createdBy: "{{ $nwd->creator->name }}",
+                    typeNwd: "{{ $nwd->type }}",
+                    start_time: "{{ $nwd->start_time ?? '' }}",
+                    end_time: "{{ $nwd->end_time ?? '' }}"
+                },
+                allDay: true
+            },
+            @endforeach
         ],
         dateClick: function(info) {
             @can('create-request')
@@ -504,36 +705,133 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show modal
                 showModal('createRequestModal');
             @endcan
+            @can('create-non-working-day')
+                // Set dates in non-working day form
+                document.getElementById('nwd_start_date').value = info.dateStr;
+                document.getElementById('nwd_end_date').value = info.dateStr;
+                document.getElementById('nwd_start_time').value = '';
+                document.getElementById('nwd_end_time').value = '';
+                showNonWorkingDayModal();
+            @endcan
         },
         eventClick: function(info) {
             var event = info.event;
-            var status = event.extendedProps.status.toLowerCase();
+            var extendedProps = event.extendedProps;
             
-            // Format dates for display
-            var startDate = new Date(event.startStr);
-            var endDate = event.end ? new Date(event.endStr) : new Date(event.startStr);
-            endDate.setDate(endDate.getDate() - 1); // Adjust for inclusive end date
+            // Reset all optional fields
+            document.getElementById('nwdDepartmentContainer').style.display = 'none';
+            document.getElementById('nwdCreatorContainer').style.display = 'none';
+            var editForm = document.getElementById('editNonWorkingDayForm');
+            var deleteForm = document.getElementById('deleteNonWorkingDayForm');
+            if (editForm) editForm.style.display = 'none';
+            if (deleteForm) deleteForm.style.display = 'none';
             
-            // Update modal content
-            document.getElementById('requestType').textContent = event.extendedProps.type;
-            document.getElementById('requestStart').textContent = startDate.toLocaleDateString() + ' (' + event.extendedProps.startTime + ')';
-            document.getElementById('requestEnd').textContent = endDate.toLocaleDateString() + ' (' + event.extendedProps.endTime + ')';
-            document.getElementById('requestReason').textContent = event.extendedProps.reason;
-            
-            // Status badge
-            var statusElement = document.getElementById('requestStatus');
-            if (statusElement) {
-                statusElement.textContent = event.extendedProps.status;
-                statusElement.className = 'badge rounded-pill badge-' + status;
-            }
-            
-            // Update cancel form action if exists
-            @can('cancel-request')
+            if (extendedProps.type === 'leave') {
+                // Handle leave request click
+                var status = extendedProps.status.toLowerCase();
+                
+                // Format dates for display
+                var startDate = new Date(event.startStr);
+                var endDate = event.end ? new Date(event.endStr) : new Date(event.startStr);
+                endDate.setDate(endDate.getDate() - 1); // Adjust for inclusive end date
+                
+                // Update modal content
+                document.getElementById('requestType').textContent = extendedProps.leaveType;
+                document.getElementById('requestStart').textContent = startDate.toLocaleDateString() + ' (' + extendedProps.startTime + ')';
+                document.getElementById('requestEnd').textContent = endDate.toLocaleDateString() + ' (' + extendedProps.endTime + ')';
+                document.getElementById('requestReason').textContent = extendedProps.reason;
+                
+                // Status badge
+                var statusElement = document.getElementById('requestStatus');
+                if (statusElement) {
+                    statusElement.textContent = extendedProps.status;
+                    statusElement.className = 'badge rounded-pill badge-' + status;
+                }
+                
+                // Update cancel form action if exists
+                @can('cancel-request')
+                    var cancelForm = document.getElementById('cancelRequestForm');
+                    if (cancelForm) {
+                        cancelForm.action = "{{ route('leave-requests.cancel', ':id') }}".replace(':id', event.id);
+                        cancelForm.style.display = 'block';
+                    }
+                @endcan
+            } else if (extendedProps.type === 'non_working_day') {
+                // Handle non-working day click
+                document.getElementById('requestType').textContent = 'Non-Working Day: ' + event.title;
+                document.getElementById('requestStart').textContent = new Date(event.startStr).toLocaleDateString() + (extendedProps.start_time ? ' (' + extendedProps.start_time + ')' : '');
+                document.getElementById('requestEnd').textContent = event.end ? 
+                    new Date(new Date(event.endStr).setDate(new Date(event.endStr).getDate() - 1)).toLocaleDateString() + (extendedProps.end_time ? ' (' + extendedProps.end_time + ')' : '') : 
+                    new Date(event.startStr).toLocaleDateString() + (extendedProps.start_time ? ' (' + extendedProps.start_time + ')' : '');
+                document.getElementById('requestReason').textContent = extendedProps.description || '-';
+                
+                // Status badge
+                var statusElement = document.getElementById('requestStatus');
+                if (statusElement) {
+                    statusElement.textContent = 'Non-Working';
+                    statusElement.className = 'badge rounded-pill bg-secondary';
+                }
+                
+                // Show department if exists
+                if (extendedProps.department && extendedProps.department !== 'Global') {
+                    document.getElementById('nwdDepartment').textContent = extendedProps.department;
+                    document.getElementById('nwdDepartmentContainer').style.display = 'block';
+                }
+                
+                // Show creator
+                if (extendedProps.createdBy) {
+                    document.getElementById('nwdCreator').textContent = extendedProps.createdBy;
+                    document.getElementById('nwdCreatorContainer').style.display = 'block';
+                }
+                
+                // Update edit and delete form actions if exists
+                @can('edit-non-working-day')
+                    if (editForm) {
+                        editForm.action = "{{ url('non-working-days') }}/" + event.id.replace('nwd_', '');
+                        editForm.style.display = 'block';
+                    }
+                @endcan
+                @can('delete-non-working-day')
+                    if (deleteForm) {
+                        deleteForm.action = "{{ url('non-working-days') }}/" + event.id.replace('nwd_', '');
+                        deleteForm.style.display = 'block';
+                    }
+                @endcan
+                
+                // Handle edit button click
+                if (editForm) {
+                    editForm.onsubmit = function(e) {
+                        e.preventDefault();
+                        showNonWorkingDayModal({
+                            id: event.id.replace('nwd_', ''),
+                            title: event.title,
+                            type: extendedProps.typeNwd,
+                            start: event.startStr,
+                            start_time: extendedProps.start_time,
+                            end: event.end ? new Date(new Date(event.endStr).setDate(new Date(event.endStr).getDate() - 1)).toISOString().split('T')[0] : '',
+                            end_time: extendedProps.end_time,
+                            description: extendedProps.description,
+                            department_id: extendedProps.department_id
+                        });
+                    };
+                }
+                
+                // Handle delete form submission
+                if (deleteForm) {
+                    deleteForm.onsubmit = function(e) {
+                        if (!confirm('Delete this non-working day?')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    };
+                }
+                
+                // Hide cancel button for non-working days
                 var cancelForm = document.getElementById('cancelRequestForm');
                 if (cancelForm) {
-                    cancelForm.action = "{{ route('leave-requests.cancel', ':id') }}".replace(':id', event.id);
+                    cancelForm.style.display = 'none';
                 }
-            @endcan
+            }
             
             // Show modal
             showModal('viewRequestModal');
@@ -557,13 +855,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     calendar.render();
     
-    // Auto-set end date when start date changes
+    // Auto-set end date when start date changes in leave request form
     var startDateField = document.getElementById('start_date');
     var endDateField = document.getElementById('end_date');
     if (startDateField && endDateField) {
         startDateField.addEventListener('change', function() {
             if (!endDateField.value || new Date(endDateField.value) < new Date(this.value)) {
                 endDateField.value = this.value;
+            }
+        });
+    }
+    
+    // Auto-set end date when start date changes in non-working day form
+    var nwdStartDateField = document.getElementById('nwd_start_date');
+    var nwdEndDateField = document.getElementById('nwd_end_date');
+    if (nwdStartDateField && nwdEndDateField) {
+        nwdStartDateField.addEventListener('change', function() {
+            if (!nwdEndDateField.value || new Date(nwdEndDateField.value) < new Date(this.value)) {
+                nwdEndDateField.value = this.value;
             }
         });
     }

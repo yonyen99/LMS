@@ -38,7 +38,14 @@ class PermissionSeeder extends Seeder
 
             // Dashboard
             'view-dashboard',
+
+            'create-non-working-day',
+            'edit-non-working-day',
+            'delete-non-working-day',
+            'view-non-working-day'
         ];
+
+        
 
         foreach ($permissions as $permission) {
             Permission::firstOrCreate([
