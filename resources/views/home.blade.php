@@ -293,12 +293,17 @@
                                             Oldest</option>
                                     </select>
                                 </div>
-                                <div class="d-flex justify-content-end mt-3 ms-5 gap-2">
-                                    <a href="{{ route('leave-requests.exportPDF') }}"
-                                        class="btn btn-primary btn-sm d-flex align-items-center gap-2 shadow-sm"
-                                        title="Export to PDF">
-                                        <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                        <span>Export PDF</span>
+
+                                @can('export', \App\Models\LeaveRequest::class)
+                                    <a href="{{ route('leave-requests.exportPDF', [
+                                        'statuses' => request('statuses', []),
+                                        'type' => request('type'),
+                                        'status_request' => request('status_request'),
+                                        'search' => request('search'),
+                                        'sort_order' => request('sort_order', 'new'),
+                                    ]) }}"
+                                        class="btn btn-sm btn-danger">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
                                     </a>
 
                                     <a href="{{ route('leave-requests.exportExcel', [
@@ -309,9 +314,8 @@
                                         'sort_order' => request('sort_order', 'new'),
                                     ]) }}"
                                         class="btn btn-sm btn-success">
-                                        <i class="bi bi-file-earmark-excel"></i> Export Excel
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                                     </a>
-
                                     <a href="{{ route('leave-requests.print', [
                                         'statuses' => request('statuses', []),
                                         'type' => request('type'),
@@ -322,9 +326,22 @@
                                         class="btn btn-sm btn-primary">
                                         <i class="bi bi-printer me-1"></i> Print
                                     </a>
-                                </div>
+                                @else
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to export">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                                    </button>
 
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to export">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                                    </button>
 
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to print">
+                                        <i class="bi bi-printer me-1"></i> Print
+                                    </button>
+                                @endcan
                             </div>
                         </form>
                     </div>
