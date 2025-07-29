@@ -193,11 +193,11 @@ class LeaveRequestController extends Controller
         });
 
         // Send email to Super Admin and Manager users
-        $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
+        // $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
 
-        if (!empty($adminEmails)) {
-            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
-        }
+        // if (!empty($adminEmails)) {
+        //     Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        // }
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
@@ -260,14 +260,11 @@ class LeaveRequestController extends Controller
 
     public function history($id)
     {
-        $target = LeaveRequest::findOrFail($id);
+        $changs = LeaveRequest::with(['user', 'leaveType', 'statusChanges.user'])->findOrFail($id);
 
-        $leaveRequests = LeaveRequest::where('user_id', $target->user_id)
-            ->where('leave_type_id', $target->leave_type_id)
-            ->orderByDesc('last_changed_at')
-            ->get();
+        $latestStatusChange = $changs->statusChanges->sortByDesc('changed_at')->first();
 
-        return view('leaveRequest.history', compact('leaveRequests'));
+        return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
 
 

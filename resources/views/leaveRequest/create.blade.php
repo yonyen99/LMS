@@ -148,11 +148,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        let duration = daysBetween + 1; // Add 1 because the difference between same dates is 0 but it's 1 day
+        let duration = daysBetween + 1;
 
-        if (startT === 'afternoon') duration -= 0.5;
-        if (endT === 'afternoon') duration += 0.5;
-        else if (endT === 'morning') duration -= 0.5;
+        if (start.toDateString() === end.toDateString()) {
+            // Same day
+            if (startT === 'morning' && endT === 'morning') duration = 0.5;
+            else if (startT === 'afternoon' && endT === 'afternoon') duration = 0.5;
+            else duration = 1;
+        } else {
+            // Multi-day
+            if (startT === 'afternoon') duration -= 0.5;
+            if (endT === 'morning') duration -= 0.5;
+        }
 
         // Ensure duration is at least 0.5 (half day)
         duration = Math.max(0.5, duration);

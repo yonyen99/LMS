@@ -8,10 +8,12 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\LeaveRequestController;
 use App\Http\Controllers\LeaveTypeController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\SubordinateController;
-use App\Http\Controllers\GoogleController;
-use App\Http\Controllers\LeaveSummaryController;
+use App\Http\Controllers\AppController;
 use App\Http\Controllers\NonWorkingDayController;
+use App\Http\Controllers\GoogleController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SubordinateController;
+use App\Http\Controllers\LeaveSummaryController;
 use App\Http\Controllers\LeaveRequestActionController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
@@ -76,41 +78,11 @@ Route::middleware(['signed'])->group(function () {
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
+Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
+Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+Route::post('/notifications/{id}/mark-read', [MessageController::class, 'markAsRead']);
 
 
-// export data as PDF for leave requests
-
-
-// Route::get('/export-leaves', function () {
-//     $leaveRequests = LeaveRequest::with('leaveType')->orderByDesc('start_date')->get();
-
-//     $data = [
-//         'title' => 'Leave Request Report',
-//         'generatedAt' => now()->format('F j, Y \a\t H:i'),
-//         'user' => auth()->user(),
-//         'leaveRequests' => $leaveRequests,
-//         'statusColors' => [
-//             'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-//             'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-//             'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-//             'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-//             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-//             'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
-//         ],
-//     ];
-
-//     $pdf = Pdf::loadView('leaveRequest.pdf', $data)
-//         ->setPaper('A4', 'landscape')
-//         ->setOptions([
-//             'dpi' => 150,
-//             'defaultFont' => 'dejavu sans',
-//             'isRemoteEnabled' => true,
-//             'isHtml5ParserEnabled' => true,
-//             'tempDir' => storage_path('temp'),
-//         ]);
-
-//     return $pdf->download('leave-request-report.pdf');
-// })->middleware('auth')->name('leave-requests.exportPDF');
 
 
 Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'exportPDF'])

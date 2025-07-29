@@ -18,6 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -89,7 +90,6 @@
 </head>
 
 <body class="bg-auth">
-    {{-- main content --}}
     <div id="app">
         @unless (Request::is('login*', 'register*', 'password/*', 'email/verify*', 'verification*'))
             <nav class="navbar navbar-expand-md navbar-light shadow-sm px-4 position-sticky w-100 t-0"
@@ -130,7 +130,7 @@
                                             aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2 " aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'roles.index' ? 'active' : '' }}"
                                                     href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.index' ? 'active' : '' }}"
@@ -142,17 +142,18 @@
                                         </ul>
                                     </li>
                                 @endcanany
-                                <!-- Approval section -->
+
+                                <!-- Approval Section -->
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
-                                        <li class="nav-item  dropdown me-3">
+                                        <li class="nav-item dropdown me-3">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
-                                                href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
+                                                href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">
                                                 Approval
                                             </a>
-                                            <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
+                                            <ul class="dropdown-menu card-1 card-2" aria-labelledby="approvalDropdown">
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
                                                         href="#" disabled>Delegations</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
@@ -173,6 +174,7 @@
                                         </li>
                                     @endcanany
                                 @endunless
+
                                 <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
@@ -226,18 +228,34 @@
                                     </li>
                                 @endcanany
 
-                                <!-- Calendars Dropdown -->
+                                <!-- Calendar Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
-                                        'create-department', 'edit-department', 'delete-department'])
-                                        <li class="nav-item me-3">
-                                            <a class="nav-link {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                                href="{{ route('leave-requests.calendar') }}">Calendars</a>
-                                        </li>
-                                    @endcanany
+                                    <li class="nav-item dropdown me-3">
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['leave-requests.calendar', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
+                                            href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                            Calendar
+                                        </a>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
+                                                    href="{{ route('leave-requests.calendar') }}"></i>My Calendar</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.yearly' ? 'active' : '' }}"
+                                                    href="#">Yearly Calendar</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.workmates' ? 'active' : '' }}"
+                                                    href="#">My Workmates</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.department' ? 'active' : '' }}"
+                                                    href="#">Department</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.global' ? 'active' : '' }}"
+                                                    href="#">Global</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.tabular' ? 'active' : '' }}"
+                                                    href="#">Tabular</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
 
-                                    <!-- New Request Button -->
+                                <!-- New Request Button -->
+                                @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item me-2">
                                         <a href="{{ route('leave-requests.create') }}"
                                             class="btn btn-warning fw-semibold text-white rounded px-3 py-1 {{ Route::currentRouteName() === 'leave-requests.create' ? 'active' : '' }}"
@@ -248,16 +266,13 @@
                         </ul>
 
                         <!-- Right Side User Dropdown -->
-                        <!-- Right Side User Dropdown -->
                         <ul class="navbar-nav ms-auto align-items-center">
                             <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
                                 <li class="nav-item dropdown me-3">
-                                    <a class="nav-link position-relative" href="{{ route('notifications.index') }}"
-                                        id="notificationLink">
+                                    <a class="nav-link position-relative" href="{{ route('messages.index') }}" id="notificationLink">
                                         <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
-                                        <span
-                                            class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
+                                        <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
                                             {{ $requests }}
                                             <span class="visually-hidden">unread notifications</span>
                                         </span>
@@ -293,8 +308,9 @@
                                                 @if (Auth::user()->images)
                                                     <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                         class="rounded-circle circle me-2"
-                                                    style="width: 25px; height: 25px; object-fit: cover;">@else<i
-                                                        class="bi bi-person-circle me-2 fs-5"></i>
+                                                        style="width: 25px; height: 25px; object-fit: cover;">
+                                                @else
+                                                    <i class="bi bi-person-circle me-2 fs-5"></i>
                                                 @endif View Profile
                                             </a></li>
                                         <li><a class="dropdown-item {{ Route::currentRouteName() === 'logout' ? 'active' : '' }}"
@@ -315,7 +331,7 @@
 
         <main>
             <div class="p-4">
-                <div class="row justify-content-center ">
+                <div class="row justify-content-center">
                     <div class="col-md-12">
                         @if ($message = Session::get('success'))
                             <div class="alert alert-success text-center" role="alert">

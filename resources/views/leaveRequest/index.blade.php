@@ -1,88 +1,107 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="m-2">
-        <div class="card card-1 p-3 mb-4">
-            <form method="GET" action="{{ route('leave-requests.index') }}">
-                <div>
-                    <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
-                        <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
-
-                        @php
-                            $statuses = ['Planned', 'Accepted', 'Requested', 'Rejected', 'Cancellation', 'Canceled'];
-                            $colors = [
-                                'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-                                'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                                'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-                                'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                                'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                                'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                            ];
+<div class="m-2">
+    <div class="card card-1 p-4 mb-4">
+        <form method="GET" action="{{ route('leave-requests.index') }}">
+            <div>
+                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
+                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
+                </div>
+                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4 mt-4">
+                    <div class="d-flex align-items-center border rounded px-2" style="width:30%;">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            class="form-control border-0" placeholder="Search request...">
+                        <i class="bi bi-search text-primary"></i>
+                    </div>
+                                    
+                    @php
+                        $statuses = [
+                            'Planned',
+                            'Accepted',
+                            'Requested',
+                            'Rejected',
+                            'Cancellation',
+                            'Canceled',
+                        ];
+                        $colors = [
+                            'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                            'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                            'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                            'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                            'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],                             
+                        ];
                         @endphp
 
                         @foreach ($statuses as $status)
                             @php
                                 $textColor = $colors[$status]['text'];
-                                $bgColor = $colors[$status]['bg'];
+                                $bgColor = $colors[$status]['bg']                                       
                             @endphp
-
                             <div>
-                                <label for="status_{{ $status }}" class="d-flex align-items-center fw-semibold"
+                                <label for="status_{{ $status }}"
+                                    class="d-flex align-items-center fw-semibold"
                                     style="color: {{ $textColor }}; background-color: {{ $bgColor }};
-                                       padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
+                                        padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
                                     <input type="checkbox" name="statuses[]" value="{{ $status }}"
                                         id="status_{{ $status }}"
                                         {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
                                         onchange="this.form.submit()" class="form-check-input me-2 mb-1"
-                                        style="width: 1.1em; height: 1.1em;">
-                                    {{ $status }}
+                                        style="width: 1.2em; height: 1.1em;">
+                                                {{ $status }}
                                 </label>
                             </div>
-                        @endforeach
+                            @endforeach
                     </div>
                 </div>
 
-                {{-- Search & Filters --}}
-                <div class="d-flex flex-wrap gap-3 align-items-end mt-3 mb-2">
-                    <div class="d-flex align-items-center border rounded px-2" style="width:20%;">
-                        <input type="text" name="search" value="{{ request('search') }}" class="form-control border-0"
-                            placeholder="Search request...">
-                        <i class="bi bi-search text-primary"></i>
-                    </div>
+                            <div class="d-flex flex-wrap gap-4 align-items-end mt-4 mb-2">
+                                
+                                <div class="d-flex align-items-center gap-2" style="width:20%;">
+                                    <label for="statusRequest" class="fw-semibold mb-0" style="width:80%;">Status Request</label>
+                                    <select class="form-select" id="statusRequest" name="status_request"
+                                        onchange="this.form.submit()">
+                                        <option value="">All</option>
+                                        @foreach ($statusRequestOptions as $status)
+                                            <option value="{{ $status }}"
+                                                {{ request('status_request') == $status ? 'selected' : '' }}>
+                                                {{ $status }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-                    <div class="d-flex align-items-center gap-2 mt-2" style="width:27%;">
-                        <label for="showRequest" class="fw-semibold small mb-0" style="width:50%;">Show Request</label>
-                        <select class="form-select" id="showRequest" name="sort_order" onchange="this.form.submit()">
-                            <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>Newest</option>
-                            <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>Oldest</option>
+                                <div class="d-flex align-items-center gap-2" style="width:15%;">
+                                    <label for="type" class="fw-semibold mb-0" style="width:30%;">Type</label>
+                                    <select class="form-select flex-grow-1" id="type" name="type"
+                                        onchange="this.form.submit()">
+                                        <option value="">All</option>
+                                        @foreach ($leaveTypes as $type)
+                                            <option value="{{ $type }}"
+                                                {{ request('type') == $type ? 'selected' : '' }}>
+                                                {{ $type }}
+                                            </option>
+                                        @endforeach
                         </select>
                     </div>
 
-                    <div class="d-flex align-items-center gap-2" style="width:23%;">
-                        <label for="type" class="fw-semibold small mb-0" style="width:20%;">Type</label>
-                        <select class="form-select flex-grow-1" id="type" name="type" onchange="this.form.submit()">
-                            <option value="">All</option>
-                            @foreach ($leaveTypes as $type)
-                                <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
-                                    {{ $type }}
-                                </option>
-                            @endforeach
+                    <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
+                        <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
+                        <select class="form-select" id="showRequest" name="sort_order"
+                                        onchange="this.form.submit()">
+                            <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
+                                 Newest</option>
+                            <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>
+                                 Oldest</option>
                         </select>
                     </div>
-
-                    <div class="d-flex align-items-center gap-2" style="width:26%;">
-                        <label for="statusRequest" class="fw-semibold small mb-0" style="width:50%;">Status Request</label>
-                        <select class="form-select" id="statusRequest" name="status_request" onchange="this.form.submit()">
-                            <option value="">All</option>
-                            @foreach ($statusRequestOptions as $status)
-                                <option value="{{ $status }}"
-                                    {{ request('status_request') == $status ? 'selected' : '' }}>
-                                    {{ $status }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="d-flex justify-content-end mt-3" style="margin-left: 23%">
+                        <a href="{{ route('leave-requests.exportPDF') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-2 shadow-sm" title="Export to PDF">
+                            <i class="bi bi-file-earmark-pdf fs-5"></i> 
+                            <span>Export PDF</span>
+                        </a>
                     </div>
-
                 </div>
 
                 @can('export', \App\Models\LeaveRequest::class)
@@ -196,66 +215,68 @@
                                 font-weight: 500;
                                 display: inline-block;
                             ">
-                                    {{ $displayStatus }}
-                                </span>
-                            </td>
-                            <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}
-                            </td>
-                            <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}
-                            </td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                        id="actionsDropdown{{ $request->id }}" data-bs-toggle="dropdown"
-                                        aria-expanded="false" aria-haspopup="true"
-                                        aria-label="Actions for request #{{ $request->id }}" style="min-width: 50px;">
-                                        <i class="bi bi-three-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end"
-                                        aria-labelledby="actionsDropdown{{ $request->id }}">
-
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center"
-                                                href="{{ route('leave-requests.show', $request->id) }}">
-                                                <i class="bi bi-eye me-2 text-primary"></i> View
-                                            </a>
-                                        </li>
-
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center"
-                                                href="{{ route('leave-requests.history', $request->id) }}">
-                                                <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> History
-                                            </a>
-                                        </li>
-
-                                        <li>
-                                            <form action="{{ route('leave-requests.destroy', $request->id) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Are you sure you want to delete this request?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                    class="dropdown-item d-flex align-items-center text-danger">
-                                                    <i class="bi bi-trash me-2"></i> Delete
+                                {{ $displayStatus }}
+                            </span>
+                        </td>
+                        <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}</td>
+                        <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}</td>
+                        <td>
+                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                    type="button" id="actionsDropdown{{ $request->id }}"
+                                                    data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"
+                                                    aria-label="Actions for request #{{ $request->id }}"
+                                                    style="min-width: 50px;">
+                                                    <i class="bi bi-three-dots-vertical"></i>
                                                 </button>
-                                            </form>
-                                        </li>
+                                                <ul class="dropdown-menu dropdown-menu-end"
+                                                    aria-labelledby="actionsDropdown{{ $request->id }}">
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center"
+                                                            href="{{ route('leave-requests.show', $request->id) }}">
+                                                            <i class="bi bi-eye me-2 text-primary"></i> View
+                                                        </a>
+                                                    </li>
 
-                                        <li>
-                                            <form action="{{ route('leave-requests.cancel', $request->id) }}"
-                                                method="POST"
-                                                onsubmit="return confirm('Are you sure you want to cancel this request?');">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="dropdown-item d-flex align-items-center text-secondary">
-                                                    <i class="bi bi-x-circle me-2"></i> Cancel
-                                                </button>
-                                            </form>
-                                        </li>
+                                                    @php
+                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled', 'cancellation'];
+                                                    @endphp
 
-                                    </ul>
-                                </div>
-                            </td>
+                                                    @if (in_array(strtolower($request->status), $showHistoryStatuses))
+                                                        <li>
+                                                            <a class="dropdown-item d-flex align-items-center"
+                                                                href="{{ route('leave-requests.history', $request->id) }}">
+                                                                <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> History
+                                                            </a>
+                                                        </li>
+                                                    @endif
+                                                    
+                                                    @php
+                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled','cancellation'];
+                                                    @endphp
+                                                    @if (!in_array(strtolower($request->status), $showHistoryStatuses))
+                                                        <li>
+                                                            <form action="{{ route('leave-requests.destroy', $request->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this request?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                                                                <i class="bi bi-trash me-2"></i> Delete
+                                                            </button>
+                                                            </form>
+                                                        </li>
+
+                                                        <li>
+                                                            <form action="{{ route('leave-requests.cancel', $request->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                                                @csrf
+                                                                <button type="submit" class="dropdown-item d-flex align-items-center text-secondary">
+                                                                    <i class="bi bi-x-circle me-2"></i> Cancel
+                                                                </button>
+                                                            </form>
+                                                        </li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                        </td>
                         </tr>
                     @endforeach
                 @endif
