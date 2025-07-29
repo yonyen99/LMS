@@ -85,11 +85,23 @@
 
                 </div>
 
-                <a href="{{ route('leave-requests.exportPDF') }}" class="btn btn-sm btn-danger" title="Export to PDF">
-                    <i class="bi bi-file-earmark-pdf me-1"></i> Export
-                </a>
+                @can('export', \App\Models\LeaveRequest::class)
+                    <a href="{{ route('leave-requests.exportPDF', [
+                        'statuses' => request('statuses', []),
+                        'type' => request('type'),
+                        'status_request' => request('status_request'),
+                        'search' => request('search'),
+                        'sort_order' => request('sort_order', 'new'),
+                    ]) }}"
+                        class="btn btn-sm btn-danger">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                    </a>
+                @else
+                    <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                    </button>
+                @endcan
             </form>
-
 
         </div>
 

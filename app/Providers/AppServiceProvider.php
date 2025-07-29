@@ -25,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
     protected $policies = [
         \App\Models\LeaveRequest::class => \App\Policies\LeaveRequestPolicy::class,
         \App\Models\LeaveSummary::class => \App\Policies\LeaveSummaryPolicy::class,
+        \App\Models\LeaveRequest::class => \App\Policies\LeaveRequestPolicy::class,
+        \App\Models\LeaveRequest::class => \App\Policies\LeaveRequestPolicy::class,
     ];
 
 
@@ -40,13 +42,12 @@ class AppServiceProvider extends ServiceProvider
                 if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
                     // Admins see all requested leave requests
                     $requests = LeaveRequest::where('status', 'Requested')->count();
-
                 } elseif ($user->hasRole('Manager')) {
                     // Manager sees requests from others in the same department (not their own)
                     $requests = LeaveRequest::where('status', 'Requested')
                         ->whereHas('user', function ($q) use ($user) {
                             $q->where('department_id', $user->department_id)
-                            ->where('id', '!=', $user->id); // exclude own requests
+                                ->where('id', '!=', $user->id); // exclude own requests
                         })
                         ->count();
                 }
@@ -56,8 +57,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('*', function ($view) {
-        $requestCount = LeaveRequest::where('status', 'Requested')->count();
-        $view->with('requestCount', $requestCount);
-    });
+            $requestCount = LeaveRequest::where('status', 'Requested')->count();
+            $view->with('requestCount', $requestCount);
+        });
     }
 }
