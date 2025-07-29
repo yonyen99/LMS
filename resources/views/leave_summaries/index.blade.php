@@ -2,7 +2,7 @@
 
 @section('content')
     {{-- My Summary Section --}}
-    <div class="card card-1 border-0 p-4 rounded-3" style="background: linear-gradient(135deg, #fbfbfb, #f9f9f9);">
+    <div class="card card-1  border-0 p-4 rounded-3 bg-white" >
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold text-primary mb-0" style="font-size: 1.8rem; letter-spacing: 1px;">
                 <i class="bi bi-bar-chart-fill me-2"></i>My Leave Summary
@@ -26,7 +26,7 @@
         @endif
 
         <div class="table-responsive">
-            <table class="table table-bordered">
+            <table class="table table-striped align-middle">
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -48,7 +48,7 @@
                             <td  class="text-center">
                                 <div class="dropdown">
                                     <button 
-                                        class="btn btn-sm btn-outline-secondary dropdown-toggle" 
+                                        class="btn btn-sm  btn-outline-secondary dropdown-toggle" 
                                         type="button" 
                                         id="actionsDropdown{{ $summary->id }}" 
                                         data-bs-toggle="dropdown" 
@@ -60,7 +60,7 @@
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
 
-                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown{{ $summary->id }}">
+                                    <ul class="dropdown-menu card-1 bg-white dropdown-menu-end" aria-labelledby="actionsDropdown{{ $summary->id }}">
                                         <!-- Edit -->
                                         <li>
                                             <a class="dropdown-item d-flex align-items-center" href="{{ route('leave-summaries.edit', $summary->id) }}">

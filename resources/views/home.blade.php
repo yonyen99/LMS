@@ -15,7 +15,7 @@
 
                             <div class="row mb-4">
                                 <div class="col-md-12">
-                                    <div class="card card-1 p-3">
+                                    <div class="card card-1 bg-white p-3">
                                         <div class="row">
                                             <div class="col-md-2">
                                                 <a class="btn btn-primary w-100" href="{{ route('roles.index') }}"
@@ -57,7 +57,7 @@
                                         <div class="row mt-4">
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body bg-white">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-primary text-white mb-2">
                                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
@@ -71,7 +71,7 @@
                                             </div>
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body bg-white">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-success text-white mb-2">
                                                                 <i class="bi bi-people-fill" style="font-size: 1.5rem;"></i>
@@ -85,7 +85,7 @@
                                             </div>
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body bg-white">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-warning text-white mb-2">
                                                                 <i class="bi bi-building-fill" style="font-size: 1.5rem;"></i>
@@ -99,7 +99,7 @@
                                             </div>
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body bg-white">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-danger text-white mb-2">
                                                                 <i class="bi bi-calendar-x" style="font-size: 1.5rem;"></i>
@@ -113,7 +113,7 @@
                                             </div>
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body  bg-white ">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-info text-white mb-2">
                                                                 <i class="bi bi-clipboard-check" style="font-size: 1.5rem;"></i>
@@ -127,7 +127,7 @@
                                             </div>
                                             <div class="col-md-2 col-6 mb-3">
                                                 <div class="card custom-card h-100">
-                                                    <div class="card-body">
+                                                    <div class="card-body bg-white">
                                                         <div class="d-flex align-items-center">
                                                             <div class="icon-box bg-secondary text-white mb-2">
                                                                 <i class="bi bi-check-circle" style="font-size: 1.5rem;"></i>
@@ -145,13 +145,13 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="card card-1 p-3">
+                                    <div class="card bg-white card-1 p-3">
                                         <h5>Employee Request</h5>
                                         <canvas id="employeeChart" width="400" height="200"></canvas>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card card-1 p-3">
+                                    <div class="card bg-white card-1 p-3">
                                         <h5>Members per Department</h5>
                                         <div class="card-3">
                                             @if (!empty($departmentData))
@@ -165,7 +165,7 @@
                             </div>
                             <div class="row mt-4">
                                 <div class="col-md-12">
-                                    <div class="card card-1 p-4 rounded-3">
+                                    <div class="card bg-white card-1 p-4 rounded-3">
                                         <div class="d-flex align-items-center mb-3">
                                             <div class="icon-box bg-primary text-white d-flex justify-content-center align-items-center rounded-circle"
                                                 style="width: 50px; height: 50px;">
