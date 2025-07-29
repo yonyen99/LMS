@@ -66,6 +66,15 @@ class HomeController extends Controller
             });
         }
 
+        $notificationQuery = LeaveRequest::with(['user', 'leaveType'])
+            ->where('status', 'Requested');
+
+        if (auth()->user()->hasRole('Manager')) {
+            $notificationQuery->where('user_id', '!=', auth()->id());
+        }
+
+        $notifications = $notificationQuery->latest()->get();
+
         $requests = 0;
 
         if (Auth::check()) {
@@ -173,7 +182,8 @@ class HomeController extends Controller
             'totalLeaves',
             'requests',
             'totalApproved',
-            'departmentData'
+            'departmentData',
+            'notifications'
         ));
     }
 }
