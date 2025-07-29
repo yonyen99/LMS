@@ -16,15 +16,15 @@
                         @else
                             <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm"
                                  style="width: 60px; height: 60px;">
-                                <i class="bi bi-person text-dark" style="font-size: 1.5rem;"></i>
+                                <i class="bx bx-user text-dark" style="font-size: 1.5rem;"></i>
                             </div>
                         @endif
                         <div>
                             <h3 class="mb-0 fw-bold text-black">{{ $user->name }}</h3>
                             <div class="text-muted">
-                                <span class="text-black">Role: {{ $user->getRoleNames()->first() ?? 'No Role' }}</span> |
-                                <span class="text-black">Department: {{ $user->department ? $user->department->name : 'Not specified' }}</span> |
-                                <span class="text-black">Joined: {{ $user->created_at->format('M Y') }}</span>
+                                <span class="text-black"><i class="bx bx-crown me-1"></i>Role: {{ $user->getRoleNames()->first() ?? 'No Role' }}</span> |
+                                <span class="text-black"><i class="bx bx-briefcase me-1"></i>Department: {{ $user->department ? $user->department->name : 'Not specified' }}</span> |
+                                <span class="text-black"><i class="bx bx-calendar me-1"></i>Joined: {{ $user->created_at->format('M Y') }}</span>
                             </div>
                         </div>
                     </div>
@@ -41,20 +41,20 @@
                     <div class="card-1 border-0 bg-white  h-100">
                         <div class="card-body p-4">
                             <h5 class="card-title text-primary mb-4 fw-bold">
-                                <i class="bi bi-person-lines-fill me-2"></i>Basic Information
+                                <i class="bx bx-user me-2"></i>Basic Information
                             </h5>
                             <div class="info-item mb-3">
-                                <p class="mb-1 text-muted small text-uppercase">Full Name</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-user me-1"></i>Full Name</p>
                                 <p class="fw-medium text-dark">{{ $user->name }}</p>
                             </div>
                             <div class="info-item mb-3">
-                                <p class="mb-1 text-muted small text-uppercase">Email Address</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-envelope me-1"></i>Email Address</p>
                                 <p class="fw-medium">
                                     <a href="mailto:{{ $user->email }}" class="text-primary text-decoration-none">{{ $user->email }}</a>
                                 </p>
                             </div>
                             <div class="info-item mb-3">
-                                <p class="mb-1 text-muted small text-uppercase">Phone Number</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-phone me-1"></i>Phone Number</p>
                                 <p class="fw-medium">
                                     @if ($user->phone)
                                         <a href="tel:{{ $user->phone }}" class="text-primary text-decoration-none">{{ $user->phone }}</a>
@@ -64,7 +64,7 @@
                                 </p>
                             </div>
                             <div class="info-item mb-0">
-                                <p class="mb-1 text-muted small text-uppercase">Account Status</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-shield me-1"></i>Account Status</p>
                                 <p class="fw-medium">
                                     <span class="badge bg-{{ $user->is_active ? 'success' : 'secondary' }} py-2 px-3 rounded-pill">
                                         {{ $user->is_active ? 'Active' : 'Inactive' }}
@@ -79,10 +79,10 @@
                     <div class="card-1 border-0 bg-white  h-100">
                         <div class="card-body p-4">
                             <h5 class="card-title text-primary mb-4 fw-bold">
-                                <i class="bi bi-gear-fill me-2"></i>Account Details
+                                <i class="bx bx-cog me-2"></i>Account Details
                             </h5>
                             <div class="info-item mb-3">
-                                <p class="mb-1 text-muted small text-uppercase">User Roles</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-crown me-1"></i>User Roles</p>
                                 <div class="d-flex flex-wrap gap-2">
                                     @forelse ($user->getRoleNames() as $role)
                                         <span class="badge bg-primary py-2 px-3 rounded-pill">{{ $role }}</span>
@@ -93,16 +93,16 @@
                             </div>
                             @if ($user->department)
                                 <div class="info-item mb-3">
-                                    <p class="mb-1 text-muted small text-uppercase">Department</p>
+                                    <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-briefcase me-1"></i>Department</p>
                                     <p class="fw-medium text-dark">{{ $user->department->name }}</p>
                                 </div>
                             @endif
                             <div class="info-item mb-3">
-                                <p class="mb-1 text-muted small text-uppercase">Account Created</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-calendar me-1"></i>Account Created</p>
                                 <p class="fw-medium text-dark">{{ $user->created_at->format('M d, Y \a\t h:i A') }}</p>
                             </div>
                             <div class="info-item mb-0">
-                                <p class="mb-1 text-muted small text-uppercase">Last Updated</p>
+                                <p class="mb-1 text-muted small text-uppercase"><i class="bx bx-time me-1"></i>Last Updated</p>
                                 <p class="fw-medium text-dark">{{ $user->updated_at->format('M d, Y \a\t h:i A') }}</p>
                             </div>
                         </div>
@@ -115,8 +115,8 @@
                 <div class="d-flex justify-content-end gap-3 mt-2">
                     @if (Auth::user()->hasAnyRole(['Admin', 'Super Admin']))
                         @can('edit-user')
-                            <a href="{{ route('users.edit', $user->id) }}" class="btn  card-1 btn-primary btn-lg px-4">
-                                <i class="bi bi-pencil-square me-2"></i> Edit User
+                            <a href="{{ route('users.edit', $user->id) }}" class="btn card-1 btn-primary btn-lg px-4">
+                                <i class="bx bx-pencil me-2"></i> Edit User
                             </a>
                         @endcan
                     @endif
@@ -125,9 +125,9 @@
                             <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-lg  px-4"
+                                <button type="submit" class="btn btn-danger btn-lg px-4"
                                         onclick="return confirm('Are you sure you want to delete this user?')">
-                                    <i class="bi bi-trash me-2"></i> Delete User
+                                    <i class="bx bx-trash me-2"></i> Delete User
                                 </button>
                             </form>
                         @endif
@@ -185,8 +185,6 @@
         font-weight: 500;
     }
 
-   
-
     .btn {
         transition: all 0.3s ease;
     }
@@ -199,6 +197,11 @@
     .col-md-6.flex-fill {
         flex: 1 1 0;
         min-width: 0;
+    }
+
+    .bx {
+        font-size: 1rem;
+        vertical-align: middle;
     }
 
     @media (max-width: 768px) {
@@ -241,6 +244,10 @@
 
         .card-1 {
             height: auto;
+        }
+
+        .bx {
+            font-size: 0.8rem;
         }
     }
 </style>
