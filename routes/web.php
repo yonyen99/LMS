@@ -39,6 +39,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('leave-requests.exportExcel')
         ->can('export', \App\Models\LeaveRequest::class);
 
+    Route::get('/leave-requests/print', [LeaveRequestController::class, 'print'])
+        ->middleware('auth')
+        ->name('leave-requests.print')
+        ->can('export', \App\Models\LeaveRequest::class);
+
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])->name('notifications.update-status');

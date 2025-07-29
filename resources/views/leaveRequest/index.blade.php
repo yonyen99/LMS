@@ -107,6 +107,16 @@
                         class="btn btn-sm btn-success">
                         <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                     </a>
+                    <a href="{{ route('leave-requests.print', [
+                        'statuses' => request('statuses', []),
+                        'type' => request('type'),
+                        'status_request' => request('status_request'),
+                        'search' => request('search'),
+                        'sort_order' => request('sort_order', 'new'),
+                    ]) }}"
+                        class="btn btn-sm btn-primary">
+                        <i class="bi bi-printer me-1"></i> Print
+                    </a>
                 @else
                     <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
                         <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
@@ -115,11 +125,14 @@
                     <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
                         <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                     </button>
+
+                    <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to print">
+                        <i class="bi bi-printer me-1"></i> Print
+                    </button>
                 @endcan
             </form>
 
         </div>
-
 
         {{-- Leave Requests Table --}}
         <table class="table table-bordered table-hover">

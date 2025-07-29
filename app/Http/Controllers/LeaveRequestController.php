@@ -360,4 +360,67 @@ class LeaveRequestController extends Controller
             return redirect()->back()->with('error', 'Failed to generate Excel: ' . $e->getMessage());
         }
     }
+
+    public function print(Request $request)
+    {
+        try {
+            $this->authorize('export', \App\Models\LeaveRequest::class);
+
+            $query = LeaveRequest::query()
+                ->with(['leaveType', 'user']);
+
+            if (!auth()->user()->hasRole('Super Admin')) {
+                $query->where('user_id', auth()->id());
+            }
+
+            if ($request->filled('statuses')) {
+                $query->whereIn('status', $request->input('statuses', []));
+            }
+
+            if ($request->filled('type')) {
+                $query->whereHas('leaveType', function ($q) use ($request) {
+                    $q->where('name', $request->input('type'));
+                });
+            }
+
+            if ($request->filled('status_request')) {
+                $query->where('status', $request->input('status_request'));
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('reason', 'like', "%{$search}%")
+                        ->orWhereHas('leaveType', function ($sub) use ($search) {
+                            $sub->where('name', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            $sortOrder = $request->input('sort_order', 'new');
+            $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
+
+            $leaveRequests = $query->get();
+
+            $data = [
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'generatedAt' => now()->format('F j, Y \a\t H:i'),
+                'user' => auth()->user(),
+                'leaveRequests' => $leaveRequests,
+                'statusColors' => [
+                    'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                    'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                    'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                    'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                ]
+            ];
+
+            return view('leaveRequest.print', $data);
+        } catch (\Exception $e) {
+            Log::error('Print Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate print view: ' . $e->getMessage());
+        }
+    }
 }
