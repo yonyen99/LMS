@@ -8,7 +8,7 @@
             <div class="profile-cover position-relative" style="height: 180px; overflow: hidden;">
                 <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover;">
                 <!-- Profile Details Section -->
-                <div class="profile-details position-absolute" style="bottom: -5px; left: 20px; z-index: 1;">
+                <div class="profile-details position-absolute" style="bottom: -3px; left: 20px; z-index: 1;">
                     <div class="d-flex align-items-end gap-3">
                         @if ($user->images)
                             <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
