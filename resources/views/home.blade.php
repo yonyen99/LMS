@@ -190,7 +190,7 @@
                 !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
                     <div class="card card-1 p-4 mb-4">
-        <form method="GET" action="{{ route('leave-requests.index') }}">
+        <form method="GET" action="{{ route('home') }}">
             <div>
                 <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
                     <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
