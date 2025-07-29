@@ -63,7 +63,7 @@
                                         aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $type->id }}">
+                                <ul class="dropdown-menu card-1 bg-white dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $type->id }}">
                                     <li>
                                         <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('leave-types.show', $type->id) }}">
                                             <i class="bi bi-eye"></i> View

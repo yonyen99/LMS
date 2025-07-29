@@ -51,7 +51,7 @@
                                         aria-expanded="false">
                                     <i class="bi bi-three-dots-vertical"></i>
                                 </button>
-                                <ul class="dropdown-menu" aria-labelledby="actionsDropdown{{ $role->id }}">
+                                <ul class="dropdown-menu card-1 bg-white" aria-labelledby="actionsDropdown{{ $role->id }}">
                                     <li>
                                         <a class="dropdown-item" href="{{ route('roles.show', $role->id) }}">
                                             <i class="bi bi-eye me-2"></i> View

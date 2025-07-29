@@ -15,6 +15,9 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Exports\LeaveRequestExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeaveRequestController extends Controller
 {
@@ -199,7 +202,7 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
 
-    
+
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
@@ -264,82 +267,157 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
 
+
+
     public function exportPDF(Request $request)
     {
-        ini_set('memory_limit', '256M');
-        ini_set('max_execution_time', 60);
-        Log::info('PDF Export initiated by user: ' . auth()->id(), $request->all());
-
-        if (!auth()->check()) {
-            abort(401, 'Unauthorized');
-        }
-
         try {
-            $query = LeaveRequest::with('leaveType')->where('user_id', auth()->id());
-            if ($request->filled('statuses')) {
-                $statuses = array_map('strtolower', (array) $request->input('statuses'));
-                $query->whereIn('status', $statuses);
+            $this->authorize('export', \App\Models\LeaveRequest::class);
+
+            $query = LeaveRequest::query()
+                ->with(['leaveType', 'user']);
+
+            if (!auth()->user()->hasRole('Super Admin')) {
+                $query->where('user_id', auth()->id());
             }
+
+            if ($request->filled('statuses')) {
+                $query->whereIn('status', $request->input('statuses', []));
+            }
+
             if ($request->filled('type')) {
                 $query->whereHas('leaveType', function ($q) use ($request) {
-                    $q->where('name', $request->type);
+                    $q->where('name', $request->input('type'));
                 });
             }
+
             if ($request->filled('status_request')) {
-                $query->where('status', $request->status_request);
+                $query->where('status', $request->input('status_request'));
             }
+
             if ($request->filled('search')) {
-                $search = $request->search;
+                $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
                     $q->where('reason', 'like', "%{$search}%")
-                        ->orWhere('duration', 'like', "%{$search}%")
-                        ->orWhere('start_date', 'like', "%{$search}%")
-                        ->orWhere('end_date', 'like', "%{$search}%")
-                        ->orWhere('start_time', 'like', "%{$search}%")
-                        ->orWhere('end_time', 'like', "%{$search}%")
-                        ->orWhere('status', 'like', "%{$search}%")
                         ->orWhereHas('leaveType', function ($sub) use ($search) {
                             $sub->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('user', function ($sub) use ($search) {
-                            $sub->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%");
                         });
                 });
             }
+
             $sortOrder = $request->input('sort_order', 'new');
             $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
-            $leaveRequests = $query->get();
-            Log::info('Leave Requests Count', ['count' => $leaveRequests->count()]);
 
-            $statusColors = [
-                'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-                'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-                'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
-            ];
+            $leaveRequests = $query->get();
 
             $data = [
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'generatedAt' => now()->format('F j, Y \a\t H:i'),
+                'user' => auth()->user(),
                 'leaveRequests' => $leaveRequests,
-                'statusColors' => $statusColors,
-                'title' => 'My Leave Requests',
-                'generatedAt' => now()->format('d/m/Y H:i:s'),
+                'statusColors' => [
+                    'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                    'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                    'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                    'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                ]
             ];
 
-            $pdf = Pdf::loadView('leave_requests.pdf', $data)
+            $pdf = Pdf::loadView('leaveRequest.pdf', $data)
                 ->setPaper('A4', 'landscape')
-                ->setOption('dpi', 150)
-                ->setOption('isRemoteEnabled', true);
-            ob_clean();
-            return $pdf->download('my-leave-requests-' . now()->format('Ymd-His') . '.pdf');
+                ->setOptions([
+                    'dpi' => 150,
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                    'defaultFont' => 'dejavu sans',
+                    'tempDir' => storage_path('app/temp')
+                ]);
+
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.pdf';
+
+            return $pdf->download($filename);
         } catch (\Exception $e) {
-            Log::error('PDF Export Error', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return back()->withErrors('Failed to generate PDF: ' . $e->getMessage());
+            Log::error('PDF Export Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+      public function exportExcel(Request $request)
+    {
+        try {
+            $this->authorize('export', \App\Models\LeaveRequest::class);
+
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
+
+            return Excel::download(new LeaveRequestExport($request), $filename);
+        } catch (\Exception $e) {
+            Log::error('Excel Export Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate Excel: ' . $e->getMessage());
+        }
+    }
+
+    public function print(Request $request)
+    {
+        try {
+            $this->authorize('export', \App\Models\LeaveRequest::class);
+
+            $query = LeaveRequest::query()
+                ->with(['leaveType', 'user']);
+
+            if (!auth()->user()->hasRole('Super Admin')) {
+                $query->where('user_id', auth()->id());
+            }
+
+            if ($request->filled('statuses')) {
+                $query->whereIn('status', $request->input('statuses', []));
+            }
+
+            if ($request->filled('type')) {
+                $query->whereHas('leaveType', function ($q) use ($request) {
+                    $q->where('name', $request->input('type'));
+                });
+            }
+
+            if ($request->filled('status_request')) {
+                $query->where('status', $request->input('status_request'));
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->input('search');
+                $query->where(function ($q) use ($search) {
+                    $q->where('reason', 'like', "%{$search}%")
+                        ->orWhereHas('leaveType', function ($sub) use ($search) {
+                            $sub->where('name', 'like', "%{$search}%");
+                        });
+                });
+            }
+
+            $sortOrder = $request->input('sort_order', 'new');
+            $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
+
+            $leaveRequests = $query->get();
+
+            $data = [
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'generatedAt' => now()->format('F j, Y \a\t H:i'),
+                'user' => auth()->user(),
+                'leaveRequests' => $leaveRequests,
+                'statusColors' => [
+                    'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                    'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                    'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                    'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                ]
+            ];
+
+            return view('leaveRequest.print', $data);
+        } catch (\Exception $e) {
+            Log::error('Print Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate print view: ' . $e->getMessage());
         }
     }
 }
