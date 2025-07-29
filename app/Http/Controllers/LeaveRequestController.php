@@ -16,6 +16,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Exports\LeaveRequestExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class LeaveRequestController extends Controller
 {
@@ -342,6 +344,20 @@ class LeaveRequestController extends Controller
         } catch (\Exception $e) {
             Log::error('PDF Export Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to generate PDF: ' . $e->getMessage());
+        }
+    }
+
+      public function exportExcel(Request $request)
+    {
+        try {
+            $this->authorize('export', \App\Models\LeaveRequest::class);
+
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
+
+            return Excel::download(new LeaveRequestExport($request), $filename);
+        } catch (\Exception $e) {
+            Log::error('Excel Export Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate Excel: ' . $e->getMessage());
         }
     }
 }

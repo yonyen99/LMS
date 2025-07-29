@@ -34,6 +34,11 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('auth')
         ->name('leave-requests.exportPDF')
         ->can('export', \App\Models\LeaveRequest::class);
+    Route::get('/leave-requests/export-excel', [LeaveRequestController::class, 'exportExcel'])
+        ->middleware('auth')
+        ->name('leave-requests.exportExcel')
+        ->can('export', \App\Models\LeaveRequest::class);
+
 
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/{id}/update-status', [NotificationController::class, 'updateStatus'])->name('notifications.update-status');
@@ -104,6 +109,6 @@ Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])-
 
 
 Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'exportPDF'])
-        ->middleware('auth')
-        ->name('leave-requests.exportPDF')
-        ->can('export', \App\Models\LeaveRequest::class);
+    ->middleware('auth')
+    ->name('leave-requests.exportPDF')
+    ->can('export', \App\Models\LeaveRequest::class);

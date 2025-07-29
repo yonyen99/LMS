@@ -96,9 +96,24 @@
                         class="btn btn-sm btn-danger">
                         <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
                     </a>
+
+                    <a href="{{ route('leave-requests.exportExcel', [
+                        'statuses' => request('statuses', []),
+                        'type' => request('type'),
+                        'status_request' => request('status_request'),
+                        'search' => request('search'),
+                        'sort_order' => request('sort_order', 'new'),
+                    ]) }}"
+                        class="btn btn-sm btn-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                    </a>
                 @else
                     <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
                         <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                    </button>
+
+                    <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
                     </button>
                 @endcan
             </form>
