@@ -56,8 +56,27 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('*', function ($view) {
-        $requestCount = LeaveRequest::where('status', 'Requested')->count();
-        $view->with('requestCount', $requestCount);
-    });
+            $requestCount = LeaveRequest::where('status', 'Requested')->count();
+            $view->with('requestCount', $requestCount);
+        });
+
+        View::composer('*', function ($view) {
+            $notifications = [];
+
+            if (Auth::check()) {
+                $user = Auth::user();
+
+                $query = LeaveRequest::with(['user', 'leaveType'])
+                            ->where('status', 'Requested');
+
+                if ($user->hasRole('Manager')) {
+                    $query->where('user_id', '!=', $user->id);
+                }
+
+                $notifications = $query->latest()->get();
+            }
+
+            $view->with('notifications', $notifications);
+        });
     }
 }

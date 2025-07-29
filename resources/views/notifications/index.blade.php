@@ -3,7 +3,7 @@
 @section('content')
 <div class="m-2">
     <div class="card card-1 p-4 mb-4">
-        <form method="GET" action="{{ route('leave-requests.index') }}">
+        <form method="GET" action="{{ route('notifications.index') }}">
             <div>
                 <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
                     <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
@@ -72,19 +72,19 @@
                                     </select>
                                 </div>
 
-                                <div class="d-flex align-items-center gap-2" style="width:15%;">
-                                    <label for="type" class="fw-semibold mb-0" style="width:30%;">Type</label>
-                                    <select class="form-select flex-grow-1" id="type" name="type"
-                                        onchange="this.form.submit()">
-                                        <option value="">All</option>
-                                        @foreach ($leaveTypes as $type)
-                                            <option value="{{ $type }}"
-                                                {{ request('type') == $type ? 'selected' : '' }}>
-                                                {{ $type }}
-                                            </option>
-                                        @endforeach
+                    <div class="d-flex align-items-center gap-2" style="width:15%;">
+                        <label for="type" class="fw-semibold mb-0" style="width:30%;">Type</label>
+                        <select class="form-select flex-grow-1" id="type" name="type" onchange="this.form.submit()">
+                            <option value="">All</option>
+                            @foreach ($leaveTypes as $type)
+                                <option value="{{ $type->name }}"
+                                    {{ request('type') == $type->name ? 'selected' : '' }}>
+                                    {{ $type->name }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
+
 
                     <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
                         <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>

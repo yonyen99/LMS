@@ -12,7 +12,6 @@ class MessageController extends Controller
         $query = LeaveRequest::with(['user', 'leaveType'])
             ->where('status', 'Requested');
 
-        // If the user is a manager, exclude their own requests
         if (auth()->user()->hasRole('Manager')) {
             $query->where('user_id', '!=', auth()->id());
         }

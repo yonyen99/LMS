@@ -252,16 +252,16 @@
                         <ul class="navbar-nav ms-auto align-items-center">
                             <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
-                            <li class="nav-item dropdown me-3">
-                                <a class="nav-link position-relative" href="{{ route('messages.index') }}" id="notificationLink">
-                                    <i class="bi bi-bell-fill fs-5 text-primary" style="font-size: 20px"></i>
-                                    <span class="position-absolute top-4 start-100 translate-middle badge rounded-pill bg-danger">
+                                <div class="me-3">
+                                    <button id="notificationToggle" class="position-relative p-1 bg-transparent border-0" style="font-size: 20px;">
+                                        <i class="bi bi-bell-fill text-primary"></i>
+                                        <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem; padding: 0.4em 0.6em;">
                                             {{ $requests }}
-                                            <span class="visually-hidden">unread notifications</span>
                                         </span>
-                                    </a>
-                                </li>
+                                    </button>
+                                </div>
                             @endif
+
 
                             @guest
                                 @if (Route::has('login'))
@@ -309,6 +309,67 @@
                     </div>
                 </div>
             </nav>
+            <div id="notificationContainer" style="display: none; position: absolute; top: 60px; right: 100px; width: 400px; z-index: 1050;">
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Notifications</h4>
+                    </div>
+                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                        @forelse ($notifications as $request)
+                            <a href="{{ route('notifications.index', $request->id) }}" class="text-decoration-none text-dark">
+                                <div class="notification-item position-relative" data-id="{{ $request->id }}" style="cursor: pointer;">
+                                    <div class="alert shadow-sm rounded-3 {{ $request->is_read ? 'alert-light' : 'alert-primary' }}" 
+                                        style="margint: 10px; transition: all 0.3s ease;">
+
+                                        <div>
+                                            <strong>{{ $request->user->name }}</strong> requested 
+                                            <strong class="text-info">{{ $request->leaveType->name ?? 'Leave' }}</strong> 
+                                            from <strong>{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}</strong>
+                                            ({{ $request->start_time }}) to 
+                                            <strong>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</strong>
+                                            ({{ $request->end_time }}).
+                                        </div>
+
+                                        @if ($request->reason)
+                                            <div class="mt-2">Reason: <em>{{ $request->reason }}</em></div>
+                                        @endif
+
+                                        <div class="mt-2">
+                                            Status: 
+                                            <span class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }}">
+                                                {{ ucfirst($request->status) }}
+                                            </span>
+                                        </div>
+
+                                        <div class="mt-3">
+                                            <small class="text-muted d-block">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                Submitted: {{ \Carbon\Carbon::parse($request->requested_at ?? $request->created_at)->format('d M Y') }}
+                                            </small>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                Last updated: {{ \Carbon\Carbon::parse($request->last_changed_at ?? $request->updated_at)->format('d M Y') }}
+                                            </small>
+
+                                            @if ($request->read_at)
+                                                <small class="text-muted d-block">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Read: {{ \Carbon\Carbon::parse($request->read_at)->format('d M Y, g:i A') }}
+                                                </small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        @empty
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No leave requests found.
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
         @endunless
 
         <main>
@@ -327,6 +388,74 @@
             </div>
         </main>
     </div>
+    @section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const bellButton = document.getElementById('notificationToggle');
+            const container = document.getElementById('notificationContainer');
+
+            function toggleNotification() {
+                container.style.display = (container.style.display === 'none' || container.style.display === '') 
+                    ? 'block' 
+                    : 'none';
+            }
+
+            // Toggle on bell click
+            if (bellButton && container) {
+                bellButton.addEventListener('click', function (event) {
+                    event.stopPropagation(); // prevent event from bubbling up
+                    toggleNotification();
+                });
+
+                // Hide when clicking outside
+                document.addEventListener('click', function (event) {
+                    if (!container.contains(event.target) && event.target !== bellButton && !bellButton.contains(event.target)) {
+                        container.style.display = 'none';
+                    }
+                });
+            }
+        });
+        document.querySelectorAll('.view-request').forEach(button => {
+            button.addEventListener('click', function () {
+                // Basic fields
+                document.getElementById('modalType').textContent = this.dataset.type || '-';
+                document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
+                document.getElementById('modalReason').textContent = this.dataset.reason || '-';
+
+                // Format start date and time
+                const startDate = this.dataset.startDate || '-';
+                const startTime = this.dataset.startTime || '';
+                document.getElementById('modalStart').innerHTML = `
+                    ${startDate}
+                    ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
+                `;
+
+                // Format end date and time
+                const endDate = this.dataset.endDate || '-';
+                const endTime = this.dataset.endTime || '';
+                document.getElementById('modalEnd').innerHTML = `
+                    ${endDate}
+                    ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
+                `;
+
+                // Status badge
+                const status = (this.dataset.status || '').toLowerCase();
+                const statusMap = {
+                    planned: 'secondary',
+                    accepted: 'success',
+                    requested: 'warning',
+                    rejected: 'danger',
+                    cancellation: 'danger',
+                    canceled: 'danger'
+                };
+                const badgeClass = statusMap[status] || 'light';
+
+                document.getElementById('modalStatus').innerHTML = `
+                    <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
+                `;
+            });
+        });
+    </script>
 </body>
 
 </html>
