@@ -75,6 +75,17 @@
                     </select>
                 </div>
 
+
+                {{-- Sort Order --}}
+                <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
+                    <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
+                    <select class="form-select" id="showRequest" name="sort_order" onchange="this.form.submit()">
+                        <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>Newest</option>
+                        <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>Oldest</option>
+                    </select>
+                </div>
+
+
                 @can('export', \App\Models\LeaveRequest::class)
                     <a href="{{ route('leave-requests.exportPDF', [
                         'statuses' => request('statuses', []),
@@ -120,27 +131,7 @@
                         <i class="bi bi-printer me-1"></i> Print
                     </button>
                 @endcan
-            </form>
 
-        </div>
-
-                {{-- Sort Order --}}
-                <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
-                    <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
-                    <select class="form-select" id="showRequest" name="sort_order" onchange="this.form.submit()">
-                        <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>Newest</option>
-                        <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>Oldest</option>
-                    </select>
-                </div>
-
-                {{-- Export PDF --}}
-                <div class="d-flex justify-content-end mt-3" style="margin-left: 23%">
-                    <a href="{{ route('leave-requests.exportPDF', request()->query()) }}"
-                        class="btn btn-primary btn-sm d-flex align-items-center gap-2 shadow-sm" title="Export to PDF">
-                        <i class="bi bi-file-earmark-pdf fs-5"></i> 
-                        <span>Export PDF</span>
-                    </a>
-                </div>
             </div>
         </form>
     </div>
