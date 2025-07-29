@@ -12,44 +12,50 @@
                 <table class="table table-bordered table-hover table-sm text-sm align-middle mb-0">
                     <thead class="table-light text-center">
                         <tr>
-                            <th>Change Type</th>
-                            <th>Changed Date</th>
-                            <th>Changed By</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Reason</th>
-                            <th>Duration</th>
-                            <th>Type</th>
-                            <th>Status</th>
+                            <th class="text-center px-1 py-2">Change Type</th>
+                            <th class="text-center px-1 py-2">Changed Date</th>
+                            <th class="text-center px-1 py-2">Changed By</th>
+                            <th class="text-center px-1 py-2">Start Date</th>
+                            <th class="text-center px-1 py-2">End Date</th>
+                            <th class="text-center px-12 py-12">Reason</th>
+                            <th class="text-center px-1 py-2">Duration</th>
+                            <th class="text-center px-1 py-2">Type</th>
+                            <th class="text-center px-1 py-2">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {{-- Row 1: Created --}}
                         <tr>
-                            <td class="text-center">➕</td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->created_at)->format('d/m/Y') }}</td>
-                            <td class="text-center">{{ $changs->user->name ?? 'N/A' }}</td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }} ({{ ucfirst($changs->start_time) }})</td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->end_date)->format('d/m/Y') }} ({{ ucfirst($changs->end_time) }})</td>
-                            <td class="text-center">{{ $changs->reason }}</td>
-                            <td class="text-center">{{ number_format($changs->duration, 2) }}</td>
-                            <td class="text-center">{{ $changs->leaveType->name ?? 'N/A' }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-white">Requested</span>
+                            <td class="text-center px-1 py-2">➕</td>
+                            <td class="text-center px-1 py-2">{{ \Carbon\Carbon::parse($changs->created_at)->format('d/m/Y') }}</td>
+                            <td class="text-center px-1 py-2">{{ $changs->user->name ?? 'N/A' }}</td>
+                            <td class="text-center px-1 py-2">
+                                {{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }}<br>
+                                <span>({{ ucfirst($changs->start_time) }})</span>
+                            </td>
+                            <td class="text-center px-1 py-2">
+                                {{ \Carbon\Carbon::parse($changs->end_date)->format('d/m/Y') }} <br>
+                                <span>({{ ucfirst($changs->end_time) }})</span>
+                            </td>
+                            <td class="text-center px-12 py-12">{{ $changs->reason }}</td>
+                            <td class="text-center px-1 py-2">{{ number_format($changs->duration, 1) }}</td>
+                            <td class="text-center px-1 py-2">{{ $changs->leaveType->name ?? 'N/A' }}</td>
+                            <td class="text-center px-1 py-2">
+                                <span class="badge bg-warning text-white" style="font-size: 14px">Requested</span>
                             </td>
                         </tr>
 
                         {{-- Row 2: Updated --}}
                         <tr>
-                            <td class="text-center">✏️</td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->updated_at)->format('d/m/Y') }}</td>
-                            <td class="text-center">{{ $latestStatusChange->user->name ?? $changs->user->name ?? 'N/A' }}</td>
-                            <td class="text-center"></td>
-                            <td class="text-center"></td>
-                            <td class="text-center"></td>
-                            <td class="text-center"></td>
-                            <td class="text-center"></td>
-                            <td class="text-center">
+                            <td class="text-center px-1 py-2">✏️</td>
+                            <td class="text-center px-1 py-2">{{ \Carbon\Carbon::parse($changs->updated_at)->format('d/m/Y') }}</td>
+                            <td class="text-center px-1 py-2">{{ $latestStatusChange->user->name ?? $changs->user->name ?? 'N/A' }}</td>
+                            <td class="text-center px-1 py-2"></td>
+                            <td class="text-center px-1 py-2"></td>
+                            <td class="text-center px-12 py-12"></td>
+                            <td class="text-center px-1 py-2"></td>
+                            <td class="text-center px-1 py-2"></td>
+                            <td class="text-center px-1 py-2">
                                 @php
                                     $status = strtolower($changs->status);
                                     $badgeColor = match ($status) {
@@ -59,21 +65,27 @@
                                         default => 'bg-secondary'
                                     };
                                 @endphp
-                                <span class="badge {{ $badgeColor }} text-white">{{ ucfirst($status) }}</span>
+                                <span class="badge {{ $badgeColor }} text-white" style="font-size: 14px">{{ ucfirst($status) }}</span>
                             </td>
                         </tr>
 
                         {{-- Row 3: Status Changed --}}
                         <tr>
-                            <td class="text-center">➡️</td>
-                            <td class="text-center">{{ $latestStatusChange ? \Carbon\Carbon::parse($latestStatusChange->changed_at)->format('d/m/Y') : '-' }}</td>
-                            <td class="text-center"></td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }} ({{ ucfirst($changs->start_time) }})</td>
-                            <td class="text-center">{{ \Carbon\Carbon::parse($changs->end_date)->format('d/m/Y') }} ({{ ucfirst($changs->end_time) }})</td>
-                            <td class="text-center">{{ $changs->reason }}</td>
-                            <td class="text-center">{{ number_format($changs->duration, 2) }}</td>
-                            <td class="text-center">{{ $changs->leaveType->name ?? 'N/A' }}</td>
-                            <td class="text-center">
+                            <td class="text-center px-1 py-2">➡️</td>
+                            <td class="text-center px-1 py-2">{{ $latestStatusChange ? \Carbon\Carbon::parse($latestStatusChange->changed_at)->format('d/m/Y') : '-' }}</td>
+                            <td class="text-center px-1 py-2"></td>
+                            <td class="text-center px-1 py-2">
+                                {{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }}<br>
+                                <span>({{ ucfirst($changs->start_time) }})</span>
+                            </td>
+                            <td class="text-center px-1 py-2">
+                                {{ \Carbon\Carbon::parse($changs->end_date)->format('d/m/Y') }} <br>
+                                <span>({{ ucfirst($changs->end_time) }})</span>
+                            </td>
+                            <td class="text-center px-12 py-12">{{ $changs->reason }}</td>
+                            <td class="text-center px-1 py-2">{{ number_format($changs->duration, 1) }}</td>
+                            <td class="text-center px-1 py-2">{{ $changs->leaveType->name ?? 'N/A' }}</td>
+                            <td class="text-center px-1 py-2">
                                 @php
                                     $status = strtolower($latestStatusChange->new_status ?? $changs->status);
                                     $badgeColor = match ($status) {
@@ -83,7 +95,7 @@
                                         default => 'bg-secondary'
                                     };
                                 @endphp
-                                <span class="badge {{ $badgeColor }} text-white">{{ ucfirst($status) }}</span>
+                                <span class="badge {{ $badgeColor }} text-white" style="font-size: 14px" >{{ ucfirst($status) }}</span>
                             </td>
                         </tr>
                     </tbody>
