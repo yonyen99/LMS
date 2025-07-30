@@ -62,7 +62,8 @@
                                                             <div class="icon-box bg-primary text-white mb-2">
                                                                 <i class="bi bi-person-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Manager</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Manager</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalManagers }}</p>
                                                         </div>
@@ -76,7 +77,8 @@
                                                             <div class="icon-box bg-success text-white mb-2">
                                                                 <i class="bi bi-people-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Employee</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Employee</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalEmployees }}</p>
                                                         </div>
@@ -90,7 +92,8 @@
                                                             <div class="icon-box bg-warning text-white mb-2">
                                                                 <i class="bi bi-building-fill" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Department</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Department</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalDepartments }}</p>
                                                         </div>
@@ -104,7 +107,8 @@
                                                             <div class="icon-box bg-danger text-white mb-2">
                                                                 <i class="bi bi-calendar-x" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Leave</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Leave</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalLeaves }}</p>
                                                         </div>
@@ -118,7 +122,8 @@
                                                             <div class="icon-box bg-info text-white mb-2">
                                                                 <i class="bi bi-clipboard-check" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Request</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Request</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalRequests }}</p>
                                                         </div>
@@ -132,7 +137,8 @@
                                                             <div class="icon-box bg-secondary text-white mb-2">
                                                                 <i class="bi bi-check-circle" style="font-size: 1.5rem;"></i>
                                                             </div>
-                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total Approved</h6>
+                                                            <h6 class="card-title mb-1 p-2" style="font-size: 0.9rem;">Total
+                                                                Approved</h6>
                                                             <p class="card-text display-6 mb-0" style="font-size: 1.5rem;">
                                                                 {{ $totalApproved }}</p>
                                                         </div>
@@ -155,7 +161,8 @@
                                         <h5>Members per Department</h5>
                                         <div class="card-3">
                                             @if (!empty($departmentData))
-                                                <canvas id="departmentChart" width="400" height="200" style="max-width: 100%;"></canvas>
+                                                <canvas id="departmentChart" width="400" height="200"
+                                                    style="max-width: 100%;"></canvas>
                                             @else
                                                 <p class="text-muted text-center">No department data available.</p>
                                             @endif
@@ -185,68 +192,70 @@
                     </div>
                 </div>
             @endcanany
-            @if ((auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
-                !auth()->user()->hasRole('Admin') &&
-                !auth()->user()->hasRole('Super Admin'))
+            @if (
+                (auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
+                    !auth()->user()->hasRole('Admin') &&
+                    !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
                     <div class="card card-1 p-4 mb-4">
-        <form method="GET" action="{{ route('home') }}">
-            <div>
-                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
-                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
-                </div>
-                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4 mt-4">
-                    <div class="d-flex align-items-center border rounded px-2" style="width:30%;">
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            class="form-control border-0" placeholder="Search request...">
-                        <i class="bi bi-search text-primary"></i>
-                    </div>
-                                    
-                    @php
-                        $statuses = [
-                            'Planned',
-                            'Accepted',
-                            'Requested',
-                            'Rejected',
-                            'Cancellation',
-                            'Canceled',
-                        ];
-                        $colors = [
-                            'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-                            'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-                            'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                            'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                            'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],                             
-                        ];
-                        @endphp
-
-                        @foreach ($statuses as $status)
-                            @php
-                                $textColor = $colors[$status]['text'];
-                                $bgColor = $colors[$status]['bg']                                       
-                            @endphp
+                        <form method="GET" action="{{ route('leave-requests.index') }}">
                             <div>
-                                <label for="status_{{ $status }}"
-                                    class="d-flex align-items-center fw-semibold"
-                                    style="color: {{ $textColor }}; background-color: {{ $bgColor }};
+                                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4">
+                                    <h2 class="fw-bold mb-0 me-2">My leave requests</h2>
+                                </div>
+                                <div class="d-flex align-items-center justify-content-start flex-wrap gap-4 mt-4">
+                                    <div class="d-flex align-items-center border rounded px-2" style="width:30%;">
+                                        <input type="text" name="search" value="{{ request('search') }}"
+                                            class="form-control border-0" placeholder="Search request...">
+                                        <i class="bi bi-search text-primary"></i>
+                                    </div>
+
+                                    @php
+                                        $statuses = [
+                                            'Planned',
+                                            'Accepted',
+                                            'Requested',
+                                            'Rejected',
+                                            'Cancellation',
+                                            'Canceled',
+                                        ];
+                                        $colors = [
+                                            'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                                            'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                                            'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                                            'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                                            'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                                            'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                                        ];
+                                    @endphp
+
+                                    @foreach ($statuses as $status)
+                                        @php
+                                            $textColor = $colors[$status]['text'];
+                                            $bgColor = $colors[$status]['bg'];
+                                        @endphp
+                                        <div>
+                                            <label for="status_{{ $status }}"
+                                                class="d-flex align-items-center fw-semibold"
+                                                style="color: {{ $textColor }}; background-color: {{ $bgColor }};
                                         padding: 0.25em 0.7em; border-radius: 0.3rem; cursor: pointer;">
-                                    <input type="checkbox" name="statuses[]" value="{{ $status }}"
-                                        id="status_{{ $status }}"
-                                        {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
-                                        onchange="this.form.submit()" class="form-check-input me-2 mb-1"
-                                        style="width: 1.2em; height: 1.1em;">
+                                                <input type="checkbox" name="statuses[]" value="{{ $status }}"
+                                                    id="status_{{ $status }}"
+                                                    {{ !request()->has('statuses') || in_array($status, request()->input('statuses', [])) ? 'checked' : '' }}
+                                                    onchange="this.form.submit()" class="form-check-input me-2 mb-1"
+                                                    style="width: 1.2em; height: 1.1em;">
                                                 {{ $status }}
-                                </label>
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                            @endforeach
-                    </div>
-                </div>
 
                             <div class="d-flex flex-wrap gap-4 align-items-end mt-4 mb-2">
-                                
+
                                 <div class="d-flex align-items-center gap-2" style="width:20%;">
-                                    <label for="statusRequest" class="fw-semibold mb-0" style="width:80%;">Status Request</label>
+                                    <label for="statusRequest" class="fw-semibold mb-0" style="width:80%;">Status
+                                        Request</label>
                                     <select class="form-select" id="statusRequest" name="status_request"
                                         onchange="this.form.submit()">
                                         <option value="">All</option>
@@ -270,68 +279,72 @@
                                                 {{ $type }}
                                             </option>
                                         @endforeach
-                        </select>
-                    </div>
+                                    </select>
+                                </div>
 
-                    <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
-                        <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show Request</label>
-                        <select class="form-select" id="showRequest" name="sort_order"
+                                <div class="d-flex align-items-center gap-2 mt-2" style="width:20%;">
+                                    <label for="showRequest" class="fw-semibold mb-0" style="width:75%;">Show
+                                        Request</label>
+                                    <select class="form-select" id="showRequest" name="sort_order"
                                         onchange="this.form.submit()">
-                            <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
-                                 Newest</option>
-                            <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>
-                                 Oldest</option>
-                        </select>
+                                        <option value="new" {{ request('sort_order') == 'new' ? 'selected' : '' }}>
+                                            Newest</option>
+                                        <option value="last" {{ request('sort_order') == 'last' ? 'selected' : '' }}>
+                                            Oldest</option>
+                                    </select>
+                                </div>
+
+                                @can('export', \App\Models\LeaveRequest::class)
+                                    <a href="{{ route('leave-requests.exportPDF', [
+                                        'statuses' => request('statuses', []),
+                                        'type' => request('type'),
+                                        'status_request' => request('status_request'),
+                                        'search' => request('search'),
+                                        'sort_order' => request('sort_order', 'new'),
+                                    ]) }}"
+                                        class="btn btn-sm btn-danger">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                                    </a>
+
+                                    <a href="{{ route('leave-requests.exportExcel', [
+                                        'statuses' => request('statuses', []),
+                                        'type' => request('type'),
+                                        'status_request' => request('status_request'),
+                                        'search' => request('search'),
+                                        'sort_order' => request('sort_order', 'new'),
+                                    ]) }}"
+                                        class="btn btn-sm btn-success">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                                    </a>
+                                    <a href="{{ route('leave-requests.print', [
+                                        'statuses' => request('statuses', []),
+                                        'type' => request('type'),
+                                        'status_request' => request('status_request'),
+                                        'search' => request('search'),
+                                        'sort_order' => request('sort_order', 'new'),
+                                    ]) }}"
+                                        class="btn btn-sm btn-primary">
+                                        <i class="bi bi-printer me-1"></i> Print
+                                    </a>
+                                @else
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to export">
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                                    </button>
+
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to export">
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                                    </button>
+
+                                    <button class="btn btn-sm btn-secondary" disabled
+                                        title="You don't have permission to print">
+                                        <i class="bi bi-printer me-1"></i> Print
+                                    </button>
+                                @endcan
+                            </div>
+                        </form>
                     </div>
-                    
-                    @can('export', \App\Models\LeaveRequest::class)
-                        <a href="{{ route('leave-requests.exportPDF', [
-                            'statuses' => request('statuses', []),
-                            'type' => request('type'),
-                            'status_request' => request('status_request'),
-                            'search' => request('search'),
-                            'sort_order' => request('sort_order', 'new'),
-                        ]) }}"
-                            class="btn btn-sm btn-danger">
-                            <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
-                        </a>
-
-                        <a href="{{ route('leave-requests.exportExcel', [
-                            'statuses' => request('statuses', []),
-                            'type' => request('type'),
-                            'status_request' => request('status_request'),
-                            'search' => request('search'),
-                            'sort_order' => request('sort_order', 'new'),
-                        ]) }}"
-                            class="btn btn-sm btn-success">
-                            <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
-                        </a>
-                        <a href="{{ route('leave-requests.print', [
-                            'statuses' => request('statuses', []),
-                            'type' => request('type'),
-                            'status_request' => request('status_request'),
-                            'search' => request('search'),
-                            'sort_order' => request('sort_order', 'new'),
-                        ]) }}"
-                            class="btn btn-sm btn-primary">
-                            <i class="bi bi-printer me-1"></i> Print
-                        </a>
-                    @else
-                        <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
-                            <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
-                        </button>
-
-                        <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to export">
-                            <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
-                        </button>
-
-                        <button class="btn btn-sm btn-secondary" disabled title="You don't have permission to print">
-                            <i class="bi bi-printer me-1"></i> Print
-                        </button>
-                    @endcan
-                </div>
-            </form>
-        </div>
 
                     <table class="table table-bordered table-hover">
                         <thead class="table-light">
@@ -375,16 +388,19 @@
                                         ];
                                     @endphp
                                     <tr class="text-center">
-                                        <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}</td>
+                                        <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}
+                                        </td>
                                         <td>{{ optional($request->start_date)->format('d/m/Y') }}
-                                            ({{ ucfirst($request->start_time) }})</td>
+                                            ({{ ucfirst($request->start_time) }})
+                                        </td>
                                         <td>{{ optional($request->end_date)->format('d/m/Y') }}
                                             ({{ ucfirst($request->end_time) }})</td>
                                         <td>{{ $request->reason ?? '-' }}</td>
                                         <td>{{ number_format($request->duration, 2) }}</td>
                                         <td>{{ optional($request->leaveType)->name ?? '-' }}</td>
                                         <td>
-                                            <span style="
+                                            <span
+                                                style="
                                                 color: {{ $colors['text'] }};
                                                 background-color: {{ $colors['bg'] }};
                                                 padding: 2px 8px;
@@ -395,8 +411,10 @@
                                                 {{ $displayStatus }}
                                             </span>
                                         </td>
-                                        <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}</td>
-                                        <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}</td>
+                                        <td>{{ $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-' }}
+                                        </td>
+                                        <td>{{ $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-' }}
+                                        </td>
                                         <td>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
@@ -424,14 +442,21 @@
                                                     </li>
 
                                                     @php
-                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled', 'cancellation'];
+                                                        $showHistoryStatuses = [
+                                                            'accepted',
+                                                            'rejected',
+                                                            'canceled',
+                                                            'cancellation',
+                                                        ];
                                                     @endphp
 
                                                     @if (in_array(strtolower($request->status), $showHistoryStatuses))
                                                         <li>
                                                             <a class="dropdown-item d-flex align-items-center"
                                                                 href="{{ route('leave-requests.history', $request->id) }}">
-                                                                <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> History
+                                                                <i
+                                                                    class="bi bi-arrow-counterclockwise me-2 text-primary"></i>
+                                                                History
                                                             </a>
                                                         </li>
                                                     @endif
@@ -454,23 +479,36 @@
                                                     @endif
                                                     
                                                     @php
-                                                        $showHistoryStatuses = ['accepted', 'rejected', 'canceled','cancellation'];
+                                                        $showHistoryStatuses = [
+                                                            'accepted',
+                                                            'rejected',
+                                                            'canceled',
+                                                            'cancellation',
+                                                        ];
                                                     @endphp
                                                     @if (!in_array(strtolower($request->status), $showHistoryStatuses))
                                                         <li>
-                                                            <form action="{{ route('leave-requests.destroy', $request->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this request?');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
-                                                                <i class="bi bi-trash me-2"></i> Delete
-                                                            </button>
+                                                            <form
+                                                                action="{{ route('leave-requests.destroy', $request->id) }}"
+                                                                method="POST"
+                                                                onsubmit="return confirm('Are you sure you want to delete this request?');">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit"
+                                                                    class="dropdown-item d-flex align-items-center text-danger">
+                                                                    <i class="bi bi-trash me-2"></i> Delete
+                                                                </button>
                                                             </form>
                                                         </li>
 
                                                         <li>
-                                                            <form action="{{ route('leave-requests.cancel', $request->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                                            <form
+                                                                action="{{ route('leave-requests.cancel', $request->id) }}"
+                                                                method="POST"
+                                                                onsubmit="return confirm('Are you sure you want to cancel this request?');">
                                                                 @csrf
-                                                                <button type="submit" class="dropdown-item d-flex align-items-center text-secondary">
+                                                                <button type="submit"
+                                                                    class="dropdown-item d-flex align-items-center text-secondary">
                                                                     <i class="bi bi-x-circle me-2"></i> Cancel
                                                                 </button>
                                                             </form>
@@ -539,5 +577,5 @@
             <script>
                 const departmentData = @json($departmentData);
             </script>
-        </section>
-    @endsection
+            </section>
+        @endsection

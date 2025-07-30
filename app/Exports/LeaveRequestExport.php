@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
     protected $request;
+    protected $rowNumber = 0;
 
     public function __construct($request)
     {
@@ -60,7 +61,7 @@ class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, W
     public function headings(): array
     {
         return [
-            '#',
+            'No.',
             'Employee',
             'Start Date',
             'Start Time',
@@ -77,9 +78,11 @@ class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function map($leaveRequest): array
     {
+        $this->rowNumber++; 
+
         $displayStatus = ucfirst(strtolower($leaveRequest->status));
         return [
-            $leaveRequest->id,
+            $this->rowNumber, 
             optional($leaveRequest->user)->name ?? '-',
             optional($leaveRequest->start_date)->format('d/m/Y') ?? '-',
             ucfirst($leaveRequest->start_time),

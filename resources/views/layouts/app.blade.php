@@ -130,7 +130,7 @@
                                             aria-expanded="false">
                                             Permissions
                                         </a>
-                                        <ul class="dropdown-menu card-1 card-2 " aria-labelledby="permissionDropdown">
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'roles.index' ? 'active' : '' }}"
                                                     href="{{ route('roles.index') }}">Manage Roles</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.index' ? 'active' : '' }}"
