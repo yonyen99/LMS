@@ -30,6 +30,7 @@
 
         .card {
              overflow: hidden;
+             border: none;
         }
         .card-3{
             display: flex;
