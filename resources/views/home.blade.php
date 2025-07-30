@@ -409,10 +409,18 @@
                                                 <ul class="dropdown-menu dropdown-menu-end"
                                                     aria-labelledby="actionsDropdown{{ $request->id }}">
                                                     <li>
-                                                        <a class="dropdown-item d-flex align-items-center"
-                                                            href="{{ route('leave-requests.show', $request->id) }}">
+                                                        <button type="button" class="dropdown-item d-flex align-items-center view-request"
+                                                            data-bs-toggle="modal" data-bs-target="#leaveRequestModal"
+                                                            data-type="{{ $request->leaveType->name }}"
+                                                            data-duration="{{ $request->duration }}"
+                                                            data-start-date="{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}"
+                                                            data-start-time="{{ $request->start_time }}"
+                                                            data-end-date="{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}"
+                                                            data-end-time="{{ $request->end_time }}"
+                                                            data-reason="{{ $request->reason }}"
+                                                            data-status="{{ $request->status }}">
                                                             <i class="bi bi-eye me-2 text-primary"></i> View
-                                                        </a>
+                                                        </button>
                                                     </li>
 
                                                     @php
@@ -425,6 +433,23 @@
                                                                 href="{{ route('leave-requests.history', $request->id) }}">
                                                                 <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i> History
                                                             </a>
+                                                        </li>
+                                                    @endif
+
+                                                    @php
+                                                        $showStatuses = ['accepted', 'rejected', 'canceled', 'cancellation', 'requested'];
+                                                    @endphp
+
+                                                    @if (!in_array(strtolower($request->status), $showStatuses))
+
+                                                        <li>
+                                                            <form action="{{ route('leave-requests.update-status', $request->id) }}" method="POST" style="display:inline;">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" name="status" value="requested" class="btn d-flex align-items-center" style="color: orange;">
+                                                                    <i class="bi bi-check2-circle me-2"></i> Requested
+                                                                </button>
+                                                            </form>
                                                         </li>
                                                     @endif
                                                     
@@ -471,6 +496,45 @@
                         </div>
                     @endif
                 </div>
+                <div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" style="width: 40%;">
+        <div class="modal-content shadow rounded border-0">
+            <div class="modal-header text-white" style="background-color: green">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text me-2"></i> Leave Request Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body px-4 pb-4">
+                <dl class="row mb-0" style="margin-left: 10px;">
+                    <dt class="col-sm-5 text-lg">Leave Type</dt>
+                    <dd class="col-sm-7 fs-6" id="modalType">-</dd>
+
+                    <dt class="col-sm-5 text-lg">Duration (days)</dt>
+                    <dd class="col-sm-7 fs-6" id="modalDuration">-</dd>
+
+                    <dt class="col-sm-5 text-lg">Start Date & Time</dt>
+                    <dd class="col-sm-7 fs-6" id="modalStart">-</dd>
+
+                    <dt class="col-sm-5 text-lg">End Date & Time</dt>
+                    <dd class="col-sm-7 fs-6" id="modalEnd">-</dd>
+
+                    <dt class="col-sm-5 text-lg">Reason</dt>
+                    <dd class="col-sm-7 fs-6">
+                        <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
+                    </dd>
+
+                    <dt class="col-sm-5 text-lg">Status</dt>
+                    <dd class="col-sm-7 fs-6" id="modalStatus">
+                        <span class="badge bg-secondary text-white">-</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
             @endif
             <script>
                 const departmentData = @json($departmentData);

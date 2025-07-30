@@ -207,6 +207,24 @@
                                     </li>
                                 @endif
 
+
+                                @php
+                                    $showStatuses = ['accepted', 'rejected', 'canceled', 'cancellation', 'requested'];
+                                @endphp
+
+                                @if (!in_array(strtolower($request->status), $showStatuses))
+
+                                    <li>
+                                        <form action="{{ route('leave-requests.update-status', $request->id) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" name="status" value="requested" class="btn d-flex align-items-center" style="color: orange;">
+                                                <i class="bi bi-check2-circle me-2"></i> Requested
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+
                                 @if (!in_array(strtolower($request->status), $showHistoryStatuses))
                                     <li>
                                         <form action="{{ route('leave-requests.destroy', $request->id) }}"
