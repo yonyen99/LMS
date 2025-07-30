@@ -124,7 +124,7 @@ class LeaveSummaryController extends Controller
         // Get total taken (Accepted + Planned) for this user
         $taken = \App\Models\LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_taken'))
             ->where('user_id', $userId)
-            ->whereIn('status', ['Accepted', 'Planned'])
+            ->where('status', 'Accepted')
             ->groupBy('leave_type_id')
             ->pluck('total_taken', 'leave_type_id');
 
@@ -135,8 +135,17 @@ class LeaveSummaryController extends Controller
             ->groupBy('leave_type_id')
             ->pluck('total_requested', 'leave_type_id');
 
+
+        $planned = \App\Models\LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_planned'))
+            ->where('user_id', $userId)
+            ->where('status', 'Planned')
+            ->groupBy('leave_type_id')
+            ->pluck('total_planned', 'leave_type_id');
+
+
+
         // Build summaries
-        $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $user) {
+        $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $planned, $user) {
             $baseEntitled = $entitlement->entitled;
 
             // If user is a Manager, add 2 extra entitled days
@@ -146,6 +155,7 @@ class LeaveSummaryController extends Controller
 
             $takenDays = $taken[$leaveTypeId] ?? 0;
             $requestedDays = $requested[$leaveTypeId] ?? 0;
+            $plannedDays = $planned[$leaveTypeId] ?? 0;
             $availableActual = max($baseEntitled - $takenDays, 0);
             $availableSimulated = max($baseEntitled - ($takenDays + $requestedDays), 0);
 
@@ -156,7 +166,7 @@ class LeaveSummaryController extends Controller
                 'requested' => $requestedDays,
                 'available_actual' => $availableActual,
                 'available_simulated' => $availableSimulated,
-                'planned' => 0,
+                'planned' => $plannedDays,
             ];
         });
 

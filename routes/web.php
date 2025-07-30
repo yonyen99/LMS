@@ -81,7 +81,7 @@ Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])-
 Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
 Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
 Route::post('/notifications/{id}/mark-read', [MessageController::class, 'markAsRead']);
-
+Route::patch('/leave-requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('leave-requests.update-status');
 
 
 

@@ -154,13 +154,17 @@ class LeaveRequestController extends Controller
             // Calculate taken and requested leaves for this user
             $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
-                ->whereIn('status', ['Accepted', 'Planned'])
+                ->where('status', 'Accepted')
                 ->sum('duration');
 
             $requested = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->where('status', 'Requested')
                 ->sum('duration');
+
+            $planned = \App\Models\LeaveRequest::where('user_id', $user->id)
+                ->where('status', 'Planned')
+                ->sum('duration');  
 
             // Calculate available leave
             $available = $entitled - ($taken + $requested);
@@ -172,7 +176,11 @@ class LeaveRequestController extends Controller
             }
 
             // Update LeaveSummary requested count for department-level tracking
-            $summary->requested += $request->duration;
+            if ($request->status === 'requested') {
+                $summary->requested += $request->duration;
+            }
+            
+
             $summary->available_actual = max($entitled - $summary->taken, 0);
             $summary->save();
 
@@ -186,7 +194,7 @@ class LeaveRequestController extends Controller
                 'end_time' => $request->end_time,
                 'duration' => $request->duration,
                 'reason' => $request->reason,
-                'status' => 'Requested',
+                'status' => $request->status,
                 'requested_at' => now(),
                 'last_changed_at' => now(),
             ]);
@@ -420,4 +428,17 @@ class LeaveRequestController extends Controller
             return redirect()->back()->with('error', 'Failed to generate print view: ' . $e->getMessage());
         }
     }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $leave = LeaveRequest::findOrFail($id);
+
+        if (strtolower($leave->status) === 'planned') {
+            $leave->status = $request->input('status');
+            $leave->save();
+        }
+
+        return redirect()->back()->with('success', 'Leave request status updated.');
+    }
+
 }

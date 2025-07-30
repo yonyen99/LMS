@@ -140,11 +140,15 @@ class NotificationController extends Controller
                 } elseif ($oldStatus === 'Accepted') {
                     $summary->taken -= $leaveRequest->duration;
                     $summary->entitled += $leaveRequest->duration;
+                } elseif ($oldStatus === 'Planned') {
+                    $summary->requested -= $leaveRequest->duration;
+                    $summary->entitled += $leaveRequest->duration;
                 }
 
                 $summary->available_actual = $summary->entitled - $summary->taken;
                 $summary->save();
             }
+
 
 
             $leaveRequest->update([
