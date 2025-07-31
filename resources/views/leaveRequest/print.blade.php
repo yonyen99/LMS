@@ -1,56 +1,69 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>{{ $title }}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
+
         h1 {
             text-align: center;
             font-size: 24px;
             margin-bottom: 10px;
         }
+
         p.generated-at {
             text-align: center;
             color: #666;
             font-size: 14px;
             margin-bottom: 20px;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        th, td {
+
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
             font-size: 12px;
         }
+
         th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
+
         .status {
             padding: 2px 8px;
             border-radius: 10px;
             font-weight: 500;
             display: inline-block;
         }
+
         @media print {
             body {
                 margin: 0;
             }
+
             .no-print {
                 display: none;
             }
         }
     </style>
 </head>
+
 <body onload="window.print()">
     <h1>{{ $title }}</h1>
     <p class="generated-at">Generated on {{ $generatedAt }}</p>
@@ -93,7 +106,8 @@
                         <td>{{ number_format($request->duration, 2) }}</td>
                         <td>{{ optional($request->leaveType)->name ?? '-' }}</td>
                         <td>
-                            <span class="status" style="color: {{ $colors['text'] }}; background-color: {{ $colors['bg'] }};">
+                            <span class="status"
+                                style="color: {{ $colors['text'] }}; background-color: {{ $colors['bg'] }};">
                                 {{ $displayStatus }}
                             </span>
                         </td>
@@ -107,5 +121,9 @@
     <div class="no-print">
         <a href="{{ route('leave-requests.index') }}" class="btn btn-primary">Back to Leave Requests</a>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+    </script>
 </body>
+
 </html>
