@@ -293,7 +293,7 @@
                         </form>
                     </div>
 
-                    <div class="card card-1 p-3">
+                    <div class="card card-1 card-2 p-3">
                         {{-- Leave Requests Table --}}
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover">
