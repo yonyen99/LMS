@@ -2,13 +2,8 @@
 
 @section('content')
 <div class="m-2">
-<<<<<<< HEAD
-    <div class="card card-1 p-3 p-md-4 mb-4">
-            <form method="GET" action="{{ route('notifications.index') }}">
-=======
     <div class="card card-1 card-2 p-3 p-md-4 mb-4">
             <form method="GET" action="{{ route('leave-requests.index') }}">
->>>>>>> 17e6063fa8d12ddcb523a5d510f6d117699852ba
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
                         <h2 class="fw-bold mb-0">My leave requests</h2>
