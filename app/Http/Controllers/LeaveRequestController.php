@@ -164,7 +164,7 @@ class LeaveRequestController extends Controller
 
             $planned = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('status', 'Planned')
-                ->sum('duration');  
+                ->sum('duration');
 
             // Calculate available leave
             $available = $entitled - ($taken + $requested);
@@ -179,7 +179,7 @@ class LeaveRequestController extends Controller
             if ($request->status === 'requested') {
                 $summary->requested += $request->duration;
             }
-            
+
 
             $summary->available_actual = max($entitled - $summary->taken, 0);
             $summary->save();
@@ -352,7 +352,7 @@ class LeaveRequestController extends Controller
         }
     }
 
-      public function exportExcel(Request $request)
+    public function exportExcel(Request $request)
     {
         try {
             $this->authorize('export', \App\Models\LeaveRequest::class);
@@ -440,5 +440,4 @@ class LeaveRequestController extends Controller
 
         return redirect()->back()->with('success', 'Leave request status updated.');
     }
-
 }

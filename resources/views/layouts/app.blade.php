@@ -3,30 +3,23 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- CSRF Token -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <title>List management system</title>
-
-    <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="icon" href="{{ asset('img/logo.avif') }}" type="image/avif">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-
-    <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     @vite(['resources/css/dashboard.css', 'resources/js/dashboard.js'])
 
     <style>
         .bg-auth {
             background-color: #f8f9fa;
+            min-height: 100vh;
         }
 
         .auth-card {
@@ -48,6 +41,7 @@
 
         .auth-logo img {
             height: 60px;
+            max-width: 100%;
         }
 
         .btn-primary {
@@ -60,7 +54,6 @@
             border-color: #2f6fd8;
         }
 
-        /* New navbar styles */
         .navbar-brand img {
             height: 40px;
             border-radius: 5px;
@@ -80,11 +73,109 @@
             min-width: 150px;
         }
 
-        /* Active page styling */
         .nav-link.active {
             color: #3f80ea !important;
             font-weight: 600;
             border-bottom: 2px solid #3f80ea;
+        }
+
+        /* Dropdown menu alignment */
+        .dropdown-menu {
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }
+
+        .dropdown-item {
+            text-align: left !important;
+            justify-content: flex-start !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* If you're using Bootstrap 5's dropdown-menu-end class */
+        .dropdown-menu.dropdown-menu-end {
+            text-align: left !important;
+            justify-content: flex-start !important;
+        }
+
+        /* Responsive Notification Container */
+        #notificationContainer {
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 1050;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 767.98px) {
+            .navbar-brand img {
+                height: 30px;
+            }
+
+            .navbar-nav .nav-link {
+                margin-right: 0;
+                padding: 8px 10px;
+                font-size: 0.9rem;
+            }
+
+            .navbar .dropdown-menu {
+                width: 100%;
+                text-align: left;
+            }
+
+            #notificationContainer {
+                width: 95%;
+                top: 60px;
+                right: 5px;
+            }
+
+            .auth-logo img {
+                height: 40px;
+            }
+
+            .navbar {
+                padding: 0.5rem 1rem;
+            }
+
+            .btn-warning {
+                padding: 6px 10px;
+                font-size: 0.85rem;
+            }
+
+            .notification-item .alert {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .navbar-nav .nav-link {
+                font-size: 0.85rem;
+            }
+
+            .dropdown-menu {
+                font-size: 0.8rem;
+            }
+
+            .notification-item .badge {
+                font-size: 0.65rem;
+            }
+
+            .notification-item small {
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .navbar-nav .nav-item {
+                margin-right: 10px;
+            }
+
+            #notificationContainer {
+                right: 20px;
+            }
         }
     </style>
 </head>
@@ -112,24 +203,18 @@
                                     <i class="bi bi-justify fs-5"></i>
                                 </li>
 
-                                <!-- Dashboard (only show if user is not Employee or Manager) -->
                                 @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
                                     <li class="nav-item me-3">
                                         <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
-                                            href="/">
-                                            Dashboard
-                                        </a>
+                                            href="/">Dashboard</a>
                                     </li>
                                 @endunless
 
-                                <!-- Permissions Dropdown -->
                                 @canany(['create-role', 'edit-role', 'delete-role'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
                                             href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Permissions
-                                        </a>
+                                            aria-expanded="false">Permissions</a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="permissionDropdown">
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'roles.index' ? 'active' : '' }}"
                                                     href="{{ route('roles.index') }}">Manage Roles</a></li>
@@ -143,16 +228,13 @@
                                     </li>
                                 @endcanany
 
-                                <!-- Approval Section -->
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
                                         <li class="nav-item dropdown me-3">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
                                                 href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
-                                                aria-expanded="false">
-                                                Approval
-                                            </a>
+                                                aria-expanded="false">Approval</a>
                                             <ul class="dropdown-menu card-1 card-2" aria-labelledby="approvalDropdown">
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
                                                         href="#" disabled>Delegations</a></li>
@@ -175,15 +257,12 @@
                                     @endcanany
                                 @endunless
 
-                                <!-- Requested Dropdown -->
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar'])) ? 'active' : '' }}"
                                             href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Requested
-                                        </a>
+                                            aria-expanded="false">Requested</a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
                                             <li>
                                                 <h6 class="dropdown-header">LEAVES</h6>
@@ -198,20 +277,13 @@
                                                     ->toArray();
                                                 $allowedRolesLower = array_map('strtolower', $allowedRoles);
                                                 $isAdmin = count(array_intersect($userRoles, $allowedRolesLower)) > 0;
-
                                                 $routeName = $isAdmin ? 'leave-summaries.index' : 'user-leave.index';
                                                 $isActive = $isAdmin
                                                     ? request()->routeIs('leave-summaries.*')
                                                     : request()->routeIs('user-leave.index');
                                             @endphp
-
-                                            <li>
-                                                <a class="dropdown-item {{ $isActive ? 'active' : '' }}"
-                                                    href="{{ route($routeName) }}">
-                                                    Counters
-                                                </a>
-                                            </li>
-
+                                            <li><a class="dropdown-item {{ $isActive ? 'active' : '' }}"
+                                                    href="{{ route($routeName) }}">Counters</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.index' ? 'active' : '' }}"
                                                     href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
@@ -228,18 +300,15 @@
                                     </li>
                                 @endcanany
 
-                                <!-- Calendar Dropdown -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
                                     <li class="nav-item dropdown me-3">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['leave-requests.calendar', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
                                             href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
-                                            aria-expanded="false">
-                                            Calendar
-                                        </a>
+                                            aria-expanded="false">Calendar</a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.calendar') }}"></i>My Calendar</a></li>
+                                                    href="{{ route('leave-requests.calendar') }}">My Calendar</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.yearly' ? 'active' : '' }}"
                                                     href="#">Yearly Calendar</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.workmates' ? 'active' : '' }}"
@@ -254,7 +323,6 @@
                                     </li>
                                 @endcanany
 
-                                <!-- New Request Button -->
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item me-2">
                                         <a href="{{ route('leave-requests.create') }}"
@@ -265,20 +333,20 @@
                             @endauth
                         </ul>
 
-                        <!-- Right Side User Dropdown -->
                         <ul class="navbar-nav ms-auto align-items-center">
-                            <!-- Notification Bell Dropdown -->
                             @if (!Auth::user()->hasRole('Employee'))
                                 <div class="me-3">
-                                    <button id="notificationToggle" class="position-relative p-1 bg-transparent border-0" style="font-size: 20px;">
+                                    <button id="notificationToggle" class="position-relative p-1 bg-transparent border-0"
+                                        style="font-size: 20px;">
                                         <i class="bi bi-bell-fill text-primary"></i>
-                                        <span class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7rem; padding: 0.4em 0.6em;">
+                                        <span
+                                            class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style="font-size: 0.7rem; padding: 0.4em 0.6em;">
                                             {{ $requests }}
                                         </span>
                                     </button>
                                 </div>
                             @endif
-
 
                             @guest
                                 @if (Route::has('login'))
@@ -307,7 +375,7 @@
                                                 href="{{ route('users.show', Auth::user()->id) }}">
                                                 @if (Auth::user()->images)
                                                     <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
-                                                        class="rounded-circle circle me-2"
+                                                        class="rounded-circle me-2"
                                                         style="width: 25px; height: 25px; object-fit: cover;">
                                                 @else
                                                     <i class="bi bi-person-circle me-2 fs-5"></i>
@@ -327,52 +395,55 @@
                     </div>
                 </div>
             </nav>
-            <div id="notificationContainer" style="display: none; position: absolute; top: 60px; right: 100px; width: 400px; z-index: 1050;">
+            <div id="notificationContainer" style="display: none;">
                 <div class="card shadow">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Notifications</h4>
                     </div>
                     <div class="card-body" style="max-height: 400px; overflow-y: auto;">
                         @forelse ($notifications as $request)
-                            <a href="{{ route('notifications.index', $request->id) }}" class="text-decoration-none text-dark">
-                                <div class="notification-item position-relative" data-id="{{ $request->id }}" style="cursor: pointer;">
-                                    <div class="alert shadow-sm rounded-3 {{ $request->is_read ? 'alert-light' : 'alert-primary' }}" 
-                                        style="margint: 10px; transition: all 0.3s ease;">
-
+                            <a href="{{ route('notifications.index', $request->id) }}"
+                                class="text-decoration-none text-dark">
+                                <div class="notification-item position-relative" data-id="{{ $request->id }}"
+                                    style="cursor: pointer;">
+                                    <div class="alert shadow-sm rounded-3 {{ $request->is_read ? 'alert-light' : 'alert-primary' }}"
+                                        style="margin: 10px; transition: all 0.3s ease;">
                                         <div>
-                                            <strong>{{ $request->user->name }}</strong> requested 
-                                            <strong class="text-info">{{ $request->leaveType->name ?? 'Leave' }}</strong> 
-                                            from <strong>{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}</strong>
-                                            ({{ $request->start_time }}) to 
+                                            <strong>{{ $request->user->name }}</strong> requested
+                                            <strong class="text-info">{{ $request->leaveType->name ?? 'Leave' }}</strong>
+                                            from
+                                            <strong>{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}</strong>
+                                            ({{ $request->start_time }})
+                                            to
                                             <strong>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</strong>
                                             ({{ $request->end_time }}).
                                         </div>
-
                                         @if ($request->reason)
                                             <div class="mt-2">Reason: <em>{{ $request->reason }}</em></div>
                                         @endif
-
                                         <div class="mt-2">
-                                            Status: 
-                                            <span class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }}">
+                                            Status:
+                                            <span
+                                                class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }}">
                                                 {{ ucfirst($request->status) }}
                                             </span>
                                         </div>
-
                                         <div class="mt-3">
                                             <small class="text-muted d-block">
                                                 <i class="fas fa-calendar-alt me-1"></i>
-                                                Submitted: {{ \Carbon\Carbon::parse($request->requested_at ?? $request->created_at)->format('d M Y') }}
+                                                Submitted:
+                                                {{ \Carbon\Carbon::parse($request->requested_at ?? $request->created_at)->format('d M Y') }}
                                             </small>
                                             <small class="text-muted">
                                                 <i class="fas fa-clock me-1"></i>
-                                                Last updated: {{ \Carbon\Carbon::parse($request->last_changed_at ?? $request->updated_at)->format('d M Y') }}
+                                                Last updated:
+                                                {{ \Carbon\Carbon::parse($request->last_changed_at ?? $request->updated_at)->format('d M Y') }}
                                             </small>
-
                                             @if ($request->read_at)
                                                 <small class="text-muted d-block">
                                                     <i class="fas fa-eye me-1"></i>
-                                                    Read: {{ \Carbon\Carbon::parse($request->read_at)->format('d M Y, g:i A') }}
+                                                    Read:
+                                                    {{ \Carbon\Carbon::parse($request->read_at)->format('d M Y, g:i A') }}
                                                 </small>
                                             @endif
                                         </div>
@@ -407,73 +478,74 @@
         </main>
     </div>
     @section('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const bellButton = document.getElementById('notificationToggle');
-            const container = document.getElementById('notificationContainer');
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const bellButton = document.getElementById('notificationToggle');
+                const container = document.getElementById('notificationContainer');
 
-            function toggleNotification() {
-                container.style.display = (container.style.display === 'none' || container.style.display === '') 
-                    ? 'block' 
-                    : 'none';
-            }
+                function toggleNotification() {
+                    container.style.display = (container.style.display === 'none' || container.style.display === '') ?
+                        'block' :
+                        'none';
+                }
 
-            // Toggle on bell click
-            if (bellButton && container) {
-                bellButton.addEventListener('click', function (event) {
-                    event.stopPropagation(); // prevent event from bubbling up
-                    toggleNotification();
-                });
+                // Toggle on bell click
+                if (bellButton && container) {
+                    bellButton.addEventListener('click', function(event) {
+                        event.stopPropagation(); // prevent event from bubbling up
+                        toggleNotification();
+                    });
 
-                // Hide when clicking outside
-                document.addEventListener('click', function (event) {
-                    if (!container.contains(event.target) && event.target !== bellButton && !bellButton.contains(event.target)) {
-                        container.style.display = 'none';
-                    }
-                });
-            }
-        });
-        document.querySelectorAll('.view-request').forEach(button => {
-            button.addEventListener('click', function () {
-                // Basic fields
-                document.getElementById('modalType').textContent = this.dataset.type || '-';
-                document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
-                document.getElementById('modalReason').textContent = this.dataset.reason || '-';
+                    // Hide when clicking outside
+                    document.addEventListener('click', function(event) {
+                        if (!container.contains(event.target) && event.target !== bellButton && !bellButton
+                            .contains(event.target)) {
+                            container.style.display = 'none';
+                        }
+                    });
+                }
+            });
+            document.querySelectorAll('.view-request').forEach(button => {
+                button.addEventListener('click', function() {
+                    // Basic fields
+                    document.getElementById('modalType').textContent = this.dataset.type || '-';
+                    document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
+                    document.getElementById('modalReason').textContent = this.dataset.reason || '-';
 
-                // Format start date and time
-                const startDate = this.dataset.startDate || '-';
-                const startTime = this.dataset.startTime || '';
-                document.getElementById('modalStart').innerHTML = `
+                    // Format start date and time
+                    const startDate = this.dataset.startDate || '-';
+                    const startTime = this.dataset.startTime || '';
+                    document.getElementById('modalStart').innerHTML = `
                     ${startDate}
                     ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
                 `;
 
-                // Format end date and time
-                const endDate = this.dataset.endDate || '-';
-                const endTime = this.dataset.endTime || '';
-                document.getElementById('modalEnd').innerHTML = `
+                    // Format end date and time
+                    const endDate = this.dataset.endDate || '-';
+                    const endTime = this.dataset.endTime || '';
+                    document.getElementById('modalEnd').innerHTML = `
                     ${endDate}
                     ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
                 `;
 
-                // Status badge
-                const status = (this.dataset.status || '').toLowerCase();
-                const statusMap = {
-                    planned: 'secondary',
-                    accepted: 'success',
-                    requested: 'warning',
-                    rejected: 'danger',
-                    cancellation: 'danger',
-                    canceled: 'danger'
-                };
-                const badgeClass = statusMap[status] || 'light';
+                    // Status badge
+                    const status = (this.dataset.status || '').toLowerCase();
+                    const statusMap = {
+                        planned: 'secondary',
+                        accepted: 'success',
+                        requested: 'warning',
+                        rejected: 'danger',
+                        cancellation: 'danger',
+                        canceled: 'danger'
+                    };
+                    const badgeClass = statusMap[status] || 'light';
 
-                document.getElementById('modalStatus').innerHTML = `
+                    document.getElementById('modalStatus').innerHTML = `
                     <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
                 `;
+                });
             });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 
-</html>
+    </html>
