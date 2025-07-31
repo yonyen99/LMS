@@ -10,7 +10,7 @@
                     </div>
                 </div>
 
-                <div class="row align-items-center flex-wrap g-3 g-md-4 mt-3 mt-md-4">
+                <div class="row align-items-center flex-wrap g-3 g-md-4 mt-2 mt-md-1">
                     {{-- Search Box --}}
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="input-group">
@@ -59,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="row g-3 g-md-4 align-items-end mt-3 mt-md-4 mb-2">
+                <div class="row g-3 g-md-4 align-items-end mt-2 mt-md-1 mb-2">
                     {{-- Status Request --}}
                     <div class="col-12 col-md-6 col-lg-4">
                         <label for="statusRequest" class="fw-semibold mb-2">Status Request</label>
@@ -173,7 +173,7 @@
             </form>
         </div>
 
-        <div class="card card-1 p-2">
+        <div class="card card-1 p-3">
             {{-- Leave Requests Table --}}
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
