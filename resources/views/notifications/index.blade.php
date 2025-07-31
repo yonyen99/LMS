@@ -3,7 +3,7 @@
 @section('content')
 <div class="m-2">
     <div class="card card-1 p-3 p-md-4 mb-4">
-            <form method="GET" action="{{ route('leave-requests.index') }}">
+            <form method="GET" action="{{ route('notifications.index') }}">
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
                         <h2 class="fw-bold mb-0">My leave requests</h2>
@@ -80,7 +80,7 @@
                         <select class="form-select" id="type" name="type" onchange="this.form.submit()">
                             <option value="">All</option>
                             @foreach ($leaveTypes as $type)
-                                <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
+                                <option value="{{ $type->name }}" {{ request('type') == $type->name ? 'selected' : '' }}>
                                     {{ $type->name }}
                                 </option>
                             @endforeach

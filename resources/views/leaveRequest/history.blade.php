@@ -72,7 +72,7 @@
                         {{-- Row 3: Status Changed --}}
                         <tr>
                             <td class="text-center px-1 py-2">➡️</td>
-                            <td class="text-center px-1 py-2">{{ $latestStatusChange ? \Carbon\Carbon::parse($latestStatusChange->changed_at)->format('d/m/Y') : '-' }}</td>
+                            <td class="text-center px-1 py-2"></td>
                             <td class="text-center px-1 py-2"></td>
                             <td class="text-center px-1 py-2">
                                 {{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }}<br>
