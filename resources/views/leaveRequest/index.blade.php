@@ -10,7 +10,7 @@
                     </div>
                 </div>
 
-                <div class="row align-items-center flex-wrap g-3 g-md-4 mt-3 mt-md-4">
+                <div class="row align-items-center flex-wrap g-3 g-md-4 mt-2 mt-md-1">
                     {{-- Search Box --}}
                     <div class="col-12 col-md-6 col-lg-4">
                         <div class="input-group">
@@ -59,7 +59,7 @@
                     </div>
                 </div>
 
-                <div class="row g-3 g-md-4 align-items-end mt-3 mt-md-4 mb-2">
+                <div class="row g-3 g-md-4 align-items-end mt-2 mt-md-1 mb-2">
                     {{-- Status Request --}}
                     <div class="col-12 col-md-6 col-lg-4">
                         <label for="statusRequest" class="fw-semibold mb-2">Status Request</label>
@@ -173,7 +173,7 @@
             </form>
         </div>
 
-        <div class="card card-1 p-2">
+        <div class="card card-1 p-3">
             {{-- Leave Requests Table --}}
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
@@ -353,25 +353,25 @@
 
                 <div class="modal-body px-3 px-md-4 pb-4">
                     <dl class="row mb-0 g-3">
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">Leave Type</dt>
-                        <dd class="col-12 col-md-7 fs-6" id="modalType">-</dd>
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">Leave Type</dt>
+                        <dd class="col-7 col-md-7 fs-6" id="modalType">-</dd>
 
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">Duration (days)</dt>
-                        <dd class="col-12 col-md-7 fs-6" id="modalDuration">-</dd>
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">Duration (days)</dt>
+                        <dd class="col-7 col-md-7 fs-6" id="modalDuration">-</dd>
 
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">Start Date & Time</dt>
-                        <dd class="col-12 col-md-7 fs-6" id="modalStart">-</dd>
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">Start Date & Time</dt>
+                        <dd class="col-7 col-md-7 fs-6" id="modalStart">-</dd>
 
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">End Date & Time</dt>
-                        <dd class="col-12 col-md-7 fs-6" id="modalEnd">-</dd>
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">End Date & Time</dt>
+                        <dd class="col-7 col-md-7 fs-6" id="modalEnd">-</dd>
 
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">Reason</dt>
-                        <dd class="col-12 col-md-7 fs-6">
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">Reason</dt>
+                        <dd class="col-7 col-md-7 fs-6">
                             <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
                         </dd>
 
-                        <dt class="col-12 col-md-5 text-lg fw-semibold">Status</dt>
-                        <dd class="col-12 col-md-7 fs-6" id="modalStatus">
+                        <dt class="col-5 col-md-5 text-lg fw-semibold">Status</dt>
+                        <dd class="col-7 col-md-7 fs-6" id="modalStatus">
                             <span class="badge bg-secondary text-white">-</span>
                         </dd>
                     </dl>

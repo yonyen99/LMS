@@ -13,18 +13,23 @@ use Illuminate\Support\Facades\DB;
 
 class LeaveSummaryController extends Controller
 {
+
     public function index()
     {
+
         $subquery = DB::table('leave_summaries')
             ->selectRaw('MAX(id) as id')
             ->groupBy('department_id', 'leave_type_id');
 
         $summaries = LeaveSummary::with(['department', 'leaveType'])
-            ->whereIn('id', $subquery->pluck('id'))
+            ->joinSub($subquery, 'latest', 'leave_summaries.id', '=', 'latest.id')
+            ->select('leave_summaries.*')
+            ->orderByDesc('id')
             ->paginate(10);
 
         return view('leave_summaries.index', compact('summaries'));
     }
+
    
 
     public function create()
