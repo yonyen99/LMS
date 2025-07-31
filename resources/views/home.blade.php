@@ -303,7 +303,7 @@
                                         'sort_order' => request('sort_order', 'new'),
                                     ]) }}"
                                         class="btn btn-sm btn-danger">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
                                     </a>
 
                                     <a href="{{ route('leave-requests.exportExcel', [
@@ -314,7 +314,7 @@
                                         'sort_order' => request('sort_order', 'new'),
                                     ]) }}"
                                         class="btn btn-sm btn-success">
-                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
                                     </a>
                                     <a href="{{ route('leave-requests.print', [
                                         'statuses' => request('statuses', []),
@@ -329,12 +329,12 @@
                                 @else
                                     <button class="btn btn-sm btn-secondary" disabled
                                         title="You don't have permission to export">
-                                        <i class="bi bi-file-earmark-pdf me-1"></i> Export PDF
+                                        <i class="bi bi-file-earmark-pdf me-1"></i> PDF
                                     </button>
 
                                     <button class="btn btn-sm btn-secondary" disabled
                                         title="You don't have permission to export">
-                                        <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
                                     </button>
 
                                     <button class="btn btn-sm btn-secondary" disabled
