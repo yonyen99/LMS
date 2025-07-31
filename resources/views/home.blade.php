@@ -191,9 +191,8 @@
                         </div>
                     </div>
                 </div>
-            @endcanany
-            @if (
-                (auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
+    @endcanany
+    @if ((auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
                     !auth()->user()->hasRole('Admin') &&
                     !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
@@ -535,47 +534,46 @@
                     @endif
                 </div>
                 <div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered" style="width: 40%;">
-        <div class="modal-content shadow rounded border-0">
-            <div class="modal-header text-white" style="background-color: green">
-                <h5 class="modal-title">
-                    <i class="bi bi-file-text me-2"></i> Leave Request Details
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
+                    <div class="modal-dialog modal-lg modal-dialog-centered" style="width: 40%;">
+                        <div class="modal-content shadow rounded border-0">
+                            <div class="modal-header text-white" style="background-color: green">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-file-text me-2"></i> Leave Request Details
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
 
-            <div class="modal-body px-4 pb-4">
-                <dl class="row mb-0" style="margin-left: 10px;">
-                    <dt class="col-sm-5 text-lg">Leave Type</dt>
-                    <dd class="col-sm-7 fs-6" id="modalType">-</dd>
+                            <div class="modal-body px-4 pb-4">
+                                <dl class="row mb-0" style="margin-left: 10px;">
+                                    <dt class="col-sm-5 text-lg">Leave Type</dt>
+                                    <dd class="col-sm-7 fs-6" id="modalType">-</dd>
 
-                    <dt class="col-sm-5 text-lg">Duration (days)</dt>
-                    <dd class="col-sm-7 fs-6" id="modalDuration">-</dd>
+                                    <dt class="col-sm-5 text-lg">Duration (days)</dt>
+                                    <dd class="col-sm-7 fs-6" id="modalDuration">-</dd>
 
-                    <dt class="col-sm-5 text-lg">Start Date & Time</dt>
-                    <dd class="col-sm-7 fs-6" id="modalStart">-</dd>
+                                    <dt class="col-sm-5 text-lg">Start Date & Time</dt>
+                                    <dd class="col-sm-7 fs-6" id="modalStart">-</dd>
 
-                    <dt class="col-sm-5 text-lg">End Date & Time</dt>
-                    <dd class="col-sm-7 fs-6" id="modalEnd">-</dd>
+                                    <dt class="col-sm-5 text-lg">End Date & Time</dt>
+                                    <dd class="col-sm-7 fs-6" id="modalEnd">-</dd>
 
-                    <dt class="col-sm-5 text-lg">Reason</dt>
-                    <dd class="col-sm-7 fs-6">
-                        <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
-                    </dd>
+                                    <dt class="col-sm-5 text-lg">Reason</dt>
+                                    <dd class="col-sm-7 fs-6">
+                                        <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
+                                    </dd>
 
-                    <dt class="col-sm-5 text-lg">Status</dt>
-                    <dd class="col-sm-7 fs-6" id="modalStatus">
-                        <span class="badge bg-secondary text-white">-</span>
-                    </dd>
-                </dl>
-            </div>
-        </div>
-    </div>
-</div>
-
+                                    <dt class="col-sm-5 text-lg">Status</dt>
+                                    <dd class="col-sm-7 fs-6" id="modalStatus">
+                                        <span class="badge bg-secondary text-white">-</span>
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endif
             <script>
                 const departmentData = @json($departmentData);
             </script>
-            </section>
-        @endsection
+ </section>
+@endsection
