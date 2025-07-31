@@ -81,7 +81,7 @@
                             <option value="">All</option>
                             @foreach ($leaveTypes as $type)
                                 <option value="{{ $type }}" {{ request('type') == $type ? 'selected' : '' }}>
-                                    {{ $type }}
+                                    {{ $type->name }}
                                 </option>
                             @endforeach
                         </select>
