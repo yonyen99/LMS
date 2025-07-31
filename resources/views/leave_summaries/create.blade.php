@@ -2,8 +2,8 @@
 
 @section('content')
 <div class="container">
-    <div class="card shadow-sm">
-        <div class="card-header fw-bold">Create Leave Summary</div>
+    <div class="card card-2 "  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
+        <div class="card-header card-2 fw-bold">Create Leave Summary</div>
 
         <div class="card-body">
             @if ($errors->any())

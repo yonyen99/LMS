@@ -2,8 +2,8 @@
 
 @section('content')
 <div class="container">
-    <div class="card shadow-sm">
-        <div class="card-header fw-bold">Submit a leave request</div>
+    <div class="card card-2 shadow-sm">
+        <div class="card-header card-2 fw-bold">Submit a leave request</div>
 
         <div class="card-body">
             {{-- Show validation errors --}}

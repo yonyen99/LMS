@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container-fluid px-0 px-md-2">
-    <div class="card shadow-sm rounded-lg">
+    <div class="card card-2 bg-white"  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
         <div class="card-body p-2 p-md-4">
             <div class="d-flex justify-content-between align-items-center mb-3 mb-md-4">
                 <h2 class="fw-bold mb-0 text-primary fs-4 fs-md-3">Leave Calendar</h2>
