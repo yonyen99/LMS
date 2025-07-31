@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container-fluid px-2 px-md-4">
-        <div class="card card-1 p-3 p-md-4 mb-4">
+        <div class="card card-2 bg-white p-3 p-md-4 mb-4" style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;" >
             <form method="GET" action="{{ route('leave-requests.index') }}">
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
@@ -173,7 +173,7 @@
             </form>
         </div>
 
-        <div class="card card-1 p-3">
+        <div class="card card-2 p-3" style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
             {{-- Leave Requests Table --}}
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">

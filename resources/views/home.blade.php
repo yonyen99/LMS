@@ -3,7 +3,7 @@
 @section('content')
     @canany(['create-department', 'edit-department', 'delete-department'])
         <div class="container-fluid py-2">
-            <div class="card border-1 shadow">
+            <div class="card  card-2 border-1 shadow">
                 <div class="card-body">
 
                     {{-- Session Status --}}
@@ -12,7 +12,7 @@
                     @endif
 
                     {{-- Quick Action Buttons --}}
-                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4">
+                    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4 ">
                         <div class="col">
                             <a href="{{ route('roles.index') }}" class="btn btn-primary w-100 text-white">
                                 <i class="bi bi-person-fill-gear me-1"></i> <span class="d-none d-md-inline">Manage Roles</span>
@@ -59,7 +59,7 @@
                         @endphp
                         @foreach ($cards as $card)
                             <div class="col">
-                                <div class="card text-center h-100 shadow-sm border">
+                                <div class="card  card-2 text-center h-100 "  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                                     <div class="card-body">
                                         <div class="mb-2">
                                             <div class="bg-{{ $card['color'] }} text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -77,7 +77,7 @@
                     {{-- Charts --}}
                     <div class="row g-4">
                         <div class="col-12 col-md-6">
-                            <div class="card h-100 shadow-sm border">
+                            <div class="card card-2 h-100"  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                                 <div class="card-body">
                                     <h5 class="card-title mb-3">Employee Request</h5>
                                     <div class="ratio ratio-16x9">
@@ -88,7 +88,7 @@
                         </div>
 
                         <div class="col-12 col-md-6">
-                            <div class="card h-100 shadow-sm border">
+                            <div class="card card-2 h-100 "  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                                 <div class="card-body">
                                     <h5 class="card-title mb-3">Members per Department</h5>
                                     @if (!empty($departmentData))
@@ -103,7 +103,7 @@
                         </div>
                     </div>
                     {{-- User Login Section --}}
-                    <div class="card mt-4 p-4 shadow-sm">
+                    <div class="card card-2 mt-4 p-4 "  style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                         <div class="d-flex align-items-center mb-3">
                             <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center" style="width: 50px; height: 50px;">
                                 <i class="bi bi-person-fill fs-5"></i>
@@ -122,7 +122,7 @@
                     !auth()->user()->hasRole('Admin') &&
                     !auth()->user()->hasRole('Super Admin'))
                 <div class="m-2">
-                    <div class="card card-1 card-2 p-3 p-md-4 mb-4">
+                    <div class="card card-1 card-2 p-3 p-md-4 mb-4" >
                         <form method="GET" action="{{ route('home') }}">
                             <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                                 <div class="col-auto">
