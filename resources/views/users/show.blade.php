@@ -2,10 +2,10 @@
 
 @section('content')
 <div class="container">
-    <div class="row justify-content-center">
+    <div class="row justify-content-center ">
         <div class="col-lg-10">
             <!-- Cover Section -->
-            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden;">
+            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                 <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover;">
                 <!-- Profile Details Section -->
                 <div class="profile-details position-absolute" style="bottom: -3px; left: 20px; z-index: 1;">
@@ -32,10 +32,10 @@
             </div>
 
             <!-- Spacer Card -->
-            <div class="bg-white mb-4 card-1" style="height: 10px; overflow: hidden;"></div>
+            <div class="bg-white mb-4 card-1"></div>
 
             <!-- Columns Section -->
-            <div class="d-flex flex-column flex-md-row gap-4 align-items-stretch">
+            <div class="d-flex flex-column flex-md-row gap-4  align-items-stretch">
                 <!-- Left Column -->
                 <div class="col-md-6 flex-fill">
                     <div class="card-1 border-0 bg-white  h-100">

@@ -1,25 +1,22 @@
 @extends('layouts.app')
 
 @section('content')
+ {{-- My Summary Section --}}
+    <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <h2 class="fw-bold text-primary m-0">
+                <i class="bi bi-bar-chart-fill me-2"></i>My Leave Summary
+            </h2>
+            <div class="d-flex align-items-center">
+                <label for="dateReport" class="me-2 fw-semibold text-muted small">Report Date</label>
+                <input type="date" id="dateReport" value="{{ now()->format('Y-m-d') }}"
+                    class="form-control shadow-sm rounded-pill" style="width: 160px;">
+            </div>
+        </div>
+    </div>
     <div class="container-fluid py-2">
         <div class="row">
-            <div class="col-12">
-                {{-- Card Wrapper --}}
-                <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
-                    
-                    {{-- Header Section --}}
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
-                        <h2 class="fw-bold text-primary mb-0" style="font-size: 1.75rem;">
-                            <i class="bi bi-bar-chart-fill me-2 text-gradient"></i> My Leave Summary
-                        </h2>
-                        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center">
-                            <label for="dateReport" class="me-sm-2 fw-semibold text-muted small">Report Date</label>
-                            <input type="date" id="dateReport" value="{{ now()->format('Y-m-d') }}"
-                                class="form-control form-control-sm shadow-sm rounded-pill mt-1 mt-sm-0"
-                                style="width: 160px;">
-                        </div>
-                    </div>
-
+                  <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
                     {{-- Create Button --}}
                     @php
                         $allowedRoles = ['Super Admin', 'Admin', 'HR'];

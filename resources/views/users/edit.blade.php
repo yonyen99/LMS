@@ -5,14 +5,14 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            <!-- Profile Cover and Header -->
-            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden;">
-                <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover;">
+            <!-- Profile Cover and Header --> 
+            <div class="profile-cover position-relative" style="height: 180px; overflow: hidden; box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
+                <img src="{{ asset('img/cv.png') }}" alt="Cover Image" class="cover-image" style="width: 100%; height: 100%; object-fit: cover; ">
                 <div class="profile-details position-absolute" style="bottom: -5px; left: 20px; z-index: 1;">
                     <div class="d-flex align-items-end gap-3">
                         @if ($user->images)
                             <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
-                                 class="shadow-sm" style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #fff;">
+                                 class="shadow-sm" style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #fff; " >
                         @else
                             <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm"
                                  style="width: 60px; height: 60px;">
@@ -32,7 +32,7 @@
             </div>
 
             <!-- Form Card -->
-            <div class="card mt-5 shadow-sm">
+            <div class="card mt-5 card-2 bg-white " style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                 <div class="card-body p-4">
                     <form action="{{ route('users.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                         @csrf

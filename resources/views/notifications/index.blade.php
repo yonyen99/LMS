@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="m-2">
-    <div class="card card-1 p-3 p-md-4 mb-4">
+    <div class="card card-1 card-2 p-3 p-md-4 mb-4">
             <form method="GET" action="{{ route('leave-requests.index') }}">
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
@@ -174,7 +174,7 @@
         </div>
 
         {{-- Leave Requests Table --}}
-        <div class="card card-1 p-3">
+        <div class="card card-1 card-2 p-3">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover">
                     <thead class="table-light">

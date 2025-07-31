@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="card card-1 shadow border-0">
-        <div class="card-header bg-light">
+<div class="container-fluid  py-4">
+    <div class="card card-1  card-2 border-0">
+        <div class="card-header  card-2  ">
             <h4 class="mb-0">Leave Change History</h4>
         </div>
 
-        <div class="card-body p-3">
+        <div class="card-body  p-3">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover table-sm text-sm align-middle mb-0">
                     <thead class="table-light text-center">
@@ -103,7 +103,7 @@
             </div>
         </div>
 
-        <div class="card-footer text-end">
+        <div class="card-footer text-end  card-2">
             <a href="{{ route('leave-requests.index') }}" class="btn btn-secondary">OK</a>
         </div>
     </div>
