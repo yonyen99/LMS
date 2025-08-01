@@ -15,6 +15,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SubordinateController;
 use App\Http\Controllers\LeaveSummaryController;
 use App\Http\Controllers\LeaveRequestActionController;
+use App\Http\Controllers\TelegramController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;

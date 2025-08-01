@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Http;
 
 class LeaveRequestController extends Controller
 {
@@ -200,12 +201,46 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-        // Send email to Super Admin and Manager users
-        // $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
+        /**
+         * 
+         * Send email to Super Admin and Manager users when user submits a leave request.
+         *  
+         */
 
-        // if (!empty($adminEmails)) {
-        //     Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
-        // }
+        $managersInSameDept = User::role('Manager')
+            ->where('department_id', $user->department_id)
+            ->pluck('email');
+
+        $superAdmins = User::role('Super Admin')->pluck('email');
+
+        $adminEmails = $managersInSameDept->merge($superAdmins)->unique()->toArray();
+
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        }
+
+        /**
+         * Telegram Notification
+         */
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
+
+        if ($botToken && $chatId) {
+            $message = "📢 *New Leave Request Submitted*\n\n"
+                . "👤 *User:* {$user->name}\n"
+                . "🏢 *Department:* {$user->department->name}\n"
+                . "📅 *From:* {$request->start_date} ({$request->start_time})\n"
+                . "📅 *To:* {$request->end_date} ({$request->end_time})\n"
+                . "🕒 *Duration:* {$request->duration} day(s)\n"
+                . "📝 *Reason:* " . ($request->reason ?: 'N/A') . "\n"
+                . "🔖 *Status:* {$request->status}";
+
+            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $message,
+                'parse_mode' => 'Markdown',
+            ]);
+        }
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
