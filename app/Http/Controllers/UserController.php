@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Models\Department;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -148,4 +149,24 @@ class UserController extends Controller
         return redirect()->route('users.index')
                 ->withSuccess('User deleted successfully.');
     }
+
+    public function updateImage(Request $request, User $user)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        // Delete old image if it exists
+        if ($user->images && Storage::disk('public')->exists($user->images)) {
+            Storage::disk('public')->delete($user->images);
+        }
+
+        // Store new image
+        $path = $request->file('image')->store('users', 'public');
+        $user->images = $path;
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile image updated successfully.');
+    }
+
 }

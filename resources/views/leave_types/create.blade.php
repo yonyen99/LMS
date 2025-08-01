@@ -1,53 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Create New Leave Type</h5>
-            <a href="{{ route('leave-types.index') }}" class="btn btn-light btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Back
-            </a>
-        </div>
-    </div>
-    <div class="card-body">
-        <form action="{{ route('leave-types.store') }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <label for="name" class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
-                <input type="text" 
-                       class="form-control @error('name') is-invalid @enderror" 
-                       id="name" 
-                       name="name" 
-                       value="{{ old('name') }}" 
-                       placeholder="Enter leave type name"
-                       required>
-                @error('name')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-            
-            <div class="mb-4">
-                <label for="description" class="form-label fw-semibold">Description</label>
-                <textarea class="form-control @error('description') is-invalid @enderror" 
-                          id="description" 
-                          name="description" 
-                          rows="3"
-                          placeholder="Optional description">{{ old('description') }}</textarea>
-                @error('description')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-                <a href="{{ route('leave-types.index') }}" class="btn btn-secondary">
-                    <i class="bi bi-x-circle me-1"></i> Cancel
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i> Create Leave Type
-                </button>
-            </div>
-        </form>
+<div class="container-fluid">
+    <div class="alert alert-info text-center">
+        <p>The leave type creation form is now accessible via the "Add Leave Type" button on the <a href="{{ route('leave-types.index') }}">Leave Types</a> page.</p>
     </div>
 </div>
 @endsection
