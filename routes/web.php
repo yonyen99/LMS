@@ -54,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('leave-summaries', LeaveSummaryController::class);
     Route::get('/user-leaves', [LeaveSummaryController::class, 'userLeave'])->name('user-leave.index');
-
+    Route::put('/users/{user}/update-image', [UserController::class, 'updateImage'])->name('users.updateImage');
     Route::resources([
         'roles' => RoleController::class,
         'users' => UserController::class,

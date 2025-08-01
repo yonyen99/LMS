@@ -363,7 +363,7 @@
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
-                                                style="width: 45px; height: 45px; object-fit: cover;">
+                                                style="width: 35px; height: 35px; object-fit: cover;">
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif
@@ -376,7 +376,7 @@
                                                 @if (Auth::user()->images)
                                                     <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                         class="rounded-circle me-2"
-                                                        style="width: 25px; height: 25px; object-fit: cover;">
+                                                        style="width: 20px; height: 20px; object-fit: cover;">
                                                 @else
                                                     <i class="bi bi-person-circle me-2 fs-5"></i>
                                                 @endif View Profile
