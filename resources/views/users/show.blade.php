@@ -11,14 +11,27 @@
                 <div class="profile-details position-absolute" style="bottom: -3px; left: 20px; z-index: 1;">
                     <div class="d-flex align-items-end gap-3">
                         @if ($user->images)
-                            <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
-                                 class="shadow-sm" style="width: 140px; height: 140px; object-fit: cover; border: 5px solid #fff;">
+                            <div class="position-relative">
+                                <img src="{{ asset('storage/' . $user->images) }}" alt="Profile Image"
+                                    class="shadow-sm rounded-circle" style="width: 70px; height: 70px; object-fit: cover; border: 5px solid #fff;">
+                                <button class="btn btn-sm btn-light position-absolute bottom-0 end-0 rounded-circle shadow"
+                                        data-bs-toggle="modal" data-bs-target="#editProfileImageModal"
+                                        title="Edit Image">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                            </div>
                         @else
-                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm"
-                                 style="width: 60px; height: 60px;">
+                            <div class="d-flex align-items-center justify-content-center bg-light rounded-circle shadow-sm position-relative"
+                                style="width: 60px; height: 60px;">
                                 <i class="bx bx-user text-dark" style="font-size: 1.5rem;"></i>
+                                <button class="btn btn-sm btn-light position-absolute bottom-0 end-0 rounded-circle shadow"
+                                        data-bs-toggle="modal" data-bs-target="#editProfileImageModal"
+                                        title="Edit Image">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
                             </div>
                         @endif
+
                         <div>
                             <h3 class="mb-0 fw-bold text-black">{{ $user->name }}</h3>
                             <div class="text-muted">
@@ -137,7 +150,45 @@
         </div>
     </div>
 </div>
+<!-- Edit Profile Image Modal -->
+<div class="modal fade" id="editProfileImageModal" tabindex="-1" aria-labelledby="editProfileImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form action="{{ route('users.updateImage', $user->id) }}" method="POST" enctype="multipart/form-data" class="modal-content">
+            @csrf
+            @method('PUT')
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileImageModalLabel">Edit Profile Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="image" class="form-label">Choose New Image</label>
+                    <input type="file" class="form-control" name="image" id="image" accept="image/*" required>
+                </div>
+                @if ($user->images)
+                    <div class="text-center">
+                        <small class="text-muted">Current Image:</small><br>
+                        <img src="{{ asset('storage/' . $user->images) }}" width="80" class="rounded-circle mt-2">
+                    </div>
+                @endif
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Update Image</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    document.querySelector('#editProfileImageModal form').addEventListener('submit', function () {
+        document.getElementById('btnText').textContent = 'Updating...';
+        document.getElementById('spinner').classList.remove('d-none');
+    });
+</script>
+@endpush
 
 @section('styles')
 <style>

@@ -23,6 +23,7 @@ class PermissionSeeder extends Seeder
             'create-user',
             'edit-user',
             'delete-user',
+            'view-user',
 
             // Department management
             'create-department',

@@ -13,54 +13,17 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $superAdmin = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
         $admin = Role::create(['name' => 'Admin', 'guard_name' => 'web']);
         $hr = Role::create(['name' => 'HR', 'guard_name' => 'web']);
-        $departmentManager = Role::create(['name' => 'Manager', 'guard_name' => 'web']);
+        $manager = Role::create(['name' => 'Manager', 'guard_name' => 'web']);
         $employee = Role::create(['name' => 'Employee', 'guard_name' => 'web']);
 
         // Assign all permissions to Super Admin
-        $superAdmin->givePermissionTo(Permission::all());
+        $admin->givePermissionTo(Permission::all());
 
-        $admin->givePermissionTo([
-            'create-user',
-            'edit-user',
-            'delete-user',
-            'create-department',
-            'edit-department',
-            'delete-department'
-        ]);
+        $hr->givePermissionTo(Permission::all());
 
-        $hr->givePermissionTo([
-
-            // Dashboard
-            'view-dashboard',
-            
-            // User management
-            'create-user',
-            'edit-user',
-            'delete-user',
-
-            // Department management
-            'create-department',
-            'edit-department',
-            'delete-department',
-
-            // Role management
-            'create-role',
-            'edit-role',
-            'delete-role',
-            'view-role',
-
-            // Request (LMS)
-            'create-request',
-            'edit-request',
-            'delete-request',
-            'view-request',
-            'cancel-request',
-        ]);
-
-        $departmentManager->givePermissionTo([
+        $manager->givePermissionTo([
             'create-user',
             'edit-user',
             'delete-user',
@@ -77,7 +40,8 @@ class RoleSeeder extends Seeder
             'delete-request',
             'view-request',
             'cancel-request',
-            'edit-user'
+            'view-user',
+            'edit-user',
         ]);
     }
 }
