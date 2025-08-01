@@ -250,7 +250,7 @@ class LeaveRequestController extends Controller
         $nonWorkingDaysQuery = NonWorkingDay::query();
 
         // Replace hasRole with direct role check (assuming 'role' column exists)
-        if ($user->role !== 'Super Admin') {
+        if ($user->role !== 'Admin') {
             if ($user->role === 'Manager') {
                 // Managers see their department's non-working days
                 $nonWorkingDaysQuery->where('department_id', $user->department_id);
@@ -285,7 +285,7 @@ class LeaveRequestController extends Controller
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
-            if (!auth()->user()->hasRole('Super Admin')) {
+            if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
@@ -319,7 +319,7 @@ class LeaveRequestController extends Controller
             $leaveRequests = $query->get();
 
             $data = [
-                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
                 'user' => auth()->user(),
                 'leaveRequests' => $leaveRequests,
@@ -343,7 +343,7 @@ class LeaveRequestController extends Controller
                     'tempDir' => storage_path('app/temp')
                 ]);
 
-            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.pdf';
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.pdf';
 
             return $pdf->download($filename);
         } catch (\Exception $e) {
@@ -357,7 +357,7 @@ class LeaveRequestController extends Controller
         try {
             $this->authorize('export', \App\Models\LeaveRequest::class);
 
-            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
 
             return Excel::download(new LeaveRequestExport($request), $filename);
         } catch (\Exception $e) {
@@ -374,7 +374,7 @@ class LeaveRequestController extends Controller
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
-            if (!auth()->user()->hasRole('Super Admin')) {
+            if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
@@ -408,7 +408,7 @@ class LeaveRequestController extends Controller
             $leaveRequests = $query->get();
 
             $data = [
-                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
                 'user' => auth()->user(),
                 'leaveRequests' => $leaveRequests,

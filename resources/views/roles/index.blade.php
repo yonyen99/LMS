@@ -36,8 +36,8 @@
                         <th scope="row">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</th>
                         <td>
                             <div class="d-flex align-items-center">
-                                <span class="badge bg-{{ $role->name == 'Super Admin' ? 'danger' : 'primary' }} me-2">
-                                    {{ $role->name == 'Super Admin' ? 'Admin' : substr($role->name, 0, 1) }}
+                                <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
+                                    {{ $role->name == 'HR' ? 'Admin' : substr($role->name, 0, 1) }}
                                 </span>
                                 {{ $role->name }}
                             </div>
@@ -57,7 +57,7 @@
                                             <i class="bi bi-eye me-2"></i> View
                                         </a>
                                     </li>
-                                    @if ($role->name != 'Super Admin')
+                                    @if ($role->name != 'Admin')
                                         @can('edit-role')
                                         <li>
                                             <a class="dropdown-item" href="{{ route('roles.edit', $role->id) }}">

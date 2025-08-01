@@ -18,16 +18,11 @@
         <div class="row">
                   <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
                     {{-- Create Button --}}
-                    @php
-                        $allowedRoles = ['Super Admin', 'Admin', 'HR'];
-                    @endphp
-                    @if(auth()->user()->roles()->pluck('name')->intersect($allowedRoles)->isNotEmpty())
-                        <div class="text-end mb-3">
-                            <a href="{{ route('leave-summaries.create') }}" class="btn btn-primary rounded-pill shadow-sm">
-                                <i class="bi bi-plus-circle me-1"></i> Create New
-                            </a>
-                        </div>
-                    @endif
+                    <div class="text-end mb-3">
+                        <a href="{{ route('leave-summaries.create') }}" class="btn btn-primary rounded-pill shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Create New
+                        </a>
+                    </div>
 
                     {{-- Summary Table --}}
                     <div class="table-responsive">

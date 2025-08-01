@@ -16,7 +16,7 @@ class LeaveRequestActionController extends Controller
 
         $user = auth()->user();
 
-        if (!$user || !($user->hasRole('Super Admin') || $user->hasRole('Manager'))) {
+        if (!$user || !($user->hasRole('Admin') || $user->hasRole('Manager')) || $user->hasRole('HR')) {
             abort(403, 'Unauthorized action.');
         }
     }

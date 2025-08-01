@@ -75,7 +75,7 @@ class RoleController extends Controller
      */
     public function edit(Role $role): View
     {
-        if($role->name=='Super Admin'){
+        if($role->name=='Admin'){
             abort(403, 'SUPER ADMIN ROLE CAN NOT BE EDITED');
         }
 
@@ -112,7 +112,7 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): RedirectResponse
     {
-        if($role->name=='Super Admin'){
+        if($role->name=='Admin'){
             abort(403, 'SUPER ADMIN ROLE CAN NOT BE DELETED');
         }
         if(auth()->user()->hasRole($role->name)){

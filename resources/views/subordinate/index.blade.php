@@ -85,7 +85,7 @@
                 <i class="bi bi-people-fill me-2 text-gradient"></i>My Subordinates
             </h2>
             <p class="text-muted small mb-0 text-wrap" style="max-width: 100%;">
-                @if (Auth::user()->hasRole(['Admin', 'Super Admin']))
+                @if (Auth::user()->hasRole(['Admin', 'HR']))
                     View all Managers and Employees across departments. Filter by department below.
                 @else
                     View your direct report subordinates in your department.
@@ -95,7 +95,7 @@
 
         <!-- Filters -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
-            @if (Auth::user()->hasRole(['Admin', 'Super Admin']))
+            @if (Auth::user()->hasRole(['Admin', 'HR']))
                 <form method="GET" action="{{ route('subordinates.index') }}" id="department-filter-form" class="w-100 w-md-auto">
                     <label for="department-select" class="fw-semibold me-2 mb-1">Department</label>
                     <select name="department_id" id="department-select" class="form-select department-select" onchange="this.form.submit()">
