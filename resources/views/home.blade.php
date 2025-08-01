@@ -2,7 +2,7 @@
 
 @section('content')
     @canany(['create-department', 'edit-department', 'delete-department'])
-        <div class="container-fluid py-2">
+        <div class="container-fluid ">
             <div class="card  card-2 border-1 shadow">
                 <div class="card-body">
 
