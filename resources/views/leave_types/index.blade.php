@@ -1,3 +1,4 @@
+
 @extends('layouts.app')
 
 @section('content')
@@ -45,6 +46,7 @@
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Name</th>
                             <th scope="col">Description</th>
+                            <th scope="col">Typical Annual Requests</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -54,6 +56,7 @@
                             <th scope="row">{{ ($leaveTypes->currentPage() - 1) * $leaveTypes->perPage() + $loop->iteration }}</th>
                             <td>{{ $type->name }}</td>
                             <td>{{ Str::limit($type->description, 50) }}</td>
+                            <td>{{ $type->typical_annual_requests ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -110,6 +113,10 @@
                                             <label class="form-label fw-bold">Description:</label>
                                             <p>{{ $type->description ?: 'No description provided' }}</p>
                                         </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Typical Annual Requests:</label>
+                                            <p>{{ $type->typical_annual_requests ?: 'Not specified' }}</p>
+                                        </div>
                                         @if($type->created_at || $type->updated_at)
                                         <div class="text-muted small">
                                             @if($type->created_at)
@@ -157,6 +164,14 @@
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
+                                            <div class="mb-3">
+                                                <label for="typical_annual_requests{{ $type->id }}" class="form-label fw-bold">Typical Annual Requests</label>
+                                                <input type="text" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
+                                                       id="typical_annual_requests{{ $type->id }}" name="typical_annual_requests" value="{{ old('typical_annual_requests', $type->typical_annual_requests) }}">
+                                                @error('typical_annual_requests')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -195,7 +210,7 @@
 
                         @empty
                         <tr>
-                            <td colspan="4" class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
                                 <div class="d-flex flex-column align-items-center">
                                     <i class="bi bi-calendar-check fs-1 text-muted mb-2"></i>
                                     <h5 class="text-muted">No leave types found</h5>
@@ -250,6 +265,14 @@
                             <textarea class="form-control @error('description') is-invalid @enderror" 
                                       id="description" name="description" rows="3">{{ old('description') }}</textarea>
                             @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label for="typical_annual_requests" class="form-label fw-bold">Typical Annual Requests</label>
+                            <input type="text" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
+                                   id="typical_annual_requests" name="typical_annual_requests" value="{{ old('typical_annual_requests') }}">
+                            @error('typical_annual_requests')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

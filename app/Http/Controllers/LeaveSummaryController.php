@@ -16,7 +16,6 @@ class LeaveSummaryController extends Controller
 
     public function index()
     {
-
         $subquery = DB::table('leave_summaries')
             ->selectRaw('MAX(id) as id')
             ->groupBy('department_id', 'leave_type_id');
@@ -27,10 +26,13 @@ class LeaveSummaryController extends Controller
             ->orderByDesc('id')
             ->paginate(10);
 
-        return view('leave_summaries.index', compact('summaries'));
+        $departments = Department::all();
+        $leaveTypes = LeaveType::all();
+
+        return view('leave_summaries.index', compact('summaries', 'departments', 'leaveTypes'));
     }
 
-   
+
 
     public function create()
     {
@@ -67,7 +69,7 @@ class LeaveSummaryController extends Controller
                     'planned'            => 0,
                     'requested'          => 0,
                     'available_actual'   => $request->entitled,
-                    'available_simulated'=> $request->entitled,
+                    'available_simulated' => $request->entitled,
                 ]
             );
         }

@@ -24,9 +24,10 @@ class LeaveTypeController extends Controller
         $request->validate([
             'name' => 'required|string|unique:leave_types,name',
             'description' => 'nullable|string',
+            'typical_annual_requests' => 'nullable|string|max:255',
         ]);
 
-        LeaveType::create($request->only('name', 'description'));
+        LeaveType::create($request->only('name', 'description', 'typical_annual_requests'));
 
         return redirect()->route('leave-types.index')->with('success', 'Leave type created successfully.');
     }
@@ -46,16 +47,17 @@ class LeaveTypeController extends Controller
         $request->validate([
             'name' => 'required|string|unique:leave_types,name,' . $leaveType->id,
             'description' => 'nullable|string',
+            'typical_annual_requests' => 'nullable|string|max:255',
         ]);
 
-        $leaveType->update($request->only('name', 'description'));
+        $leaveType->update($request->only('name', 'description', 'typical_annual_requests'));
 
-        return redirect()->route('leave-types.index')->with('success', 'Leave type updated.');
+        return redirect()->route('leave-types.index')->with('success', 'Leave type updated successfully.');
     }
 
     public function destroy(LeaveType $leaveType)
     {
         $leaveType->delete();
-        return redirect()->route('leave-types.index')->with('success', 'Leave type deleted.');
+        return redirect()->route('leave-types.index')->with('success', 'Leave type deleted successfully.');
     }
 }
