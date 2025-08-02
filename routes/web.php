@@ -15,6 +15,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SubordinateController;
 use App\Http\Controllers\LeaveSummaryController;
 use App\Http\Controllers\LeaveRequestActionController;
+use App\Http\Controllers\OTController;
 use App\Http\Controllers\TelegramController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
@@ -90,3 +91,18 @@ Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'export
     ->middleware('auth')
     ->name('leave-requests.exportPDF')
     ->can('export', \App\Models\LeaveRequest::class);
+
+
+/**
+ * over time router
+ */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/over-time', [OTController::class, 'index'])->name('over-time.index');
+    Route::get('/over-time/create', [OTController::class, 'create'])->name('over-time.create');
+    Route::post('/over-time/store', [OTController::class, 'store'])->name('over-time.store');
+    Route::get('/over-time/edit/{id}', [OTController::class, 'edit'])->name('over-time.edit');
+    Route::patch('/over-time/update/{id}', [OTController::class, 'update'])->name('over-time.update');
+    Route::get('/over-time/{id}', [OTController::class, 'show'])->name('over-time.show');
+    Route::delete('/over-time/{id}', [OTController::class, 'destroy'])->name('over-time.destroy');
+});

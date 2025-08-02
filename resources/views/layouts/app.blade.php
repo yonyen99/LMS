@@ -200,7 +200,9 @@
                         <ul class="navbar-nav me-auto align-items-center">
                             @auth
                                 <li class="nav-item me-3">
-                                    <i class="bi bi-justify fs-5"></i>
+                                    <a href="/" class="nav-link">
+                                        <i class="bi bi-justify fs-5"></i>
+                                    </a>
                                 </li>
 
                                 @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
@@ -294,7 +296,8 @@
                                             <li>
                                                 <h6 class="dropdown-header">OVERTIME</h6>
                                             </li>
-                                            <li><a class="dropdown-item" href="#">List of OT Worked</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('over-time.index') }}">List of OT
+                                                    Worked</a></li>
                                             <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
                                         </ul>
                                     </li>
