@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class LeaveSummaryController extends Controller
 {
-
     public function index()
     {
         $subquery = DB::table('leave_summaries')
@@ -32,8 +31,6 @@ class LeaveSummaryController extends Controller
         return view('leave_summaries.index', compact('summaries', 'departments', 'leaveTypes'));
     }
 
-
-
     public function create()
     {
         $this->authorize('create', LeaveSummary::class);
@@ -50,8 +47,10 @@ class LeaveSummaryController extends Controller
             'leave_type_id' => 'required|exists:leave_types,id',
             'department_id' => 'required|exists:departments,id',
             'report_date' => 'required|date',
-            'entitled' => 'required|numeric|min:0',
         ]);
+
+        $leaveType = LeaveType::findOrFail($request->leave_type_id);
+        $entitled = $leaveType->typical_annual_requests ?? 0;
 
         $users = User::where('department_id', $request->department_id)->get();
 
@@ -64,12 +63,12 @@ class LeaveSummaryController extends Controller
                     'report_date'    => $request->report_date,
                 ],
                 [
-                    'entitled'           => $request->entitled,
+                    'entitled'           => $entitled,
                     'taken'              => 0,
                     'planned'            => 0,
                     'requested'          => 0,
-                    'available_actual'   => $request->entitled,
-                    'available_simulated' => $request->entitled,
+                    'available_actual'   => $entitled,
+                    'available_simulated' => $entitled,
                 ]
             );
         }
@@ -93,19 +92,20 @@ class LeaveSummaryController extends Controller
             'leave_type_id' => 'required|exists:leave_types,id',
             'department_id' => 'required|exists:departments,id',
             'report_date' => 'required|date',
-            'entitled' => 'required|numeric',
         ]);
+
+        $leaveType = LeaveType::findOrFail($request->leave_type_id);
+        $entitled = $leaveType->typical_annual_requests ?? 0;
 
         $leaveSummary->update([
             'leave_type_id' => $request->leave_type_id,
             'department_id' => $request->department_id,
             'report_date' => $request->report_date,
-            'entitled' => $request->entitled,
+            'entitled' => $entitled,
         ]);
 
         return redirect()->route('leave-summaries.index')->with('success', 'Leave summary updated successfully.');
     }
-
 
     public function destroy(LeaveSummary $leaveSummary)
     {
@@ -142,18 +142,15 @@ class LeaveSummaryController extends Controller
             ->groupBy('leave_type_id')
             ->pluck('total_requested', 'leave_type_id');
 
-
         $planned = \App\Models\LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_planned'))
             ->where('user_id', $userId)
             ->where('status', 'Planned')
             ->groupBy('leave_type_id')
             ->pluck('total_planned', 'leave_type_id');
 
-
-
         // Build summaries
         $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $planned, $user) {
-            $baseEntitled = $entitlement->entitled;
+            $baseEntitled = $entitlement->leaveType->typical_annual_requests ?? 0;
 
             // If user is a Manager, add 2 extra entitled days
             if ($user->hasRole('Manager')) {
