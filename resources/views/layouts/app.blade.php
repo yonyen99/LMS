@@ -188,7 +188,7 @@
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
-                            style="height: 60px; border-radius: 5px;">
+                            style="height: 70px; border-radius: 5px;">
                     </a>
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -363,7 +363,7 @@
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
-                                                style="width: 35px; height: 35px; object-fit: cover;">
+                                                style="width: 45px; height: 45px; object-fit: cover;">
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif

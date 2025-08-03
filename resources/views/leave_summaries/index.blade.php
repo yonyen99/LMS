@@ -57,7 +57,7 @@
                             <td>{{ $summary->department->name ?? '-' }}</td>
                             <td>{{ $summary->leaveType->name ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
-                            <td class="text-center">{{ $summary->entitled }}</td>
+                            <td class="text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -123,11 +123,11 @@
                                             </div>
                                             <div class="mb-3">
                                                 <label for="leave_type_id{{ $summary->id }}" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                                                <select name="leave_type_id" id="leave_type_id{{ $summary->id }}" class="form-select @error('leave_type_id') is-invalid @enderror" required>
+                                                <select name="leave_type_id" id="leave_type_id{{ $summary->id }}" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled{{ $summary->id }}" required>
                                                     <option value="">Select Leave Type</option>
                                                     @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
                                                         @foreach ($leaveTypes as $type)
-                                                            <option value="{{ $type->id }}" {{ $summary->leave_type_id == $type->id ? 'selected' : '' }}>
+                                                            <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ $summary->leave_type_id == $type->id ? 'selected' : '' }}>
                                                                 {{ $type->name }}
                                                             </option>
                                                         @endforeach
@@ -150,7 +150,7 @@
                                             <div class="mb-3">
                                                 <label for="entitled{{ $summary->id }}" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
                                                 <input type="number" step="0.5" name="entitled" id="entitled{{ $summary->id }}" class="form-control @error('entitled') is-invalid @enderror"
-                                                       value="{{ old('entitled', $summary->entitled) }}" required>
+                                                       value="{{ old('entitled', $summary->leaveType->typical_annual_requests ?? '') }}" readonly required>
                                                 @error('entitled')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -258,11 +258,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="leave_type_id" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                            <select name="leave_type_id" id="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror" required>
+                            <select name="leave_type_id" id="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled" required>
                                 <option value="">Select Leave Type</option>
                                 @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
                                     @foreach ($leaveTypes as $type)
-                                        <option value="{{ $type->id }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
+                                        <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
                                             {{ $type->name }}
                                         </option>
                                     @endforeach
@@ -282,14 +282,14 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label for="entitled" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
                             <input type="number" step="0.5" name="entitled" id="entitled" class="form-control @error('entitled') is-invalid @enderror"
-                                   value="{{ old('entitled') }}" required>
+                                   value="{{ old('entitled') }}" readonly required>
                             @error('entitled')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -374,6 +374,41 @@
                 if (button) {
                     button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Deleting...';
                     button.disabled = true;
+                }
+            });
+        });
+
+        // Handle leave type selection to auto-populate entitled days
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('leave-type-select')) {
+                const select = e.target;
+                console.log('Change event triggered on:', select.id); // Debug log
+                const leaveTypeId = select.value;
+                const entitledFieldId = select.getAttribute('data-entitled-field');
+                const entitledInput = document.getElementById(entitledFieldId);
+
+                if (entitledInput) {
+                    if (leaveTypeId) {
+                        const selectedOption = select.querySelector(`option[value="${leaveTypeId}"]`);
+                        const entitledDays = selectedOption ? selectedOption.getAttribute('data-entitled-days') : '';
+                        console.log('Selected leave type ID:', leaveTypeId, 'Entitled days:', entitledDays); // Debug log
+                        entitledInput.value = entitledDays !== '' && entitledDays !== null ? parseFloat(entitledDays) || 0 : '';
+                    } else {
+                        entitledInput.value = '';
+                    }
+                } else {
+                    console.error('Entitled input not found for field:', entitledFieldId); // Debug log
+                }
+            }
+        }, true);
+
+        // Trigger change event for pre-selected leave types after modal is shown
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('shown.bs.modal', function(e) {
+                const select = this.querySelector('.leave-type-select');
+                if (select && select.value) {
+                    console.log('Modal shown, triggering change for:', select.id); // Debug log
+                    select.dispatchEvent(new Event('change'));
                 }
             });
         });
