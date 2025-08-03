@@ -204,14 +204,14 @@
                                 </li>
 
                                 @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
-                                    <li class="nav-item me-3">
+                                    <li class="nav-item ">
                                         <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
                                             href="/">Dashboard</a>
                                     </li>
                                 @endunless
 
                                 @canany(['create-role', 'edit-role', 'delete-role'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown ">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
                                             href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Permissions</a>
@@ -231,7 +231,7 @@
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
-                                        <li class="nav-item dropdown me-3">
+                                        <li class="nav-item dropdown ">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
                                                 href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">Approval</a>
@@ -259,7 +259,7 @@
 
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown ">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar'])) ? 'active' : '' }}"
                                             href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Requested</a>
@@ -302,7 +302,7 @@
 
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown ">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['leave-requests.calendar', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
                                             href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Calendar</a>
