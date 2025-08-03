@@ -22,33 +22,60 @@ class OTController extends Controller
     }
 
 
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'overtime_date'  => 'required|date',
+    //         'time_period'    => 'required|in:before_shift,after_shift,weekend,holiday',
+    //         'start_time'     => 'required|date_format:H:i',
+    //         'end_time'       => 'required|date_format:H:i|after:start_time',
+    //         'duration'       => 'required|numeric|min:0.5|max:24',
+    //         'reason'         => 'nullable|string',
+    //     ]);
+
+    //     OvertimeRequest::create([
+    //         'user_id'         => Auth::id(),
+    //         'department_id'   => Auth::user()->department_id,
+    //         'overtime_date'   => $request->overtime_date,
+    //         'time_period'     => $request->time_period,
+    //         'start_time'      => $request->start_time,
+    //         'end_time'        => $request->end_time,
+    //         'duration'        => $request->duration,
+    //         'reason'          => $request->reason,
+    //         'last_changed_at' => now(),
+    //     ]);
+
+    //     return redirect()->route('over-time.index')->with('success', 'Overtime request submitted.');
+    // }
+
+
     public function store(Request $request)
-    {
-        $request->validate([
-            'department_id'  => 'required|exists:departments,id',
-            'overtime_date'  => 'required|date',
-            'time_period'    => 'required|in:before_shift,after_shift,weekend,holiday',
-            'start_time'     => 'required|date_format:H:i',
-            'end_time'       => 'required|date_format:H:i|after:start_time',
-            'duration'       => 'required|numeric|min:0.5|max:24',
-            'reason'         => 'nullable|string',
-        ]);
+{
+    $request->validate([
+        'department_id'   => 'required|exists:departments,id',
+        'overtime_date'   => 'required|date',
+        'time_period'     => 'required|in:before_shift,after_shift,weekend,holiday',
+        'start_time'      => 'required|date_format:H:i',
+        'end_time'        => 'required|date_format:H:i|after:start_time',
+        'duration'        => 'required|numeric|min:0.5|max:24',
+        'reason'          => 'nullable|string',
+    ]);
 
-        OvertimeRequest::create([
-            'user_id'         => Auth::id(),
-            'department_id'   => $request->department_id,
-            'overtime_date'   => $request->overtime_date,
-            'time_period'     => $request->time_period,
-            'start_time'      => $request->start_time,
-            'end_time'        => $request->end_time,
-            'duration'        => $request->duration,
-            'reason'          => $request->reason,
-            'last_changed_at' => now(),
-        ]);
+    OvertimeRequest::create([
+        'user_id'         => Auth::id(),
+        'department_id'   => $request->department_id,
+        'overtime_date'   => $request->overtime_date,
+        'time_period'     => $request->time_period,
+        'start_time'      => $request->start_time,
+        'end_time'        => $request->end_time,
+        'duration'        => $request->duration,
+        'reason'          => $request->reason,
+        'last_changed_at' => now(),
+    ]);
 
+    return redirect()->route('over-time.index')->with('success', 'Overtime request submitted.');
+}
 
-        return redirect()->route('over-time.index')->with('success', 'Overtime request submitted.');
-    }
 
     public function edit($id)
     {
@@ -58,8 +85,11 @@ class OTController extends Controller
             return redirect()->route('over-time.index')->with('error', 'You are not authorized to edit this request.');
         }
 
-        return view('over_time.edit', compact('overtime'));  // <-- fixed typo here
+        $departments = Department::pluck('name', 'id'); // <-- Fetch department list
+
+        return view('over_time.edit', compact('overtime', 'departments'));
     }
+
 
     public function update(Request $request, $id)
     {
@@ -70,7 +100,7 @@ class OTController extends Controller
         }
 
         $request->validate([
-            'department'     => 'required|string',
+            'department_id'  => 'required|exists:departments,id',
             'overtime_date'  => 'required|date',
             'time_period'    => 'required|in:before_shift,after_shift,weekend,holiday',
             'start_time'     => 'required|date_format:H:i',
@@ -80,18 +110,19 @@ class OTController extends Controller
         ]);
 
         $overtime->update([
-            'department'     => $request->department,
-            'overtime_date'  => $request->overtime_date,
-            'time_period'    => $request->time_period,
-            'start_time'     => $request->start_time,
-            'end_time'       => $request->end_time,
-            'duration'       => $request->duration,
-            'reason'         => $request->reason,
+            'department_id'   => $request->department_id,
+            'overtime_date'   => $request->overtime_date,
+            'time_period'     => $request->time_period,
+            'start_time'      => $request->start_time,
+            'end_time'        => $request->end_time,
+            'duration'        => $request->duration,
+            'reason'          => $request->reason,
             'last_changed_at' => now(),
         ]);
 
         return redirect()->route('over-time.index')->with('success', 'Overtime request updated successfully.');
     }
+
 
     public function show($id)
     {

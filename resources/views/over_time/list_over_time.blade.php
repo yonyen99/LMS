@@ -91,7 +91,7 @@
                             @foreach ($overtimes as $ot)
                                 <tr>
                                     <td class="px-4 py-4">{{ $ot->user->name }}</td>
-                                    <td class="px-4 py-4">{{ $ot->department }}</td>
+                                    <td class="px-4 py-4">{{ $ot->department->name }}</td>
                                     <td class="px-4 py-4">{{ $ot->overtime_date }}</td>
                                     <td class="px-4 py-4">{{ $ot->start_time }}</td>
                                     <td class="px-4 py-4">{{ $ot->end_time }}</td>

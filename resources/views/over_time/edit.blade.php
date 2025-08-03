@@ -6,7 +6,6 @@
     <div class="container px-4 py-5">
         <h1 class="mb-4">Edit Overtime Request</h1>
 
-        <!-- Display validation errors -->
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul>
@@ -21,30 +20,29 @@
             @csrf
             @method('PATCH')
 
-            <!-- Show the logged-in employee's name (not editable) -->
+            <!-- Employee Name (readonly) -->
             <div class="mb-3">
                 <label class="form-label">Employee</label>
-                <input type="text" class="form-control" value="{{ Auth::user()->name }}" disabled>
+                <input type="text" class="form-control" value="{{ $overtime->user->name ?? 'N/A' }}" readonly>
             </div>
 
-            <!-- Department -->
+            <!-- Department (dynamic) -->
             <div class="mb-3">
-                <label for="department" class="form-label">Department</label>
-                <select class="form-select @error('department') is-invalid @enderror" id="department" name="department"
-                    required>
-                    <option value="" disabled>Select Department</option>
-                    <option value="IT" {{ old('department', $overtime->department) == 'IT' ? 'selected' : '' }}>IT
-                    </option>
-                    <option value="HR" {{ old('department', $overtime->department) == 'HR' ? 'selected' : '' }}>HR
-                    </option>
-                    <option value="Finance" {{ old('department', $overtime->department) == 'Finance' ? 'selected' : '' }}>
-                        Finance</option>
+                <label for="department_id" class="form-label">Department</label>
+                <select class="form-select @error('department_id') is-invalid @enderror" id="department_id"
+                    name="department_id" required>
+                    <option value="" disabled>-- Select Department --</option>
+                    @foreach ($departments as $id => $name)
+                        <option value="{{ $id }}"
+                            {{ old('department_id', $overtime->department_id) == $id ? 'selected' : '' }}>
+                            {{ $name }}
+                        </option>
+                    @endforeach
                 </select>
-                @error('department')
+                @error('department_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
-
             <!-- Overtime Date -->
             <div class="mb-3">
                 <label for="overtime_date" class="form-label">Overtime Date</label>
@@ -82,7 +80,7 @@
                 <div class="col-md-6">
                     <label for="start_time" class="form-label">Start Time</label>
                     <input type="time" class="form-control @error('start_time') is-invalid @enderror" id="start_time"
-                        name="start_time" value="{{ old('start_time', $overtime->start_time ?? '') }}" required>
+                        name="start_time" value="{{ old('start_time', $overtime->start_time) }}" required>
                     @error('start_time')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -90,13 +88,12 @@
                 <div class="col-md-6">
                     <label for="end_time" class="form-label">End Time</label>
                     <input type="time" class="form-control @error('end_time') is-invalid @enderror" id="end_time"
-                        name="end_time" value="{{ old('end_time', $overtime->end_time ?? '') }}" required>
+                        name="end_time" value="{{ old('end_time', $overtime->end_time) }}" required>
                     @error('end_time')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
             </div>
-
 
             <!-- Duration -->
             <div class="mb-3">
@@ -119,13 +116,34 @@
                 @enderror
             </div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="btn btn-primary">Update Request</button>
+            {{-- cancel button --}}
+            <div class="mb-3">
+                <a href="{{ route('over-time.index') }}" class="btn btn-secondary">Cancel</a>
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary">Update Request</button>
+            </div>
+
         </form>
     </div>
 
-    <!-- Bootstrap validation script -->
+    <!-- Duration calculation script -->
     <script>
+        document.getElementById('end_time').addEventListener('change', function() {
+            const start = document.getElementById('start_time').value;
+            const end = this.value;
+            if (start && end) {
+                const startTime = new Date(`1970-01-01T${start}:00`);
+                const endTime = new Date(`1970-01-01T${end}:00`);
+                const diff = (endTime - startTime) / (1000 * 60 * 60);
+                if (diff > 0) {
+                    document.getElementById('duration').value = diff.toFixed(1);
+                } else {
+                    document.getElementById('duration').value = '';
+                    alert('End time must be after start time.');
+                }
+            }
+        });
+
         (() => {
             'use strict'
             const forms = document.querySelectorAll('.needs-validation')
@@ -139,24 +157,5 @@
                 }, false)
             })
         })()
-
-        // Auto-calculate duration based on start and end time
-        document.getElementById('end_time').addEventListener('change', function() {
-            const startTime = document.getElementById('start_time').value;
-            const endTime = this.value;
-
-            if (startTime && endTime) {
-                const start = new Date(`1970-01-01T${startTime}:00`);
-                const end = new Date(`1970-01-01T${endTime}:00`);
-                const diffMs = end - start;
-                if (diffMs > 0) {
-                    const durationHours = diffMs / (1000 * 60 * 60);
-                    document.getElementById('duration').value = durationHours.toFixed(1);
-                } else {
-                    document.getElementById('duration').value = '';
-                    alert('End time must be after start time.');
-                }
-            }
-        });
     </script>
 @endsection
