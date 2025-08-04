@@ -20,29 +20,6 @@
             @csrf
             @method('PATCH')
 
-            <!-- Employee Name (readonly) -->
-            <div class="mb-3">
-                <label class="form-label">Employee</label>
-                <input type="text" class="form-control" value="{{ $overtime->user->name ?? 'N/A' }}" readonly>
-            </div>
-
-            <!-- Department (dynamic) -->
-            <div class="mb-3">
-                <label for="department_id" class="form-label">Department</label>
-                <select class="form-select @error('department_id') is-invalid @enderror" id="department_id"
-                    name="department_id" required>
-                    <option value="" disabled>-- Select Department --</option>
-                    @foreach ($departments as $id => $name)
-                        <option value="{{ $id }}"
-                            {{ old('department_id', $overtime->department_id) == $id ? 'selected' : '' }}>
-                            {{ $name }}
-                        </option>
-                    @endforeach
-                </select>
-                @error('department_id')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
             <!-- Overtime Date -->
             <div class="mb-3">
                 <label for="overtime_date" class="form-label">Overtime Date</label>

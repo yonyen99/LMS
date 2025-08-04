@@ -75,7 +75,7 @@ class LeaveRequestSubmitted extends Mailable
             ['id' => $this->leaveRequest->id]
         );
 
-        $admins = \App\Models\User::role(['Super Admin', 'Manager'])->get();
+        $admins = \App\Models\User::role(['Admin', 'Manager'])->get();
 
         return $this->view('emails.leave_request_submitted')
             ->with([

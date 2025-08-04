@@ -21,9 +21,16 @@ class OvertimeRequest extends Model
         'status',
         'requested_at',
         'last_changed_at',
+        'action_by',
     ];
 
-
+    protected $casts = [
+        'overtime_date' => 'date:d/m/Y',
+        'start_time' => 'string',
+        'end_time' => 'string',
+        'requested_at' => 'date:d/m/Y',
+        'last_changed_at' => 'date:d/m/Y',
+    ];
 
     public function user()
     {
@@ -33,5 +40,10 @@ class OvertimeRequest extends Model
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+      public function actionBy()
+    {
+        return $this->belongsTo(User::class, 'action_by');
     }
 }

@@ -3,13 +3,15 @@
 @section('title', 'Overtime Requests')
 
 @section('content')
-    <div class="container px-4 py-5 w-100">
+    <div class="container px-4 py-5 w-100 shadow-sm p-4">
         <!-- Header -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
             <h1 class="h3 fw-bold mb-3 mb-md-0">Overtime Requests</h1>
             <div class="d-flex gap-2">
                 <a href="#" class="btn btn-primary">Timeline View</a>
-                <a href="{{ route('over-time.create') }}" class="btn btn-success">Add Overtime Request</a>
+                @if (auth()->user()->hasAnyRole(['Employee', 'Manager', 'Admin']))
+                    <a href="" class="btn btn-success">Add Overtime Request</a>
+                @endif
             </div>
         </div>
 
@@ -28,7 +30,7 @@
                         </div>
                         <div>
                             <p class="card-text small text-muted mb-1">Total Requests</p>
-                            <p class="card-title h5 fw-semibold">24</p>
+                            <p class="card-title h5 fw-semibold">{{ $totalRequests }}</p>
                         </div>
                     </div>
                 </div>
@@ -46,7 +48,7 @@
                         </div>
                         <div>
                             <p class="card-text small text-muted mb-1">Approved</p>
-                            <p class="card-title h5 fw-semibold">18</p>
+                            <p class="card-title h5 fw-semibold">{{ $approvedRequests }}</p>
                         </div>
                     </div>
                 </div>
@@ -64,7 +66,7 @@
                         </div>
                         <div>
                             <p class="card-text small text-muted mb-1">Pending</p>
-                            <p class="card-title h5 fw-semibold">4</p>
+                            <p class="card-title h5 fw-semibold">{{ $pendingRequests }}</p>
                         </div>
                     </div>
                 </div>
@@ -72,7 +74,7 @@
         </div>
 
         <!-- Overtime Requests List -->
-        <div class="card shadow-sm">
+        <div class="card shadow-sm shadow-sm p-4">
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -88,7 +90,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($overtimes as $ot)
+                            @forelse ($overtimes as $ot)
                                 <tr>
                                     <td class="px-4 py-4">{{ $ot->user->name }}</td>
                                     <td class="px-4 py-4">{{ $ot->department->name }}</td>
@@ -96,8 +98,7 @@
                                     <td class="px-4 py-4">{{ $ot->start_time }}</td>
                                     <td class="px-4 py-4">{{ $ot->end_time }}</td>
                                     <td class="px-4 py-4">
-                                        <span
-                                            class="badge bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'pending' ? 'warning' : ($ot->status == 'rejected' ? 'danger' : 'secondary')) }}">
+                                        <span class="badge bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : ($ot->status == 'rejected' ? 'danger' : 'secondary')) }}">
                                             {{ ucfirst($ot->status) }}
                                         </span>
                                     </td>
@@ -108,26 +109,58 @@
                                                 <i class="bi bi-three-dots-vertical"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('over-time.edit', $ot->id) }}">Edit</a>
-                                                </li>
-                                                <li><a class="dropdown-item"
-                                                        href="{{ route('over-time.show', $ot->id) }}">View</a></li>
-
-                                                <li>
-                                                    <form action="{{ route('over-time.destroy', $ot->id) }}" method="POST"
-                                                        onsubmit="return confirm('Are you sure?')">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button class="dropdown-item text-danger"
-                                                            type="submit">Delete</button>
-                                                    </form>
-                                                </li>
+                                                <li><a class="dropdown-item" href="{{ route('over-time.show', $ot->id) }}">View</a></li>
+                                                @if (auth()->user()->id === $ot->user_id && $ot->status === 'requested')
+                                                    <li><a class="dropdown-item" href="{{ route('over-time.edit', $ot->id) }}">Edit</a></li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.destroy', $ot->id) }}" method="POST"
+                                                            onsubmit="return confirm('Are you sure you want to delete this request?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button class="dropdown-item text-danger" type="submit">Delete</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.cancel', $ot->id) }}" method="POST"
+                                                            onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                                            @csrf
+                                                            <button class="dropdown-item text-warning" type="submit">Cancel</button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                                @if (auth()->user()->hasAnyRole(['Manager', 'Admin']) && $ot->status === 'requested' && 
+                                                    (auth()->user()->hasRole('Admin') || (auth()->user()->hasRole('Manager') && $ot->user->department_id === auth()->user()->department_id)))
+                                                    <li>
+                                                        <form action="{{ route('over-time.accept', $ot->id) }}" method="POST"
+                                                            onsubmit="return confirm('Are you sure you want to approve this request?');">
+                                                            @csrf
+                                                            <button class="dropdown-item text-success" type="submit">Accept</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.reject', $ot->id) }}" method="POST"
+                                                            onsubmit="return confirm('Are you sure you want to reject this request?');">
+                                                            @csrf
+                                                            <button class="dropdown-item text-danger" type="submit">Reject</button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.cancel', $ot->id) }}" method="POST"
+                                                            onsubmit="return confirm('Are you sure you want to cancel this request?');">
+                                                            @csrf
+                                                            <button class="dropdown-item text-warning" type="submit">Cancel</button>
+                                                        </form>
+                                                    </li>
+                                                @endif
                                             </ul>
                                         </div>
                                     </td>
                                 </tr>
-                            @endforeach
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-4 py-4 text-center">No overtime requests found.</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -135,23 +168,7 @@
 
             <!-- Pagination -->
             <div class="card-footer">
-                <nav aria-label="Page navigation">
-                    <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item disabled">
-                            <a class="page-link" href="#" aria-label="Previous">
-                                <span aria-hidden="true">&laquo;</span>
-                            </a>
-                        </li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item">
-                            <a class="page-link" href="#" aria-label="Next">
-                                <span aria-hidden="true">&raquo;</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
+                {{ $overtimes->links() }}
             </div>
         </div>
     </div>

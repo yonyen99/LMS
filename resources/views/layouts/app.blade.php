@@ -253,7 +253,7 @@
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
                                                         href="{{ route('notifications.index') }}">Leave Requests</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'overtime.index' ? 'active' : '' }}"
-                                                        href="#" disabled>Overtime</a></li>
+                                                        href="{{ route('over-time.list') }}" disabled>Overtime</a></li>
                                             </ul>
                                         </li>
                                     @endcanany
@@ -298,7 +298,8 @@
                                             </li>
                                             <li><a class="dropdown-item" href="{{ route('over-time.index') }}">List of OT
                                                     Worked</a></li>
-                                            <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('over-time.create') }}">Submit an OT
+                                                    Request</a></li>
                                         </ul>
                                     </li>
                                 @endcanany

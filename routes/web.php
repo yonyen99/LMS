@@ -72,11 +72,16 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
 });
 
+/**
+ * leave request actions via email
+ */
 Route::middleware(['signed'])->group(function () {
     Route::get('/leave-requests/email/accept/{id}', [LeaveRequestActionController::class, 'accept'])->name('leave-request.email.accept');
     Route::get('/leave-requests/email/reject/{id}', [LeaveRequestActionController::class, 'reject'])->name('leave-request.email.reject');
     Route::get('/leave-requests/email/cancel/{id}', [LeaveRequestActionController::class, 'cancel'])->name('leave-request.email.cancel');
 });
+
+
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
@@ -86,6 +91,9 @@ Route::post('/notifications/{id}/mark-read', [MessageController::class, 'markAsR
 Route::patch('/leave-requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('leave-requests.update-status');
 
 
+/**
+ * export leave requests as PDF
+ */
 
 Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'exportPDF'])
     ->middleware('auth')
@@ -105,4 +113,17 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/over-time/update/{id}', [OTController::class, 'update'])->name('over-time.update');
     Route::get('/over-time/{id}', [OTController::class, 'show'])->name('over-time.show');
     Route::delete('/over-time/{id}', [OTController::class, 'destroy'])->name('over-time.destroy');
+    Route::post('/over-time/{id}/accept', [OTController::class, 'accept'])->name('over-time.accept');
+    Route::post('/over-time/{id}/reject', [OTController::class, 'reject'])->name('over-time.reject');
+    Route::post('/over-time/{id}/cancel', [OTController::class, 'cancel'])->name('over-time.cancel');
+    Route::get('/ot', [OTController::class, 'overTime'])->name('over-time.list');
+});
+
+/**
+ * over time rquest router Overtime Notification Routes
+ */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications/ot', [NotificationController::class, 'ot'])->name('notifications.ot');
+    Route::post('/notifications/ot/{id}/update-status', [NotificationController::class, 'updateOtStatus'])->name('notifications.update-ot-status');
 });
