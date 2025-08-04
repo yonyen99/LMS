@@ -195,19 +195,141 @@
         })();
     </script>
 
-    <!-- Optional CSS for better UX -->
+    <!-- Modernized CSS for better UX -->
     <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            background-color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .invalid-feedback {
+            font-size: 0.85rem;
+            color: #ef4444;
+            margin-top: 0.25rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #64748b;
+            border-color: #64748b;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+            border-color: #475569;
+            transform: translateY(-1px);
+        }
+
+        .alert-danger {
+            background-color: #fef2f2;
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #b91c1c;
+        }
+
+        .alert-danger ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 100px;
+        }
+
         input[type="text"].flatpickr-input {
             cursor: pointer;
         }
+
         .flatpickr-calendar {
             z-index: 9999 !important;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
         }
+
         .flatpickr-input.form-control {
             background-color: #fff;
         }
+
         .flatpickr-input.form-control.is-invalid + .flatpickr-calendar {
-            border: 1px solid #dc3545;
+            border-color: #ef4444;
+        }
+
+        @media (max-width: 576px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1.2rem;
+            }
         }
     </style>
 @endsection

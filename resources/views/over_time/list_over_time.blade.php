@@ -8,9 +8,9 @@
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
             <h1 class="h3 fw-bold mb-3 mb-md-0">Overtime Requests</h1>
             <div class="d-flex gap-2">
-                <a href="#" class="btn btn-primary">Timeline View</a>
+                <a href="#" class="btn btn-primary">Export PDF</a>
                 @if (auth()->user()->hasAnyRole(['Employee', 'Manager', 'Admin']))
-                    <a href="" class="btn btn-success">Add Overtime Request</a>
+                    <a href="" class="btn btn-success">Export EXCEL</a>
                 @endif
             </div>
         </div>

@@ -168,14 +168,22 @@ class OTController extends Controller
 
     public function update(Request $request, $id)
     {
+        $user = auth()->user();
         $overtime = OvertimeRequest::findOrFail($id);
 
-        if ($overtime->user_id !== Auth::id()) {
+        // Only allow the owner to update
+        if ($overtime->user_id !== $user->id) {
             return redirect()->route('over-time.index')->with('error', 'You are not authorized to edit this request.');
         }
 
+        // Ensure the user has a department
+        if (!$user->department_id) {
+            throw ValidationException::withMessages([
+                'department_id' => 'You must be assigned to a department to update an overtime request.',
+            ]);
+        }
+
         $request->validate([
-            'department_id'  => 'required|exists:departments,id',
             'overtime_date'  => 'required|date',
             'time_period'    => 'required|in:before_shift,after_shift,weekend,holiday',
             'start_time'     => 'required|date_format:H:i',
@@ -184,19 +192,22 @@ class OTController extends Controller
             'reason'         => 'required|string',
         ]);
 
-        $overtime->update([
-            'department_id'   => $request->department_id,
-            'overtime_date'   => $request->overtime_date,
-            'time_period'     => $request->time_period,
-            'start_time'      => $request->start_time,
-            'end_time'        => $request->end_time,
-            'duration'        => $request->duration,
-            'reason'          => $request->reason,
-            'last_changed_at' => now(),
-        ]);
+        DB::transaction(function () use ($request, $user, $overtime) {
+            $overtime->update([
+                'overtime_date'   => $request->overtime_date,
+                'time_period'     => $request->time_period,
+                'start_time'      => $request->start_time,
+                'end_time'        => $request->end_time,
+                'duration'        => $request->duration,
+                'reason'          => $request->reason,
+                'department_id'   => $user->department_id,
+                'last_changed_at' => now(),
+            ]);
+        });
 
         return redirect()->route('over-time.index')->with('success', 'Overtime request updated successfully.');
     }
+
 
     public function show($id)
     {
