@@ -44,7 +44,7 @@
                         <tr>
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Role Name</th>
-                            <th scope="col">Permissions</th>
+                            <th scope="col" class="d-none d-md-table-cell">Permissions</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -60,7 +60,7 @@
                                     {{ $role->name }}
                                 </div>
                             </td>
-                            <td>
+                            <td class="d-none d-md-table-cell">
                                 @if ($role->name == 'Super Admin')
                                     <span class="badge bg-success p-2">All Permissions</span>
                                 @else
@@ -186,12 +186,6 @@
                                                 <div class="mb-3">
                                                     <label class="form-label fw-bold">Permissions</label>
                                                     <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
-                                                        <div class="form-check mb-2">
-                                                            <input class="form-check-input select-all-permissions" type="checkbox" id="selectAllPermissionsEdit{{ $role->id }}">
-                                                            <label class="form-check-label fw-bold" for="selectAllPermissionsEdit{{ $role->id }}">
-                                                                Select All
-                                                            </label>
-                                                        </div>
                                                         @if(isset($permissions) && $permissions->count() > 0)
                                                             @forelse ($permissions as $permission)
                                                                 <div class="form-check">
@@ -309,12 +303,6 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Permissions</label>
                             <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input select-all-permissions" type="checkbox" id="selectAllPermissionsCreate">
-                                    <label class="form-check-label fw-bold" for="selectAllPermissionsCreate">
-                                        Select All
-                                    </label>
-                                </div>
                                 @if(isset($permissions) && $permissions->count() > 0)
                                     @forelse ($permissions as $permission)
                                         <div class="form-check">
@@ -392,6 +380,11 @@
     }
     .btn-close-white {
         filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    @media screen and (max-width: 767px) {
+        .d-none.d-md-table-cell {
+            display: none !important;
+        }
     }
 </style>
 @endsection

@@ -278,4 +278,7 @@ a:hover {
     .login-content {
         justify-content: center;
     }
+    form {
+        margin-right: 18%;
+    }
 }

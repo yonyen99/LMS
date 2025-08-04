@@ -45,8 +45,8 @@
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Department</th>
                             <th scope="col">Leave Type</th>
-                            <th scope="col">Report Date</th>
-                            <th scope="col">Entitled Days</th>
+                            <th scope="col" class="d-none d-md-table-cell">Report Date</th>
+                            <th scope="col" class="d-none d-md-table-cell">Entitled Days</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -56,8 +56,8 @@
                             <th scope="row">{{ ($summaries->currentPage() - 1) * $summaries->perPage() + $loop->iteration }}</th>
                             <td>{{ $summary->department->name ?? '-' }}</td>
                             <td>{{ $summary->leaveType->name ?? '-' }}</td>
-                            <td>{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
-                            <td class="text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
+                            <td class="d-none d-md-table-cell text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -282,14 +282,6 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        {{-- <div class="mb-3">
-                            <label for="entitled" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
-                            <input type="number" step="0.5" name="entitled" id="entitled" class="form-control @error('entitled') is-invalid @enderror"
-                                   value="{{ old('entitled') }}" readonly required>
-                            @error('entitled')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -336,6 +328,11 @@
     }
     .btn-close-white {
         filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    @media screen and (max-width: 767px) {
+        .d-none.d-md-table-cell {
+            display: none !important;
+        }
     }
 </style>
 @endsection
