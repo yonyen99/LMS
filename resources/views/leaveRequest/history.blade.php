@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid  py-4">
+<div class="container-fluid  py-2">
     <div class="card card-1  card-2 border-0">
         <div class="card-header  card-2  ">
             <h4 class="mb-0">Leave Change History</h4>
