@@ -44,8 +44,8 @@
                         <tr>
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Name</th>
-                            <th scope="col">Description</th>
-                            <th scope="col">Typical Annual Requests</th>
+                            <th scope="col" class="d-none d-md-table-cell">Description</th>
+                            <th scope="col" class="d-none d-md-table-cell">Typical Annual Requests</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -54,8 +54,8 @@
                         <tr>
                             <th scope="row">{{ ($leaveTypes->currentPage() - 1) * $leaveTypes->perPage() + $loop->iteration }}</th>
                             <td>{{ $type->name }}</td>
-                            <td>{{ Str::limit($type->description, 50) }}</td>
-                            <td>{{ $type->typical_annual_requests ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ Str::limit($type->description, 50) }}</td>
+                            <td class="d-none d-md-table-cell">{{ $type->typical_annual_requests ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -286,6 +286,7 @@
     </div>
     @endcan
 </div>
+@endsection
 
 @section('styles')
 <style>
@@ -320,6 +321,11 @@
     }
     .btn-close-white {
         filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    @media screen and (max-width: 767px) {
+        .d-none.d-md-table-cell {
+            display: none !important;
+        }
     }
 </style>
 @endsection
@@ -363,5 +369,4 @@
         });
     });
 </script>
-@endsection
 @endsection
