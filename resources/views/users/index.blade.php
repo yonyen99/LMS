@@ -7,7 +7,7 @@
             <h5 class="mb-0">User Management Dashboard</h5>
             @can('create-user')
                 <a href="{{ route('users.create') }}" class="btn btn-light btn-sm">
-                    <i class="bi bi-plus-circle me-1"></i> Add New User
+                    <i class="bi bi-plus-circle me-1"></i>Add User
                 </a>
             @endcan
         </div>
@@ -156,7 +156,7 @@
                                     </li>
                                     @endcan
                                     @can('delete-user')
-                                        @if(!$user->hasRole('Super Admin') && $user->id != auth()->user()->id)
+                                        @if(!$user->hasRole('Admin') && $user->id != auth()->user()->id)
                                         <li>
                                             <form action="{{ route('users.destroy', $user->id) }}" method="post" class="d-inline">
                                                 @csrf

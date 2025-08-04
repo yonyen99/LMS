@@ -84,7 +84,7 @@ class UserController extends Controller
     public function edit(User $user): View
     {
         // Check Only Super Admin can update his own Profile
-        if ($user->hasRole('Super Admin')){
+        if ($user->hasRole('Admin')){
             if($user->id != auth()->user()->id){
                 abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
             }
@@ -133,7 +133,7 @@ class UserController extends Controller
     public function destroy(User $user): RedirectResponse
     {
         // About if user is Super Admin or user is deleting himself
-        if ($user->hasRole('Super Admin') || $user->id == auth()->user()->id)
+        if ($user->hasRole('Admin') || $user->id == auth()->user()->id)
         {
             abort(403, 'USER DOES NOT HAVE THE RIGHT PERMISSIONS');
         }

@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Yasumi\Yasumi;
 use Illuminate\Support\Facades\Http;
 
 class LeaveRequestController extends Controller
@@ -257,18 +260,21 @@ class LeaveRequestController extends Controller
 
         $nonWorkingDaysQuery = NonWorkingDay::query();
 
-        if ($user->hasRole('Admin')) {
-            // Admins can see all non-working days
-        } elseif ($user->hasRole('Manager')) {
-            $nonWorkingDaysQuery->where('department_id', $user->department_id);
-        } else {
-            $nonWorkingDaysQuery->whereNull('department_id');
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Admin') {
+            if ($user->role === 'Manager') {
+                // Managers see their department's non-working days
+                $nonWorkingDaysQuery->where('department_id', $user->department_id);
+            } else {
+                // Regular users see global non-working days (department_id = null)
+                $nonWorkingDaysQuery->whereNull('department_id');
+            }
         }
 
         $nonWorkingDays = $nonWorkingDaysQuery->get();
         $leaveTypes = LeaveType::all();
 
-        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+        return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 
     public function history($id)
@@ -442,4 +448,214 @@ class LeaveRequestController extends Controller
 
         return redirect()->back()->with('success', 'Leave request status updated.');
     }
+
+    // 1️⃣ My Calendar
+    public function individual(Request $request)
+    {
+        $user = Auth::user();
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
+
+        // Get non-working days based on user role
+        $nonWorkingDaysQuery = NonWorkingDay::query();
+
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Admin') {
+            if ($user->role === 'Manager') {
+                // Managers see their department's non-working days
+                $nonWorkingDaysQuery->where('department_id', $user->department_id);
+            } else {
+                // Regular users see global non-working days (department_id = null)
+                $nonWorkingDaysQuery->whereNull('department_id');
+            }
+        }
+
+        $nonWorkingDays = $nonWorkingDaysQuery->get();
+        $leaveTypes = LeaveType::all();
+
+        return view('calendars.individual', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+    }
+
+
+
+    protected function getCambodianHolidays($year)
+    {
+        $response = Http::get('https://calendarific.com/api/v2/holidays', [
+            'api_key' => env('CALENDARIFIC_API_KEY'),
+            'country' => 'KH',
+            'year' => $year,
+            'type' => 'national'
+        ]);
+
+        if ($response->failed()) {
+            return []; // fallback if error
+        }
+
+        $data = $response->json();
+
+        $holidays = [];
+
+        foreach ($data['response']['holidays'] ?? [] as $holiday) {
+            $date = $holiday['date']['iso']; // e.g. "2025-04-14"
+            $name = $holiday['name'];
+            $holidays[$date] = $name;
+        }
+
+        return $holidays;
+    }
+    
+    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    public function yearly(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        $user = auth()->user();
+
+        $leaveRequests = LeaveRequest::where('user_id', $user->id)
+            ->where(function ($query) use ($year) {
+                $query->whereDate('start_date', '<=', "$year-12-31")
+                    ->whereDate('end_date', '>=', "$year-01-01");
+            })
+            ->get();
+
+        $holidays = $this->getCambodianHolidays($year);
+
+        return view('calendars.yearly', compact('leaveRequests', 'year', 'holidays'));
+    }
+
+
+    // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
+    public function workmates(Request $request)
+    {
+        $user = auth()->user();
+
+        // Admins see all users
+        if ($user->hasRole('Admin')) { // or use $user->is_admin if using a boolean flag
+            $workmates = User::all();
+        } else {
+            $workmates = User::where('department_id', $user->department_id)->get();
+        }
+        
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+        $currentDate = Carbon::create($year, $month, 1);
+
+        // Always start on Sunday and end on Saturday
+        $startDate = $currentDate->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
+        $endDate = $currentDate->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
+
+        // Fetch leave requests more efficiently
+        $leaveRequests = LeaveRequest::with('user')
+            ->whereIn('user_id', $workmates->pluck('id'))
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_date', '<', $startDate)
+                        ->where('end_date', '>', $endDate);
+                });
+            })
+            ->get();
+
+        $statusColors = [
+            'Planned' => '#A59F9F',
+            'Accepted' => '#447F44',
+            'Requested' => '#FC9A1D',
+            'Rejected' => '#F80300',
+            'Cancellation' => '#F80300',
+            'Canceled' => '#F80300',
+        ];
+
+        $leaveMap = [];
+
+        foreach ($leaveRequests as $leave) {
+            $start = Carbon::parse($leave->start_date)->startOfDay();
+            $end = Carbon::parse($leave->end_date)->startOfDay();
+            
+            // Create period including both start and end dates
+            $period = CarbonPeriod::create($start, $end);
+
+            foreach ($period as $date) {
+                $dateKey = $date->format('Y-m-d');
+                $isFirstDay = $date->isSameDay($start);
+                $isLastDay = $date->isSameDay($end);
+
+                $isHalfDay = false;
+                $halfDayType = null;
+
+                // Half-day logic
+                if ($isFirstDay && $isLastDay) {
+                    // Single day leave
+                    if ($leave->start_time === 'morning' && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    } elseif ($leave->start_time === 'afternoon' && $leave->end_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    }
+                } else {
+                    // Multi-day leave
+                    if ($isFirstDay && $leave->start_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    } elseif ($isLastDay && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    }
+                }
+
+                $leaveMap[$leave->user->id][$dateKey] = [
+                    'status' => $leave->status,
+                    'name' => $leave->user->name,
+                    'is_half_day' => $isHalfDay,
+                    'half_day_type' => $halfDayType,
+                ];
+            }
+        }
+
+        // Build calendar weeks
+        $weeks = [];
+        $week = [];
+        $date = $startDate->copy();
+
+        while ($date <= $endDate) {
+            $dayData = [
+                'date' => $date->copy(),
+                'is_current_month' => $date->month == $currentDate->month,
+                'users' => [],
+            ];
+
+            foreach ($workmates as $workmate) {
+                $dateKey = $date->format('Y-m-d');
+                $leaveData = $leaveMap[$workmate->id][$dateKey] ?? null;
+
+                $dayData['users'][] = $leaveData ?: [
+                    'status' => null,
+                    'name' => $workmate->name,
+                    'is_half_day' => false,
+                    'half_day_type' => null,
+                ];
+            }
+
+            $week[] = $dayData;
+
+            if ($date->dayOfWeek == Carbon::SATURDAY) {
+                $weeks[] = $week;
+                $week = [];
+            }
+
+            $date->addDay();
+        }
+
+        // Ensure we don't miss the last week if it doesn't end on Saturday
+        if (!empty($week)) {
+            $weeks[] = $week;
+        }
+
+        return view('calendars.workmates', [
+            'weeks' => $weeks,
+            'currentDate' => $currentDate,
+            'workmates' => $workmates,
+            'statusColors' => $statusColors, // Pass to view
+        ]);
+    }
+
 }

@@ -120,7 +120,7 @@
 
     @if ((auth()->user()->hasRole('Employee') || auth()->user()->hasRole('Manager')) &&
                     !auth()->user()->hasRole('Admin') &&
-                    !auth()->user()->hasRole('Super Admin'))
+                    !auth()->user()->hasRole('HR'))
                 <div class="m-2">
                     <div class="card card-1 card-2 p-3 p-md-4 mb-4" >
                         <form method="GET" action="{{ route('home') }}">

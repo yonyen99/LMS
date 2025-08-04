@@ -75,6 +75,12 @@
             0% { transform: translate(-50%, -50%) rotate(0deg); }
             100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
+
+        @media screen and (max-width: 767px) {
+            .d-none.d-md-table-cell {
+                display: none !important;
+            }
+        }
     </style>
 
     <!-- Card -->
@@ -85,7 +91,7 @@
                 <i class="bi bi-people-fill me-2 text-gradient"></i>My Subordinates
             </h2>
             <p class="text-muted small mb-0 text-wrap" style="max-width: 100%;">
-                @if (Auth::user()->hasRole(['Admin', 'Super Admin']))
+                @if (Auth::user()->hasRole(['Admin', 'HR']))
                     View all Managers and Employees across departments. Filter by department below.
                 @else
                     View your direct report subordinates in your department.
@@ -95,7 +101,7 @@
 
         <!-- Filters -->
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center gap-3 mb-4">
-            @if (Auth::user()->hasRole(['Admin', 'Super Admin']))
+            @if (Auth::user()->hasRole(['Admin', 'HR']))
                 <form method="GET" action="{{ route('subordinates.index') }}" id="department-filter-form" class="w-100 w-md-auto">
                     <label for="department-select" class="fw-semibold me-2 mb-1">Department</label>
                     <select name="department_id" id="department-select" class="form-select department-select" onchange="this.form.submit()">
@@ -132,8 +138,8 @@
                         <th scope="col" class="fw-bold p-3">#</th>
                         <th scope="col" class="fw-bold p-3">First Name</th>
                         <th scope="col" class="fw-bold p-3">Last Name</th>
-                        <th scope="col" class="fw-bold p-3">E-mail</th>
-                        <th scope="col" class="fw-bold p-3">Status</th>
+                        <th scope="col" class="fw-bold p-3 d-none d-md-table-cell">E-mail</th>
+                        <th scope="col" class="fw-bold p-3 d-none d-md-table-cell">Status</th>
                         <th scope="col" class="fw-bold p-3">Role</th>
                     </tr>
                 </thead>
@@ -143,8 +149,8 @@
                             <td class="fw-medium p-3">{{ $subordinates->firstItem() + $loop->index }}</td>
                             <td class="p-3">{{ $subordinate->first_name }}</td>
                             <td class="p-3">{{ $subordinate->last_name }}</td>
-                            <td class="p-3">{{ $subordinate->email }}</td>
-                            <td class="p-3">
+                            <td class="p-3 d-none d-md-table-cell">{{ $subordinate->email }}</td>
+                            <td class="p-3 d-none d-md-table-cell">
                                 @if ($subordinate->is_active)
                                     <span class="badge bg-success" data-bs-toggle="tooltip" title="User is active">Active</span>
                                 @else

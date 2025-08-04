@@ -44,7 +44,7 @@
                         <tr>
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Role Name</th>
-                            <th scope="col">Permissions</th>
+                            <th scope="col" class="d-none d-md-table-cell">Permissions</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -54,14 +54,14 @@
                             <th scope="row">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</th>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <span class="badge bg-{{ $role->name == 'Super Admin' ? 'danger' : 'primary' }} me-2">
-                                        {{ $role->name == 'Super Admin' ? 'Admin' : substr($role->name, 0, 1) }}
+                                    <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
+                                        {{ $role->name == 'Admin' ? 'Admin' : substr($role->name, 0, 1) }}
                                     </span>
                                     {{ $role->name }}
                                 </div>
                             </td>
                             <td>
-                                @if ($role->name == 'Super Admin')
+                                @if ($role->name == 'Admin')
                                     <span class="badge bg-success p-2">All Permissions</span>
                                 @else
                                     @forelse ($role->permissions->take(3) as $permission)
@@ -91,7 +91,7 @@
                                                 <i class="bi bi-eye"></i> View
                                             </button>
                                         </li>
-                                        @if ($role->name != 'Super Admin')
+                                        @if ($role->name != 'Admin')
                                             @can('edit-role')
                                             <li>
                                                 <button class="dropdown-item d-flex align-items-center gap-2" 
@@ -131,7 +131,7 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">Permissions:</label>
-                                            @if ($role->name == 'Super Admin')
+                                            @if ($role->name == 'Admin')
                                                 <p><span class="badge bg-success p-2">All Permissions</span></p>
                                             @else
                                                 <p>
@@ -162,7 +162,7 @@
                         </div>
 
                         {{-- Edit Role Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('edit-role')
                             <div class="modal fade" id="editRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="editRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
@@ -186,12 +186,6 @@
                                                 <div class="mb-3">
                                                     <label class="form-label fw-bold">Permissions</label>
                                                     <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
-                                                        <div class="form-check mb-2">
-                                                            <input class="form-check-input select-all-permissions" type="checkbox" id="selectAllPermissionsEdit{{ $role->id }}">
-                                                            <label class="form-check-label fw-bold" for="selectAllPermissionsEdit{{ $role->id }}">
-                                                                Select All
-                                                            </label>
-                                                        </div>
                                                         @if(isset($permissions) && $permissions->count() > 0)
                                                             @forelse ($permissions as $permission)
                                                                 <div class="form-check">
@@ -228,7 +222,7 @@
                         @endif
 
                         {{-- Delete Confirmation Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('delete-role')
                             <div class="modal fade" id="deleteRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="deleteRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
@@ -309,12 +303,6 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold">Permissions</label>
                             <div class="border rounded p-3" style="max-height: 210px; overflow-y: auto;">
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input select-all-permissions" type="checkbox" id="selectAllPermissionsCreate">
-                                    <label class="form-check-label fw-bold" for="selectAllPermissionsCreate">
-                                        Select All
-                                    </label>
-                                </div>
                                 @if(isset($permissions) && $permissions->count() > 0)
                                     @forelse ($permissions as $permission)
                                         <div class="form-check">
@@ -392,6 +380,11 @@
     }
     .btn-close-white {
         filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    @media screen and (max-width: 767px) {
+        .d-none.d-md-table-cell {
+            display: none !important;
+        }
     }
 </style>
 @endsection
