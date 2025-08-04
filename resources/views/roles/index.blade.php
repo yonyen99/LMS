@@ -37,7 +37,7 @@
                         <td>
                             <div class="d-flex align-items-center">
                                 <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
-                                    {{ $role->name == 'HR' ? 'Admin' : substr($role->name, 0, 1) }}
+                                    {{ $role->name == 'Admin' ? 'Admin' : substr($role->name, 0, 1) }}
                                 </span>
                                 {{ $role->name }}
                             </div>

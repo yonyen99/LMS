@@ -75,7 +75,7 @@ class RoleController extends Controller
      */
     public function edit(Role $role): View
     {
-        if($role->name=='Admin'){
+        if($role->name =='Admin'){
             abort(403, 'SUPER ADMIN ROLE CAN NOT BE EDITED');
         }
 

@@ -26,7 +26,7 @@
                     <div class="row mb-4">
                         <label class="col-md-4 fw-bold text-md-end">Permissions:</label>
                         <div class="col-md-8">
-                            @if ($role->name == 'Super Admin')
+                            @if (in_array($role->name, ['Admin', 'HR']))
                                 <span class="badge bg-success fs-6 p-2 mb-2">
                                     <i class="fas fa-shield-alt me-1"></i> All Permissions
                                 </span>
@@ -42,28 +42,37 @@
                         </div>
                     </div>
 
-                    @if(auth()->user()->can('role-edit') || auth()->user()->can('role-delete'))
-                    <div class="row">
-                        <div class="col-md-8 offset-md-4">
-                            <div class="d-flex gap-2">
-                                @can('role-edit')
-                                <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-warning">
-                                    <i class="fas fa-edit me-1"></i> Edit Role
-                                </a>
-                                @endcan
+                    @php
+                        $user = auth()->user();
+                        $userRoleNames = $user->getRoleNames()->toArray(); 
+                    @endphp
 
-                                @can('role-delete')
-                                <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this role?')">
-                                        <i class="fas fa-trash me-1"></i> Delete Role
-                                    </button>
-                                </form>
-                                @endcan
+                    @if(
+                        ($user->can('role-edit') || $user->can('role-delete')) &&
+                        !in_array('Admin', $userRoleNames) &&
+                        !in_array('HR', $userRoleNames)
+                    )
+                        <div class="row">
+                            <div class="col-md-8 offset-md-4">
+                                <div class="d-flex gap-2">
+                                    @can('role-edit')
+                                    <a href="{{ route('roles.edit', $role->id) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit me-1"></i> Edit Role
+                                    </a>
+                                    @endcan
+
+                                    @can('role-delete')
+                                    <form action="{{ route('roles.destroy', $role->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this role?')">
+                                            <i class="fas fa-trash me-1"></i> Delete Role
+                                        </button>
+                                    </form>
+                                    @endcan
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @endif
                 </div>
             </div>

@@ -11,6 +11,7 @@
     <link rel="icon" href="{{ asset('img/logo.avif') }}" type="image/avif">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -260,7 +261,7 @@
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar'])) ? 'active' : '' }}"
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['calendar.individual'])) ? 'active' : '' }}"
                                             href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Requested</a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="requestDropdown">
@@ -286,7 +287,7 @@
                                                     href="{{ route($routeName) }}">Counters</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.index' ? 'active' : '' }}"
                                                     href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['leave-requests.calendar']) ? 'active' : '' }}"
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['calendar.individual']) ? 'active' : '' }}"
                                                     href="{{ route('leave-requests.create') }}">Request a leave</a></li>
                                             <li>
                                                 <hr class="dropdown-divider">
@@ -303,18 +304,18 @@
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
                                     <li class="nav-item dropdown me-3">
-                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['leave-requests.calendar', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['calendars.individual', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
                                             href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Calendar</a>
                                         <ul class="dropdown-menu card-1 card-2" aria-labelledby="calendarDropdown">
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.calendar' ? 'active' : '' }}"
-                                                    href="{{ route('leave-requests.calendar') }}">My Calendar</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.individual' ? 'active' : '' }}"
+                                                    href="{{ route('calendars.individual') }}">My Calendar</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.yearly' ? 'active' : '' }}"
-                                                    href="#">Yearly Calendar</a></li>
+                                                    href="{{ route('calendars.yearly') }}">Yearly Calendar</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.workmates' ? 'active' : '' }}"
-                                                    href="#">My Workmates</a></li>
+                                                    href="{{ route('calendars.workmates') }}">My Workmates</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.department' ? 'active' : '' }}"
-                                                    href="#">Department</a></li>
+                                                    href="{{ route('calendars.department') }}">Department</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.global' ? 'active' : '' }}"
                                                     href="#">Global</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.tabular' ? 'active' : '' }}"
@@ -477,7 +478,7 @@
             </div>
         </main>
     </div>
-    @section('scripts')
+    {{-- @section('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const bellButton = document.getElementById('notificationToggle');
@@ -545,7 +546,7 @@
                 `;
                 });
             });
-        </script>
+        </script> --}}
     </body>
 
     </html>

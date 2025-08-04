@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class LeaveRequestController extends Controller
 {
@@ -263,7 +264,7 @@ class LeaveRequestController extends Controller
         $nonWorkingDays = $nonWorkingDaysQuery->get();
         $leaveTypes = LeaveType::all();
 
-        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+        return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 
     public function history($id)
@@ -439,5 +440,63 @@ class LeaveRequestController extends Controller
         }
 
         return redirect()->back()->with('success', 'Leave request status updated.');
+    }
+
+    // 1️⃣ My Calendar
+    public function individual(Request $request)
+    {
+        $user = Auth::user();
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
+
+        // Get non-working days based on user role
+        $nonWorkingDaysQuery = NonWorkingDay::query();
+
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Admin') {
+            if ($user->role === 'Manager') {
+                // Managers see their department's non-working days
+                $nonWorkingDaysQuery->where('department_id', $user->department_id);
+            } else {
+                // Regular users see global non-working days (department_id = null)
+                $nonWorkingDaysQuery->whereNull('department_id');
+            }
+        }
+
+        $nonWorkingDays = $nonWorkingDaysQuery->get();
+        $leaveTypes = LeaveType::all();
+
+        return view('calendars.individual', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+    }
+
+
+
+    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    public function yearly()
+    {
+        $user = Auth::user();
+
+        $leaveRequests = LeaveRequest::with('leaveType')
+            ->where('user_id', $user->id)
+            ->get();
+
+        $leaveTypes = LeaveType::all();
+
+        return view('calendars.yearly', compact('leaveRequests', 'leaveTypes'));
+    }
+
+    // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
+    public function workmates()
+    {
+        $user = Auth::user();
+
+        $workmates = User::where('department_id', $user->department_id)
+            ->where('id', '!=', $user->id)
+            ->get();
+
+        $leaveRequests = LeaveRequest::with('leaveType', 'user')
+            ->whereIn('user_id', $workmates->pluck('id'))
+            ->get();
+
+        return view('calendars.workmates', compact('leaveRequests', 'workmates'));
     }
 }
