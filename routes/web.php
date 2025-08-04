@@ -26,14 +26,13 @@ Auth::routes(['register' => false]);
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
+    //Calendar
     Route::get('/calendars.department', [LeaveRequestController::class, 'calendar'])->name('calendars.department');
     Route::get('/calendars/individual', [LeaveRequestController::class, 'individual'])->name('calendars.individual');
     Route::get('/calendars/yearly', [LeaveRequestController::class, 'yearly'])->name('calendars.yearly');
     Route::get('/calendars/workmates', [LeaveRequestController::class, 'workmates'])->name('calendars.workmates');
 
-
-
-
+    //user requested and cancel
     Route::get('/leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
     Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');

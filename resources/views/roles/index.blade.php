@@ -54,14 +54,14 @@
                             <th scope="row">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</th>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <span class="badge bg-{{ $role->name == 'Super Admin' ? 'danger' : 'primary' }} me-2">
-                                        {{ $role->name == 'Super Admin' ? 'Admin' : substr($role->name, 0, 1) }}
+                                    <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
+                                        {{ $role->name == 'Admin' ? 'Admin' : substr($role->name, 0, 1) }}
                                     </span>
                                     {{ $role->name }}
                                 </div>
                             </td>
-                            <td class="d-none d-md-table-cell">
-                                @if ($role->name == 'Super Admin')
+                            <td>
+                                @if ($role->name == 'Admin')
                                     <span class="badge bg-success p-2">All Permissions</span>
                                 @else
                                     @forelse ($role->permissions->take(3) as $permission)
@@ -91,7 +91,7 @@
                                                 <i class="bi bi-eye"></i> View
                                             </button>
                                         </li>
-                                        @if ($role->name != 'Super Admin')
+                                        @if ($role->name != 'Admin')
                                             @can('edit-role')
                                             <li>
                                                 <button class="dropdown-item d-flex align-items-center gap-2" 
@@ -131,7 +131,7 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">Permissions:</label>
-                                            @if ($role->name == 'Super Admin')
+                                            @if ($role->name == 'Admin')
                                                 <p><span class="badge bg-success p-2">All Permissions</span></p>
                                             @else
                                                 <p>
@@ -162,7 +162,7 @@
                         </div>
 
                         {{-- Edit Role Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('edit-role')
                             <div class="modal fade" id="editRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="editRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
@@ -222,7 +222,7 @@
                         @endif
 
                         {{-- Delete Confirmation Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('delete-role')
                             <div class="modal fade" id="deleteRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="deleteRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
