@@ -521,7 +521,14 @@ class LeaveRequestController extends Controller
     // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
     public function workmates(Request $request)
     {
-        $workmates = User::all();
+        $user = auth()->user();
+
+        // Admins see all users
+        if ($user->hasRole('Admin')) { // or use $user->is_admin if using a boolean flag
+            $workmates = User::all();
+        } else {
+            $workmates = User::where('department_id', $user->department_id)->get();
+        }
         
         $month = $request->input('month', now()->month);
         $year = $request->input('year', now()->year);
