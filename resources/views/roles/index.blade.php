@@ -13,56 +13,6 @@
                 @endcan
             </div>
         </div>
-<<<<<<< HEAD
-    </div>
-    <div class="card-body">
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
-
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th scope="col" width="60px">#</th>
-                        <th scope="col">Role Name</th>
-                        <th scope="col" width="100px">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($roles as $role)
-                    <tr>
-                        <th scope="row">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</th>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
-                                    {{ $role->name == 'Admin' ? 'Admin' : substr($role->name, 0, 1) }}
-                                </span>
-                                {{ $role->name }}
-                            </div>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                                        type="button" 
-                                        id="actionsDropdown{{ $role->id }}" 
-                                        data-bs-toggle="dropdown" 
-                                        aria-expanded="false">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu card-1 bg-white" aria-labelledby="actionsDropdown{{ $role->id }}">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('roles.show', $role->id) }}">
-                                            <i class="bi bi-eye me-2"></i> View
-                                        </a>
-                                    </li>
-                                    @if ($role->name != 'Admin')
-                                        @can('edit-role')
-=======
         <div class="card-body">
             {{-- Dashboard summary card: Total Roles --}}
             <div class="row mb-4 border-bottom pb-4">
@@ -104,14 +54,14 @@
                             <th scope="row">{{ ($roles->currentPage() - 1) * $roles->perPage() + $loop->iteration }}</th>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <span class="badge bg-{{ $role->name == 'Super Admin' ? 'danger' : 'primary' }} me-2">
-                                        {{ $role->name == 'Super Admin' ? 'Admin' : substr($role->name, 0, 1) }}
+                                    <span class="badge bg-{{ $role->name == 'Admin' ? 'danger' : 'primary' }} me-2">
+                                        {{ $role->name == 'Admin' ? 'Admin' : substr($role->name, 0, 1) }}
                                     </span>
                                     {{ $role->name }}
                                 </div>
                             </td>
                             <td>
-                                @if ($role->name == 'Super Admin')
+                                @if ($role->name == 'Admin')
                                     <span class="badge bg-success p-2">All Permissions</span>
                                 @else
                                     @forelse ($role->permissions->take(3) as $permission)
@@ -134,7 +84,6 @@
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $role->id }}">
->>>>>>> 11feeb2449091a5ede933ffadadda2284f57ed97
                                         <li>
                                             <button class="dropdown-item d-flex align-items-center gap-2" 
                                                     data-bs-toggle="modal" 
@@ -142,7 +91,7 @@
                                                 <i class="bi bi-eye"></i> View
                                             </button>
                                         </li>
-                                        @if ($role->name != 'Super Admin')
+                                        @if ($role->name != 'Admin')
                                             @can('edit-role')
                                             <li>
                                                 <button class="dropdown-item d-flex align-items-center gap-2" 
@@ -182,7 +131,7 @@
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label fw-bold">Permissions:</label>
-                                            @if ($role->name == 'Super Admin')
+                                            @if ($role->name == 'Admin')
                                                 <p><span class="badge bg-success p-2">All Permissions</span></p>
                                             @else
                                                 <p>
@@ -213,7 +162,7 @@
                         </div>
 
                         {{-- Edit Role Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('edit-role')
                             <div class="modal fade" id="editRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="editRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
@@ -279,7 +228,7 @@
                         @endif
 
                         {{-- Delete Confirmation Modal --}}
-                        @if ($role->name != 'Super Admin')
+                        @if ($role->name != 'Admin')
                             @can('delete-role')
                             <div class="modal fade" id="deleteRoleModal{{ $role->id }}" tabindex="-1" aria-labelledby="deleteRoleModalLabel{{ $role->id }}" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">

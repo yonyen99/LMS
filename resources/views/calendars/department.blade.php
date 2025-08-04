@@ -13,7 +13,7 @@
                     </button>
                     @endcan
                     
-                    @canany(['create-non-working-day', 'Super Admin'])
+                    @canany(['create-non-working-day', 'Admin'])
                     <button class="btn btn-secondary btn-sm" onclick="showNonWorkingDayModal()">
                         <i class="bi bi-calendar-x me-1"></i> <span class="d-none d-md-inline">Add Non-Working Day</span>
                     </button>
@@ -238,7 +238,7 @@
                                             <option value="full">Full Day</option>
                                         </select>
                                     </div>
-                                    @if(auth()->user()->hasRole('Super Admin'))
+                                    @if(auth()->user()->hasRole('Admin'))
                                     <div class="col-12">
                                         <label for="nwd_department_id" class="form-label small mb-0">Department (leave blank for global)</label>
                                         <select name="department_id" id="nwd_department_id" class="form-select form-select-sm">
@@ -585,7 +585,7 @@ function showNonWorkingDayModal(nwd = null) {
         document.getElementById('nwd_end_date').value = nwd.end ? new Date(new Date(nwd.end).setDate(new Date(nwd.end).getDate() - 1)).toISOString().split('T')[0] : '';
         document.getElementById('nwd_end_time').value = nwd.end_time || '';
         document.getElementById('nwd_description').value = nwd.description || '';
-        @if(auth()->user()->hasRole('Super Admin'))
+        @if(auth()->user()->hasRole('Admin'))
             document.getElementById('nwd_department_id').value = nwd.department_id || '';
         @endif
     } else {
@@ -601,7 +601,7 @@ function showNonWorkingDayModal(nwd = null) {
         document.getElementById('nwd_end_date').value = '';
         document.getElementById('nwd_end_time').value = '';
         document.getElementById('nwd_description').value = '';
-        @if(auth()->user()->hasRole('Super Admin'))
+        @if(auth()->user()->hasRole('Admin'))
             document.getElementById('nwd_department_id').value = '';
         @endif
     }

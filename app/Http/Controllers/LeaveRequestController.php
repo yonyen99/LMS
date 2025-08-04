@@ -19,6 +19,8 @@ use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use Yasumi\Yasumi;
+use Illuminate\Support\Facades\Http;
 
 class LeaveRequestController extends Controller
 {
@@ -470,19 +472,50 @@ class LeaveRequestController extends Controller
 
 
 
-    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
-    public function yearly()
+    protected function getCambodianHolidays($year)
     {
-        $user = Auth::user();
+        $response = Http::get('https://calendarific.com/api/v2/holidays', [
+            'api_key' => env('CALENDARIFIC_API_KEY'),
+            'country' => 'KH',
+            'year' => $year,
+            'type' => 'national'
+        ]);
 
-        $leaveRequests = LeaveRequest::with('leaveType')
-            ->where('user_id', $user->id)
+        if ($response->failed()) {
+            return []; // fallback if error
+        }
+
+        $data = $response->json();
+
+        $holidays = [];
+
+        foreach ($data['response']['holidays'] ?? [] as $holiday) {
+            $date = $holiday['date']['iso']; // e.g. "2025-04-14"
+            $name = $holiday['name'];
+            $holidays[$date] = $name;
+        }
+
+        return $holidays;
+    }
+    
+    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    public function yearly(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        $user = auth()->user();
+
+        $leaveRequests = LeaveRequest::where('user_id', $user->id)
+            ->where(function ($query) use ($year) {
+                $query->whereDate('start_date', '<=', "$year-12-31")
+                    ->whereDate('end_date', '>=', "$year-01-01");
+            })
             ->get();
 
-        $leaveTypes = LeaveType::all();
+        $holidays = $this->getCambodianHolidays($year);
 
-        return view('calendars.yearly', compact('leaveRequests', 'leaveTypes'));
+        return view('calendars.yearly', compact('leaveRequests', 'year', 'holidays'));
     }
+
 
     // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
     public function workmates()
