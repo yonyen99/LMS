@@ -120,7 +120,7 @@ class NotificationController extends Controller
         }
 
         // ❌ Only Admin, HR, or Super Admin can modify Manager requests
-        if ($requestUser->hasRole('Manager') && !$actingUser->hasAnyRole(['Admin', 'HR', 'Super Admin'])) {
+        if ($requestUser->hasRole('Manager') && !$actingUser->hasAnyRole(['Admin', 'HR'])) {
             return redirect()->route('notifications.index')->with('error', 'You are not authorized to update a Manager’s leave request.');
         }
 

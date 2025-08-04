@@ -13,6 +13,91 @@
                 @endcan
             </div>
         </div>
+<<<<<<< HEAD
+    </div>
+    <div class="container-fluid py-2">
+        <div class="row">
+                  <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
+                    {{-- Create Button --}}
+                    <div class="text-end mb-3">
+                        <a href="{{ route('leave-summaries.create') }}" class="btn btn-primary rounded-pill shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Create New
+                        </a>
+                    </div>
+
+                    {{-- Summary Table --}}
+                    <div class="table-responsive">
+                        <table class="table table-hover table-bordered align-middle">
+                            <thead class="table-light">
+                                <tr class="text-center">
+                                    <th>#</th>
+                                    <th>Department</th>
+                                    <th>Leave Type</th>
+                                    <th>Report Date</th>
+                                    <th>Entitled Days</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($summaries as $summary)
+                                    <tr>
+                                        <td class="text-center">
+                                            {{ ($summaries->currentPage() - 1) * $summaries->perPage() + $loop->iteration }}
+                                        </td>
+                                        <td>{{ $summary->department->name ?? '-' }}</td>
+                                        <td>{{ $summary->leaveType->name ?? '-' }}</td>
+                                        <td>{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
+                                        <td class="text-center">{{ $summary->entitled }}</td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button 
+                                                    class="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3" 
+                                                    type="button" 
+                                                    id="actionsDropdown{{ $summary->id }}" 
+                                                    data-bs-toggle="dropdown" 
+                                                    aria-expanded="false"
+                                                >
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $summary->id }}">
+                                                    {{-- Edit --}}
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center" href="{{ route('leave-summaries.edit', $summary->id) }}">
+                                                            <i class="bi bi-pencil-square text-warning me-2"></i> Edit
+                                                        </a>
+                                                    </li>
+                                                    {{-- Delete --}}
+                                                    <li>
+                                                        <form action="{{ route('leave-summaries.destroy', $summary->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this summary?');">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="dropdown-item d-flex align-items-center text-danger">
+                                                                <i class="bi bi-trash me-2"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="bi bi-info-circle-fill me-2"></i> No leave summaries found.
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Pagination --}}
+                    @if ($summaries->hasPages())
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mt-4 gap-2">
+                            <div class="text-muted small">
+                                Showing {{ $summaries->firstItem() ?? 0 }} to {{ $summaries->lastItem() ?? 0 }} of {{ $summaries->total() }} entries
+                            </div>
+=======
         <div class="card-body">
             {{-- Dashboard summary card: Total Leave Summaries --}}
             <div class="row mb-4 border-bottom pb-4">
@@ -20,6 +105,7 @@
                     <div class="card border-start border-primary border-3 shadow-sm h-100">
                         <div class="card-body d-flex align-items-center gap-3">
                             <i class="bi bi-bar-chart-fill text-primary fs-1"></i>
+>>>>>>> 11feeb2449091a5ede933ffadadda2284f57ed97
                             <div>
                                 <h6 class="text-muted mb-1">Total Leave Summaries</h6>
                                 <h4 class="mb-0">{{ $summaries->total() }}</h4>
@@ -57,7 +143,7 @@
                             <td>{{ $summary->department->name ?? '-' }}</td>
                             <td>{{ $summary->leaveType->name ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
-                            <td class="text-center">{{ $summary->entitled }}</td>
+                            <td class="text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -123,11 +209,11 @@
                                             </div>
                                             <div class="mb-3">
                                                 <label for="leave_type_id{{ $summary->id }}" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                                                <select name="leave_type_id" id="leave_type_id{{ $summary->id }}" class="form-select @error('leave_type_id') is-invalid @enderror" required>
+                                                <select name="leave_type_id" id="leave_type_id{{ $summary->id }}" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled{{ $summary->id }}" required>
                                                     <option value="">Select Leave Type</option>
                                                     @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
                                                         @foreach ($leaveTypes as $type)
-                                                            <option value="{{ $type->id }}" {{ $summary->leave_type_id == $type->id ? 'selected' : '' }}>
+                                                            <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ $summary->leave_type_id == $type->id ? 'selected' : '' }}>
                                                                 {{ $type->name }}
                                                             </option>
                                                         @endforeach
@@ -150,7 +236,7 @@
                                             <div class="mb-3">
                                                 <label for="entitled{{ $summary->id }}" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
                                                 <input type="number" step="0.5" name="entitled" id="entitled{{ $summary->id }}" class="form-control @error('entitled') is-invalid @enderror"
-                                                       value="{{ old('entitled', $summary->entitled) }}" required>
+                                                       value="{{ old('entitled', $summary->leaveType->typical_annual_requests ?? '') }}" readonly required>
                                                 @error('entitled')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -258,11 +344,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="leave_type_id" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                            <select name="leave_type_id" id="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror" required>
+                            <select name="leave_type_id" id="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled" required>
                                 <option value="">Select Leave Type</option>
                                 @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
                                     @foreach ($leaveTypes as $type)
-                                        <option value="{{ $type->id }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
+                                        <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
                                             {{ $type->name }}
                                         </option>
                                     @endforeach
@@ -282,14 +368,14 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-                        <div class="mb-3">
+                        {{-- <div class="mb-3">
                             <label for="entitled" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
                             <input type="number" step="0.5" name="entitled" id="entitled" class="form-control @error('entitled') is-invalid @enderror"
-                                   value="{{ old('entitled') }}" required>
+                                   value="{{ old('entitled') }}" readonly required>
                             @error('entitled')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -374,6 +460,41 @@
                 if (button) {
                     button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Deleting...';
                     button.disabled = true;
+                }
+            });
+        });
+
+        // Handle leave type selection to auto-populate entitled days
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('leave-type-select')) {
+                const select = e.target;
+                console.log('Change event triggered on:', select.id); // Debug log
+                const leaveTypeId = select.value;
+                const entitledFieldId = select.getAttribute('data-entitled-field');
+                const entitledInput = document.getElementById(entitledFieldId);
+
+                if (entitledInput) {
+                    if (leaveTypeId) {
+                        const selectedOption = select.querySelector(`option[value="${leaveTypeId}"]`);
+                        const entitledDays = selectedOption ? selectedOption.getAttribute('data-entitled-days') : '';
+                        console.log('Selected leave type ID:', leaveTypeId, 'Entitled days:', entitledDays); // Debug log
+                        entitledInput.value = entitledDays !== '' && entitledDays !== null ? parseFloat(entitledDays) || 0 : '';
+                    } else {
+                        entitledInput.value = '';
+                    }
+                } else {
+                    console.error('Entitled input not found for field:', entitledFieldId); // Debug log
+                }
+            }
+        }, true);
+
+        // Trigger change event for pre-selected leave types after modal is shown
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('shown.bs.modal', function(e) {
+                const select = this.querySelector('.leave-type-select');
+                if (select && select.value) {
+                    console.log('Modal shown, triggering change for:', select.id); // Debug log
+                    select.dispatchEvent(new Event('change'));
                 }
             });
         });

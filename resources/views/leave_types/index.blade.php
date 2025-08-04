@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -166,7 +165,7 @@
                                             </div>
                                             <div class="mb-3">
                                                 <label for="typical_annual_requests{{ $type->id }}" class="form-label fw-bold">Typical Annual Requests</label>
-                                                <input type="text" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
+                                                <input type="number" min="0" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
                                                        id="typical_annual_requests{{ $type->id }}" name="typical_annual_requests" value="{{ old('typical_annual_requests', $type->typical_annual_requests) }}">
                                                 @error('typical_annual_requests')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -270,7 +269,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="typical_annual_requests" class="form-label fw-bold">Typical Annual Requests</label>
-                            <input type="text" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
+                            <input type="number" min="0" class="form-control @error('typical_annual_requests') is-invalid @enderror" 
                                    id="typical_annual_requests" name="typical_annual_requests" value="{{ old('typical_annual_requests') }}">
                             @error('typical_annual_requests')
                                 <div class="invalid-feedback">{{ $message }}</div>

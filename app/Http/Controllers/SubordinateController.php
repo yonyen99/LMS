@@ -22,7 +22,7 @@ class SubordinateController extends Controller
         $query = User::query();
 
         // For Admin and Super Admin, fetch all users with Manager or Employee roles across all departments
-        if ($user->hasRole(['Admin', 'Super Admin'])) {
+        if ($user->hasRole(['Admin', 'HR'])) {
             $query->whereHas('roles', function ($q) {
                 $q->whereIn('name', ['Manager', 'Employee']);
             });
@@ -36,7 +36,7 @@ class SubordinateController extends Controller
         }
 
         // Apply department filter for Admins/Super Admins if selected
-        if ($user->hasRole(['Admin', 'Super Admin']) && $request->filled('department_id')) {
+        if ($user->hasRole(['Admin', 'HR']) && $request->filled('department_id')) {
             $query->where('department_id', $request->department_id);
         }
 

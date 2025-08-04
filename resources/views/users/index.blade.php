@@ -156,7 +156,7 @@
                                     </li>
                                     @endcan
                                     @can('delete-user')
-                                        @if(!$user->hasRole('Super Admin') && $user->id != auth()->user()->id)
+                                        @if(!$user->hasRole('Admin') && $user->id != auth()->user()->id)
                                         <li>
                                             <form action="{{ route('users.destroy', $user->id) }}" method="post" class="d-inline">
                                                 @csrf

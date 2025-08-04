@@ -26,12 +26,12 @@ class LeaveRequestPolicy
 
     public function updateStatus(User $user, LeaveRequest $leaveRequest)
     {
-        return in_array($user->role, ['Super Admin', 'HR', 'Manager', 'Department Head', 'Team Lead']);
+        return in_array($user->role, ['HR', 'Manager']);
     }
 
     public function export(User $user)
     {
         Log::info('Checking export permission for user: ' . $user->id . ' with roles: ' . implode(',', $user->roles->pluck('name')->toArray()));
-        return $user->hasAnyRole(['Super Admin', 'Manager', 'HR', 'Employee']);
+        return $user->hasAnyRole(['Admin', 'Manager', 'HR', 'Employee']);
     }
 }

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Carbon\Carbon;
 
 class LeaveRequestController extends Controller
 {
@@ -250,7 +251,7 @@ class LeaveRequestController extends Controller
         $nonWorkingDaysQuery = NonWorkingDay::query();
 
         // Replace hasRole with direct role check (assuming 'role' column exists)
-        if ($user->role !== 'Super Admin') {
+        if ($user->role !== 'Admin') {
             if ($user->role === 'Manager') {
                 // Managers see their department's non-working days
                 $nonWorkingDaysQuery->where('department_id', $user->department_id);
@@ -263,7 +264,7 @@ class LeaveRequestController extends Controller
         $nonWorkingDays = $nonWorkingDaysQuery->get();
         $leaveTypes = LeaveType::all();
 
-        return view('leaveRequest.calendar', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+        return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 
     public function history($id)
@@ -285,7 +286,7 @@ class LeaveRequestController extends Controller
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
-            if (!auth()->user()->hasRole('Super Admin')) {
+            if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
@@ -319,7 +320,7 @@ class LeaveRequestController extends Controller
             $leaveRequests = $query->get();
 
             $data = [
-                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
                 'user' => auth()->user(),
                 'leaveRequests' => $leaveRequests,
@@ -343,7 +344,7 @@ class LeaveRequestController extends Controller
                     'tempDir' => storage_path('app/temp')
                 ]);
 
-            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.pdf';
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.pdf';
 
             return $pdf->download($filename);
         } catch (\Exception $e) {
@@ -357,7 +358,7 @@ class LeaveRequestController extends Controller
         try {
             $this->authorize('export', \App\Models\LeaveRequest::class);
 
-            $filename = 'leave-requests-' . (auth()->user()->hasRole('Super Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
+            $filename = 'leave-requests-' . (auth()->user()->hasRole('Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
 
             return Excel::download(new LeaveRequestExport($request), $filename);
         } catch (\Exception $e) {
@@ -374,7 +375,7 @@ class LeaveRequestController extends Controller
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
-            if (!auth()->user()->hasRole('Super Admin')) {
+            if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
@@ -408,7 +409,7 @@ class LeaveRequestController extends Controller
             $leaveRequests = $query->get();
 
             $data = [
-                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Super Admin') ? 'All Users' : auth()->user()->name),
+                'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
                 'user' => auth()->user(),
                 'leaveRequests' => $leaveRequests,
@@ -439,5 +440,63 @@ class LeaveRequestController extends Controller
         }
 
         return redirect()->back()->with('success', 'Leave request status updated.');
+    }
+
+    // 1️⃣ My Calendar
+    public function individual(Request $request)
+    {
+        $user = Auth::user();
+        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
+
+        // Get non-working days based on user role
+        $nonWorkingDaysQuery = NonWorkingDay::query();
+
+        // Replace hasRole with direct role check (assuming 'role' column exists)
+        if ($user->role !== 'Admin') {
+            if ($user->role === 'Manager') {
+                // Managers see their department's non-working days
+                $nonWorkingDaysQuery->where('department_id', $user->department_id);
+            } else {
+                // Regular users see global non-working days (department_id = null)
+                $nonWorkingDaysQuery->whereNull('department_id');
+            }
+        }
+
+        $nonWorkingDays = $nonWorkingDaysQuery->get();
+        $leaveTypes = LeaveType::all();
+
+        return view('calendars.individual', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+    }
+
+
+
+    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    public function yearly()
+    {
+        $user = Auth::user();
+
+        $leaveRequests = LeaveRequest::with('leaveType')
+            ->where('user_id', $user->id)
+            ->get();
+
+        $leaveTypes = LeaveType::all();
+
+        return view('calendars.yearly', compact('leaveRequests', 'leaveTypes'));
+    }
+
+    // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
+    public function workmates()
+    {
+        $user = Auth::user();
+
+        $workmates = User::where('department_id', $user->department_id)
+            ->where('id', '!=', $user->id)
+            ->get();
+
+        $leaveRequests = LeaveRequest::with('leaveType', 'user')
+            ->whereIn('user_id', $workmates->pluck('id'))
+            ->get();
+
+        return view('calendars.workmates', compact('leaveRequests', 'workmates'));
     }
 }

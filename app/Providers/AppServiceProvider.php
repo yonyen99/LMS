@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
             if (Auth::check()) {
                 $user = Auth::user();
 
-                if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+                if ($user->hasRole(['Admin', 'HR'])) {
                     // Admins see all requested leave requests
                     $requests = LeaveRequest::where('status', 'Requested')->count();
                 } elseif ($user->hasRole('Manager')) {

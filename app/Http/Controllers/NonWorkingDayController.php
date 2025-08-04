@@ -42,7 +42,7 @@ class NonWorkingDayController extends Controller
         ]);
 
         // For managers, force their department ID
-        if (auth()->user()->hasRole('Manager') && !auth()->user()->hasRole('Super Admin')) {
+        if (auth()->user()->hasRole('Manager') && !auth()->user()->hasRole('Admin')) {
             $request->merge(['department_id' => auth()->user()->department_id]);
         }
 
@@ -87,7 +87,7 @@ class NonWorkingDayController extends Controller
         ]);
 
         // For managers, force their department ID
-        if (auth()->user()->hasRole('Manager') && !auth()->user()->hasRole('Super Admin')) {
+        if (auth()->user()->hasRole('Manager') && !auth()->user()->hasRole('Admin')) {
             $request->merge(['department_id' => auth()->user()->department_id]);
         }
 
