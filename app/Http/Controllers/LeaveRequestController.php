@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Yasumi\Yasumi;
 use Illuminate\Support\Facades\Http;
 
@@ -518,18 +519,139 @@ class LeaveRequestController extends Controller
 
 
     // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
-    public function workmates()
+    public function workmates(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        $workmates = User::where('department_id', $user->department_id)
-            ->where('id', '!=', $user->id)
-            ->get();
+        // Admins see all users
+        if ($user->hasRole('Admin')) { // or use $user->is_admin if using a boolean flag
+            $workmates = User::all();
+        } else {
+            $workmates = User::where('department_id', $user->department_id)->get();
+        }
+        
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+        $currentDate = Carbon::create($year, $month, 1);
 
-        $leaveRequests = LeaveRequest::with('leaveType', 'user')
+        // Always start on Sunday and end on Saturday
+        $startDate = $currentDate->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
+        $endDate = $currentDate->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
+
+        // Fetch leave requests more efficiently
+        $leaveRequests = LeaveRequest::with('user')
             ->whereIn('user_id', $workmates->pluck('id'))
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_date', '<', $startDate)
+                        ->where('end_date', '>', $endDate);
+                });
+            })
             ->get();
 
-        return view('calendars.workmates', compact('leaveRequests', 'workmates'));
+        $statusColors = [
+            'Planned' => '#A59F9F',
+            'Accepted' => '#447F44',
+            'Requested' => '#FC9A1D',
+            'Rejected' => '#F80300',
+            'Cancellation' => '#F80300',
+            'Canceled' => '#F80300',
+        ];
+
+        $leaveMap = [];
+
+        foreach ($leaveRequests as $leave) {
+            $start = Carbon::parse($leave->start_date)->startOfDay();
+            $end = Carbon::parse($leave->end_date)->startOfDay();
+            
+            // Create period including both start and end dates
+            $period = CarbonPeriod::create($start, $end);
+
+            foreach ($period as $date) {
+                $dateKey = $date->format('Y-m-d');
+                $isFirstDay = $date->isSameDay($start);
+                $isLastDay = $date->isSameDay($end);
+
+                $isHalfDay = false;
+                $halfDayType = null;
+
+                // Half-day logic
+                if ($isFirstDay && $isLastDay) {
+                    // Single day leave
+                    if ($leave->start_time === 'morning' && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    } elseif ($leave->start_time === 'afternoon' && $leave->end_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    }
+                } else {
+                    // Multi-day leave
+                    if ($isFirstDay && $leave->start_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    } elseif ($isLastDay && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    }
+                }
+
+                $leaveMap[$leave->user->id][$dateKey] = [
+                    'status' => $leave->status,
+                    'name' => $leave->user->name,
+                    'is_half_day' => $isHalfDay,
+                    'half_day_type' => $halfDayType,
+                ];
+            }
+        }
+
+        // Build calendar weeks
+        $weeks = [];
+        $week = [];
+        $date = $startDate->copy();
+
+        while ($date <= $endDate) {
+            $dayData = [
+                'date' => $date->copy(),
+                'is_current_month' => $date->month == $currentDate->month,
+                'users' => [],
+            ];
+
+            foreach ($workmates as $workmate) {
+                $dateKey = $date->format('Y-m-d');
+                $leaveData = $leaveMap[$workmate->id][$dateKey] ?? null;
+
+                $dayData['users'][] = $leaveData ?: [
+                    'status' => null,
+                    'name' => $workmate->name,
+                    'is_half_day' => false,
+                    'half_day_type' => null,
+                ];
+            }
+
+            $week[] = $dayData;
+
+            if ($date->dayOfWeek == Carbon::SATURDAY) {
+                $weeks[] = $week;
+                $week = [];
+            }
+
+            $date->addDay();
+        }
+
+        // Ensure we don't miss the last week if it doesn't end on Saturday
+        if (!empty($week)) {
+            $weeks[] = $week;
+        }
+
+        return view('calendars.workmates', [
+            'weeks' => $weeks,
+            'currentDate' => $currentDate,
+            'workmates' => $workmates,
+            'statusColors' => $statusColors, // Pass to view
+        ]);
     }
+
 }

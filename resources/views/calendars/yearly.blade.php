@@ -79,27 +79,14 @@
         }
 
         .invalid-day {
-            background: repeating-linear-gradient(
-                45deg,
-                #00d2f8,
-                #00ffff 10px,
-                #00ffff 10px,
-                #00ffff 20px
-            );
+            background: repeating-linear-gradient(45deg, #00d2f8, #00ffff 10px, #00ffff 10px, #00ffff 20px);
             opacity: 0.7;
         }
 
         .national-day {
-            background: repeating-linear-gradient(
-                45deg,
-                #ba0000,
-                #f90000 10px,
-                #f90000 10px,
-                #f90000 20px
-            );
+            background: repeating-linear-gradient(45deg, #ba0000, #f90000 10px, #f90000 10px, #f90000 20px);
             opacity: 0.7;
         }
-
     </style>
 
     <div class="table-responsive">
@@ -142,11 +129,18 @@
                                     @endphp
 
                                     @if ($target->between($start, $end))
-                                        @if (
-                                            ($request->start_time === 'morning' && $target->isSameDay($start)) ||
-                                            ($request->end_time === 'morning' && $target->isSameDay($end)) ||
-                                            ($request->start_time === 'morning' && $request->end_time === 'afternoon')
-                                        )
+                                        @php
+                                            $am = false;
+                                            if ($target->isSameDay($start)) {
+                                                $am = in_array($request->start_time, ['morning', 'full']);
+                                            } elseif ($target->isSameDay($end)) {
+                                                $am = in_array($request->end_time, ['morning', 'full']);
+                                            } else {
+                                                $am = true;
+                                            }
+                                        @endphp
+
+                                        @if ($am)
                                             @php
                                                 $amMatch = ['status' => $status, 'color' => $color, 'reason' => $reason];
                                             @endphp
@@ -191,11 +185,18 @@
                                     @endphp
 
                                     @if ($target->between($start, $end))
-                                        @if (
-                                            ($request->start_time === 'afternoon' && $target->isSameDay($start)) ||
-                                            ($request->end_time === 'afternoon' && $target->isSameDay($end)) ||
-                                            ($request->start_time === 'morning' && $request->end_time === 'afternoon')
-                                        )
+                                        @php
+                                            $pm = false;
+                                            if ($target->isSameDay($start)) {
+                                                $pm = in_array($request->start_time, ['afternoon', 'full']);
+                                            } elseif ($target->isSameDay($end)) {
+                                                $pm = in_array($request->end_time, ['afternoon', 'full']);
+                                            } else {
+                                                $pm = true;
+                                            }
+                                        @endphp
+
+                                        @if ($pm)
                                             @php
                                                 $pmMatch = ['status' => $status, 'color' => $color, 'reason' => $reason];
                                             @endphp
