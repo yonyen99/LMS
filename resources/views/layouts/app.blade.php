@@ -189,7 +189,7 @@
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center fw-bold" href="/">
                         <img src="{{ asset('img/logo.avif') }}" alt="Logo" class="me-2"
-                            style="height: 60px; border-radius: 5px;">
+                            style="height: 70px; border-radius: 5px;">
                     </a>
 
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -205,14 +205,14 @@
                                 </li>
 
                                 @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
-                                    <li class="nav-item me-3">
+                                    <li class="nav-item ">
                                         <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
                                             href="/">Dashboard</a>
                                     </li>
                                 @endunless
 
                                 @canany(['create-role', 'edit-role', 'delete-role'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown ">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
                                             href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Permissions</a>
@@ -232,7 +232,7 @@
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
-                                        <li class="nav-item dropdown me-3">
+                                        <li class="nav-item dropdown ">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
                                                 href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">Approval</a>
@@ -364,7 +364,7 @@
                                         @if (Auth::user()->images)
                                             <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
                                                 class="rounded-circle me-2"
-                                                style="width: 35px; height: 35px; object-fit: cover;">
+                                                style="width: 45px; height: 45px; object-fit: cover;">
                                         @else
                                             <i class="bi bi-person-circle me-2 fs-5"></i>
                                         @endif

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<<<<<<< HEAD
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -77,6 +78,11 @@
                 </div>
             </div>
         </div>
+=======
+<div class="container-fluid">
+    <div class="alert alert-info text-center">
+        <p>The role details are now accessible via the "View" action on the <a href="{{ route('roles.index') }}">Roles</a> page.</p>
+>>>>>>> 11feeb2449091a5ede933ffadadda2284f57ed97
     </div>
 </div>
 @endsection
