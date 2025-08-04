@@ -18,6 +18,7 @@ use App\Http\Controllers\LeaveRequestActionController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\DelegationController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -95,3 +96,9 @@ Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'export
     ->middleware('auth')
     ->name('leave-requests.exportPDF')
     ->can('export', \App\Models\LeaveRequest::class);
+
+
+
+Route::middleware(['auth'])->group(function () {
+        Route::resource('delegations', DelegationController::class);
+});
