@@ -31,10 +31,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     //Calendar
-    Route::get('/calendars.department', [LeaveRequestController::class, 'calendar'])->name('calendars.department');
+    Route::get('/calendars.department', [LeaveRequestController::class, 'department'])->name('calendars.department');
     Route::get('/calendars/individual', [LeaveRequestController::class, 'individual'])->name('calendars.individual');
     Route::get('/calendars/yearly', [LeaveRequestController::class, 'yearly'])->name('calendars.yearly');
     Route::get('/calendars/workmates', [LeaveRequestController::class, 'workmates'])->name('calendars.workmates');
+    Route::get('/calendars/global', [LeaveRequestController::class, 'global'])->name('calendars.global');
 
     //user requested and cancel
     Route::get('/leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
