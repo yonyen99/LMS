@@ -20,6 +20,7 @@ use App\Http\Controllers\TelegramController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\DelegationController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -132,4 +133,8 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/ot', [NotificationController::class, 'ot'])->name('notifications.ot');
     Route::post('/notifications/ot/{id}/update-status', [NotificationController::class, 'updateOtStatus'])->name('notifications.update-ot-status');
+});
+
+Route::middleware(['auth'])->group(function () {
+        Route::resource('delegations', DelegationController::class);
 });

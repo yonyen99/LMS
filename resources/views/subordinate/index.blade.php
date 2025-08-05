@@ -139,6 +139,7 @@
                         <th scope="col" class="fw-bold p-3">First Name</th>
                         <th scope="col" class="fw-bold p-3">Last Name</th>
                         <th scope="col" class="fw-bold p-3 d-none d-md-table-cell">E-mail</th>
+                        <th scope="col" class="fw-bold p-3 d-none d-md-table-cell">Department</th>
                         <th scope="col" class="fw-bold p-3 d-none d-md-table-cell">Status</th>
                         <th scope="col" class="fw-bold p-3">Role</th>
                     </tr>
@@ -150,6 +151,7 @@
                             <td class="p-3">{{ $subordinate->first_name }}</td>
                             <td class="p-3">{{ $subordinate->last_name }}</td>
                             <td class="p-3 d-none d-md-table-cell">{{ $subordinate->email }}</td>
+                            <td class="p-3 d-none d-md-table-cell">{{ $subordinate->department ? $subordinate->department->name : 'N/A' }}</td>
                             <td class="p-3 d-none d-md-table-cell">
                                 @if ($subordinate->is_active)
                                     <span class="badge bg-success" data-bs-toggle="tooltip" title="User is active">Active</span>
@@ -171,7 +173,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-3">No subordinates found.</td>
+                            <td colspan="7" class="text-center text-muted py-3">No subordinates found.</td>
                         </tr>
                     @endforelse
                 </tbody>
