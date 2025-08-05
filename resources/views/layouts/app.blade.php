@@ -11,7 +11,7 @@
     <link rel="icon" href="{{ asset('img/logo.avif') }}" type="image/avif">
     <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
@@ -237,8 +237,13 @@
                                                 href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">Approval</a>
                                             <ul class="dropdown-menu card-1 card-2" aria-labelledby="approvalDropdown">
-                                                <li><a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
-                                                        href="#" disabled>Delegations</a></li>
+                                                <li>
+                                                    <a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
+                                                        href="{{ route('delegations.index') }}">
+                                                        Delegations
+                                                    </a>
+                                                </li>
+
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
                                                         href="{{ route('subordinates.index') }}">My Subordinates</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-balance.index' ? 'active' : '' }}"
@@ -252,7 +257,7 @@
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
                                                         href="{{ route('notifications.index') }}">Leave Requests</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'overtime.index' ? 'active' : '' }}"
-                                                        href="#" disabled>Overtime</a></li>
+                                                        href="{{ route('over-time.list') }}" disabled>Overtime</a></li>
                                             </ul>
                                         </li>
                                     @endcanany
@@ -295,8 +300,15 @@
                                             <li>
                                                 <h6 class="dropdown-header">OVERTIME</h6>
                                             </li>
-                                            <li><a class="dropdown-item" href="#">List of OT Worked</a></li>
-                                            <li><a class="dropdown-item" href="#">Submit an OT Request</a></li>
+                                            <li><a class="dropdown-item" href="{{ route('over-time.index') }}">List of OT
+                                                    Worked</a></li>
+
+                                            @if (Auth::user()->hasRole('Employee'))
+                                                <li><a class="dropdown-item" href="{{ route('over-time.create') }}">Submit an OT
+                                                        Request</a></li>
+                                            @endif
+
+
                                         </ul>
                                     </li>
                                 @endcanany
@@ -316,10 +328,6 @@
                                                     href="{{ route('calendars.workmates') }}">My Workmates</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.department' ? 'active' : '' }}"
                                                     href="{{ route('calendars.department') }}">Department</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.global' ? 'active' : '' }}"
-                                                    href="{{ route('calendars.global') }}">Global</a></li>
-                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.tabular' ? 'active' : '' }}"
-                                                    href="#">Tabular</a></li>
                                         </ul>
                                     </li>
                                 @endcanany
@@ -547,6 +555,6 @@
                 });
             });
         </script> --}}
-    </body>
+</body>
 
-    </html>
+</html>
