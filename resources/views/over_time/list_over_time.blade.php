@@ -39,9 +39,9 @@
 
                 <!-- Buttons -->
                 <div class="d-flex gap-2 mt-2 mt-md-0">
-                    <a href="#" class="btn btn-primary">PDF</a>
+                    <a href="{{route('over-time.exportPDF')}}" class="btn btn-primary">PDF</a>
                     @if (auth()->user()->hasAnyRole(['Employee', 'Manager', 'Admin']))
-                        <a href="#" class="btn btn-success">EXCEL</a>
+                        <a href="{{route('over-time.exportExcel')}}" class="btn btn-success">EXCEL</a>
                     @endif
                 </div>
             </div>

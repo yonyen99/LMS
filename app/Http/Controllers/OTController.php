@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OvertimeRequestsExport;
 use App\Models\Department;
 use App\Models\OvertimeRequest;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OTController extends Controller
 {
@@ -22,6 +24,13 @@ class OTController extends Controller
     {
         $this->middleware(['auth', 'role:Employee|Manager|Admin']);
     }
+
+
+    /**
+     * Display a listing of the overtime requests
+     * Users can see their own requests, Managers can see their department's requests,
+     * and Admins can see all requests.
+     */
 
     public function index()
     {
@@ -50,6 +59,12 @@ class OTController extends Controller
         return view('over_time.list_over_time', compact('overtimes', 'totalRequests', 'approvedRequests', 'pendingRequests'));
     }
 
+    /**
+     * Display the overtime request form
+     * Only users with a department can submit an overtime request.
+     * If the user is not assigned to a department, they will receive a validation error.
+     */
+
     public function overTime()
     {
         $user = auth()->user();
@@ -76,11 +91,23 @@ class OTController extends Controller
         ]);
     }
 
+    /**
+     * Create a new overtime request
+     * The user must be assigned to a department to submit an overtime request.
+     * If the user is not assigned to a department, they will receive a validation error.
+     */
+
     public function create()
     {
         $departments = Department::pluck('name', 'id');
         return view('over_time.create', compact('departments'));
     }
+
+    /**
+     * Store a new overtime request
+     * The user must be assigned to a department to submit an overtime request.
+     * If the user is not assigned to a department, they will receive a validation error.
+     */
 
     public function store(Request $request)
     {
@@ -156,6 +183,12 @@ class OTController extends Controller
         return redirect()->route('over-time.index')->with('success', 'Overtime request submitted and sent to approvers.');
     }
 
+    /**
+     * Edit an overtime request
+     * Only the user who created the request can edit it.
+     * If the user is not authorized, they will be redirected with an error message.
+     */
+
     public function edit($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -167,6 +200,12 @@ class OTController extends Controller
         $departments = Department::pluck('name', 'id');
         return view('over_time.edit', compact('overtime', 'departments'));
     }
+
+    /**
+     * Update an overtime request
+     * Only the user who created the request can update it.
+     * If the user is not authorized, they will be redirected with an error message.
+     */
 
     public function update(Request $request, $id)
     {
@@ -211,6 +250,13 @@ class OTController extends Controller
     }
 
 
+    /**
+     * Show an overtime request
+     * Only the user who created the request, or an Admin/Manager in the same department
+     * can view the request.
+     */
+
+
     public function show($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -221,6 +267,12 @@ class OTController extends Controller
 
         return view('over_time.show', compact('overtime'));
     }
+
+    /**
+     * Delete an overtime request
+     * Only the user who created the request can delete it.
+     * If the user is not authorized, they will be redirected with an error message.
+     */
 
     public function destroy($id)
     {
@@ -234,6 +286,12 @@ class OTController extends Controller
 
         return redirect()->route('over-time.index')->with('success', 'Overtime request deleted successfully.');
     }
+
+    /**
+     * Accept an overtime request
+     * Only an Admin or a Manager in the same department can accept the request.
+     * If the user is not authorized, they will be redirected with an error message.
+     */
 
     public function accept(Request $request, $id)
     {
@@ -257,6 +315,12 @@ class OTController extends Controller
         return redirect()->route('over-time.index')->with('success', 'Overtime request approved successfully.');
     }
 
+    /**
+     * Reject an overtime request
+     * Only an Admin or a Manager in the same department can reject the request.
+     * If the user is not authorized, they will be redirected with an error message.
+     */
+
     public function reject(Request $request, $id)
     {
         $user = auth()->user();
@@ -278,6 +342,12 @@ class OTController extends Controller
 
         return redirect()->route('over-time.index')->with('success', 'Overtime request rejected successfully.');
     }
+
+    /**
+     * Cancel an overtime request
+     * Only the user who created the request, or an Admin/Manager in the same department
+     * can cancel the request.
+     */
 
     public function cancel(Request $request, $id)
     {
@@ -310,8 +380,8 @@ class OTController extends Controller
     /**
      * Search overtime requests by date, by name,  and by department
      */
-   
-    public function search(Request $request) 
+
+    public function search(Request $request)
     {
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
 
@@ -343,28 +413,82 @@ class OTController extends Controller
     {
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
 
+        // Apply role-based filtering
+        if (auth()->user()->hasRole('Employee')) {
+            $query->where('user_id', auth()->id());
+        } elseif (auth()->user()->hasRole('Manager')) {
+            $query->where(function ($q) {
+                $q->where('user_id', auth()->id())
+                    ->orWhereIn('user_id', function ($subQuery) {
+                        $subQuery->select('id')
+                            ->from('users')
+                            ->where('department_id', auth()->user()->department_id);
+                    });
+            });
+        }
+
+        // Apply additional filters
         if ($request->filled('date')) {
             $query->whereDate('overtime_date', $request->date);
         }
 
-        if ($request->filled('name')) {
+        if ($request->filled('search')) {
             $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->name . '%');
+                $q->where('name', 'like', '%' . $request->search . '%');
             });
         }
 
-        if ($request->filled('department_id')) {
+        if ($request->filled('department_id') && auth()->user()->hasRole('Admin')) {
             $query->where('department_id', $request->department_id);
         }
 
         $overtimes = $query->get();
 
         $pdf = Pdf::loadView('over_time.pdf', compact('overtimes'));
-        $pdf = PDF::loadView('over_time.pdf', compact('overtimes'));
         $pdfFilePath = storage_path('app/overtime_requests.pdf');
         $pdf->save($pdfFilePath);
 
         return response()->download($pdfFilePath, 'overtime_requests.pdf');
     }
-    
+
+    /**
+     * Export overtime requests as Excel
+     */
+    public function exportExcel(Request $request)
+    {
+        $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
+
+        // Apply role-based filtering
+        if (auth()->user()->hasRole('Employee')) {
+            $query->where('user_id', auth()->id());
+        } elseif (auth()->user()->hasRole('Manager')) {
+            $query->where(function ($q) {
+                $q->where('user_id', auth()->id())
+                    ->orWhereIn('user_id', function ($subQuery) {
+                        $subQuery->select('id')
+                            ->from('users')
+                            ->where('department_id', auth()->user()->department_id);
+                    });
+            });
+        }
+
+        // Apply additional filters
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
+        }
+
+        if ($request->filled('search')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('department_id') && auth()->user()->hasRole('Admin')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        $overtimes = $query->get();
+
+        return Excel::download(new OvertimeRequestsExport($overtimes), 'overtime_requests.xlsx');
+    }
 }

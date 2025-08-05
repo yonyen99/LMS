@@ -21,6 +21,7 @@ use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\DelegationController;
+use App\Http\Controllers\LeaveBalanceController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -138,3 +139,20 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
         Route::resource('delegations', DelegationController::class);
 });
+
+
+/**
+ * exportr over time requests as PDF and as an Excel file
+ */
+
+Route::get('/overtime/export-pdf', [OTController::class, 'exportPDF'])->name('over-time.exportPDF');
+
+Route::get('/overtime/export-excel', [OTController::class, 'exportExcel'])->name('over-time.exportExcel');
+
+
+/**
+ * leave balance routes
+ */
+
+
+Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
