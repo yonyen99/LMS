@@ -317,7 +317,7 @@
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.department' ? 'active' : '' }}"
                                                     href="{{ route('calendars.department') }}">Department</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.global' ? 'active' : '' }}"
-                                                    href="#">Global</a></li>
+                                                    href="{{ route('calendars.global') }}">Global</a></li>
                                             <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.tabular' ? 'active' : '' }}"
                                                     href="#">Tabular</a></li>
                                         </ul>

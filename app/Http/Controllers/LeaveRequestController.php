@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\LeaveSummary;
 use App\Models\User;
+use App\Models\Department;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -245,30 +246,30 @@ class LeaveRequestController extends Controller
     /**
      * Display the calendar view of leave requests.
      */
-    public function calendar()
-    {
-        $user = Auth::user();
-        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
+    // public function calendar()
+    // {
+    //     $user = Auth::user();
+    //     $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
 
-        // Get non-working days based on user role
-        $nonWorkingDaysQuery = NonWorkingDay::query();
+    //     // Get non-working days based on user role
+    //     $nonWorkingDaysQuery = NonWorkingDay::query();
 
-        // Replace hasRole with direct role check (assuming 'role' column exists)
-        if ($user->role !== 'Admin') {
-            if ($user->role === 'Manager') {
-                // Managers see their department's non-working days
-                $nonWorkingDaysQuery->where('department_id', $user->department_id);
-            } else {
-                // Regular users see global non-working days (department_id = null)
-                $nonWorkingDaysQuery->whereNull('department_id');
-            }
-        }
+    //     // Replace hasRole with direct role check (assuming 'role' column exists)
+    //     if ($user->role !== 'Admin') {
+    //         if ($user->role === 'Manager') {
+    //             // Managers see their department's non-working days
+    //             $nonWorkingDaysQuery->where('department_id', $user->department_id);
+    //         } else {
+    //             // Regular users see global non-working days (department_id = null)
+    //             $nonWorkingDaysQuery->whereNull('department_id');
+    //         }
+    //     }
 
-        $nonWorkingDays = $nonWorkingDaysQuery->get();
-        $leaveTypes = LeaveType::all();
+    //     $nonWorkingDays = $nonWorkingDaysQuery->get();
+    //     $leaveTypes = LeaveType::all();
 
-        return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
-    }
+    //     return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
+    // }
 
     public function history($id)
     {
@@ -652,6 +653,68 @@ class LeaveRequestController extends Controller
             'workmates' => $workmates,
             'statusColors' => $statusColors, // Pass to view
         ]);
+    }
+
+
+    public function department(Request $request)
+    {
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+        $selectedDepartmentIds = (array) $request->input('departments', ['all']);
+
+        $currentDate = Carbon::create($year, $month, 1);
+        $monthName = $currentDate->format('F');
+        $isToday = $currentDate->format('Y-m') === now()->format('Y-m');
+
+        $startDate = $currentDate->copy()->startOfWeek(Carbon::SUNDAY);
+        $dates = collect();
+        for ($i = 0; $i < 42; $i++) {
+            $dates->push($startDate->copy()->addDays($i));
+        }
+
+        $weeks = $dates->chunk(7);
+
+        $departments = Department::all();
+        $endDate = $startDate->copy()->addDays(41);
+
+        $leaveRequestsQuery = LeaveRequest::with('user.department')
+            ->whereDate('start_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate);
+
+        if (!in_array('all', $selectedDepartmentIds) && count($selectedDepartmentIds) > 0) {
+            $leaveRequestsQuery->whereHas('user.department', function ($query) use ($selectedDepartmentIds) {
+                $query->whereIn('id', $selectedDepartmentIds);
+            });
+        }
+
+        $leaveRequests = $leaveRequestsQuery->get();
+
+        $events = [];
+        foreach ($leaveRequests as $leave) {
+            $period = CarbonPeriod::create($leave->start_date, $leave->end_date);
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $status = ucfirst(strtolower($leave->status ?? 'Planned')); // Normalize case
+                $events[$dateStr][] = [
+                    'title' => $leave->user->name,
+                    'status' => $status,
+                ];
+            }
+        }
+
+        $statusColors  = [
+            'Planned' => '#A59F9F',
+            'Accepted' => '#447F44',
+            'Requested' => '#FC9A1D',
+            'Rejected' => '#F80300',
+            'Cancellation' => '#F80300',
+            'Canceled' => '#F80300',
+        ];
+
+        return view('calendars.department', compact(
+            'month', 'year', 'monthName', 'weeks', 'events',
+            'currentDate', 'isToday', 'departments', 'selectedDepartmentIds', 'statusColors'
+        ));
     }
 
 }
