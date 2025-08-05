@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class OTController extends Controller
 {
@@ -304,4 +306,65 @@ class OTController extends Controller
 
         return redirect()->route('over-time.index')->with('success', 'Overtime request cancelled successfully.');
     }
+
+    /**
+     * Search overtime requests by date, by name,  and by department
+     */
+   
+    public function search(Request $request) 
+    {
+        $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
+
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
+        }
+
+        if ($request->filled('name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->name . '%');
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        $overtimes = $query->latest()->paginate(10);
+
+        return view('over_time.list_over_time', compact('overtimes'));
+    }
+
+
+    /**
+     * Export overtime requests as PDF
+     */
+
+    public function exportPDF(Request $request)
+    {
+        $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
+
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
+        }
+
+        if ($request->filled('name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->name . '%');
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        $overtimes = $query->get();
+
+        $pdf = Pdf::loadView('over_time.pdf', compact('overtimes'));
+        $pdf = PDF::loadView('over_time.pdf', compact('overtimes'));
+        $pdfFilePath = storage_path('app/overtime_requests.pdf');
+        $pdf->save($pdfFilePath);
+
+        return response()->download($pdfFilePath, 'overtime_requests.pdf');
+    }
+    
 }
