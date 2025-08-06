@@ -43,9 +43,12 @@ class SubordinateController extends Controller
         // Fetch departments for the filter dropdown (Admins/Super Admins only)
         $departments = Department::orderBy('name')->pluck('name', 'id')->toArray();
 
+        // Eager load department relationship
+        $query->with(['roles', 'department']);
+
         // Pagination size control
         $perPage = $request->input('per_page', 10);
-        $subordinates = $query->with('roles')->paginate($perPage);
+        $subordinates = $query->paginate($perPage);
 
         return view('subordinate.index', compact('subordinates', 'departments'));
     }

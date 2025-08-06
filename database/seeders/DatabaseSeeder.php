@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             DepartmentSeeder::class,
             LeaveTypeSeeder::class,
+           
+
         ]);
     }
 }

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use App\Models\LeaveSummary;
 use App\Models\User;
+use App\Models\Department;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,9 @@ use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Yasumi\Yasumi;
+use Illuminate\Support\Facades\Http;
 
 class LeaveRequestController extends Controller
 {
@@ -28,7 +32,6 @@ class LeaveRequestController extends Controller
             ->where('user_id', auth()->id());
 
         if ($request->filled('statuses')) {
-            // Normalize to lowercase if needed
             $statuses = array_map('strtolower', $request->statuses);
             $query->whereIn('status', $statuses);
         }
@@ -38,7 +41,6 @@ class LeaveRequestController extends Controller
         }
 
         if ($request->filled('type')) {
-            // Assuming leaveType->name matches type values
             $query->whereHas('leaveType', function ($q) use ($request) {
                 $q->where('name', $request->type);
             });
@@ -68,7 +70,6 @@ class LeaveRequestController extends Controller
                     ->orWhere('end_time', 'like', "%{$search}%")
                     ->orWhere('status', 'like', "%{$search}%");
 
-                // Optional: Join with leave_types and users
                 $q->orWhereHas('leaveType', function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%");
                 });
@@ -82,9 +83,9 @@ class LeaveRequestController extends Controller
         $sortOrder = $request->input('sort_order', 'new');
 
         if ($sortOrder === 'new') {
-            $query->orderBy('id', 'desc');  // newest = highest ID first
+            $query->orderBy('id', 'desc');
         } else {
-            $query->orderBy('id', 'asc');   // oldest = lowest ID first
+            $query->orderBy('id', 'asc');
         }
 
         $statusColors = [
@@ -99,16 +100,13 @@ class LeaveRequestController extends Controller
         $leaveTypes = LeaveType::orderBy('name')->pluck('name');
         $leaveRequests = $query->paginate(10);
 
-
         return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
     }
-
 
     public function create()
     {
         $leaveTypes = LeaveType::all();
 
-        // Check if leaveTypes is empty
         if ($leaveTypes->isEmpty()) {
             return redirect()->route('leave-requests.index')
                 ->with('error', 'No leave types are available. Please contact the administrator.');
@@ -116,7 +114,6 @@ class LeaveRequestController extends Controller
 
         return view('leaveRequest.create', compact('leaveTypes'));
     }
-
 
     public function store(Request $request)
     {
@@ -134,7 +131,6 @@ class LeaveRequestController extends Controller
         $user = auth()->user();
 
         $leaveRequest = DB::transaction(function () use ($request, $user) {
-            // Get the LeaveSummary record for the user's department and leave type
             $summary = LeaveSummary::where('department_id', $user->department_id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->lockForUpdate()
@@ -146,13 +142,11 @@ class LeaveRequestController extends Controller
                 ]);
             }
 
-            // Calculate entitled days including Manager bonus
             $entitled = $summary->entitled;
-            if ($user->hasRole('Manager')) { // Consistent role checking
+            if ($user->hasRole('Manager')) {
                 $entitled += 2;
             }
 
-            // Calculate taken and requested leaves for this user
             $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->where('status', 'Accepted')
@@ -167,7 +161,6 @@ class LeaveRequestController extends Controller
                 ->where('status', 'Planned')
                 ->sum('duration');
 
-            // Calculate available leave
             $available = $entitled - ($taken + $requested);
 
             if ($available < $request->duration) {
@@ -176,16 +169,13 @@ class LeaveRequestController extends Controller
                 ]);
             }
 
-            // Update LeaveSummary requested count for department-level tracking
             if ($request->status === 'requested') {
                 $summary->requested += $request->duration;
             }
 
-
             $summary->available_actual = max($entitled - $summary->taken, 0);
             $summary->save();
 
-            // Create leave request record
             return LeaveRequest::create([
                 'user_id' => $user->id,
                 'leave_type_id' => $request->leave_type_id,
@@ -201,22 +191,51 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-        // Send email to Super Admin and Manager users
-        // $adminEmails = User::role(['Super Admin', 'Manager'])->pluck('email')->toArray();
+        /**
+         * Send email to Admin and Manager users when user submits a leave request.
+         */
+        $managersInSameDept = User::role('Manager')
+            ->where('department_id', $user->department_id)
+            ->pluck('email');
 
-        // if (!empty($adminEmails)) {
-        //     Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
-        // }
+        $admins = User::role('Admin')->pluck('email');
+
+        $adminEmails = $managersInSameDept->merge($admins)->unique()->toArray();
+
+        if (!empty($adminEmails)) {
+            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        }
+
+        /**
+         * Telegram Notification
+         */
+        $botToken = config('services.telegram.bot_token');
+        $chatId = config('services.telegram.chat_id');
+
+        if ($botToken && $chatId) {
+            $message = "📢 *New Leave Request Submitted*\n\n"
+                . "👤 *User:* {$user->name}\n"
+                . "🏢 *Department:* {$user->department->name}\n"
+                . "📅 *From:* {$request->start_date} ({$request->start_time})\n"
+                . "📅 *To:* {$request->end_date} ({$request->end_time})\n"
+                . "🕒 *Duration:* {$request->duration} day(s)\n"
+                . "📝 *Reason:* " . ($request->reason ?: 'N/A') . "\n"
+                . "🔖 *Status:* {$request->status}";
+
+            Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                'chat_id' => $chatId,
+                'text' => $message,
+                'parse_mode' => 'Markdown',
+            ]);
+        }
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
-
 
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
     }
-
 
     public function destroy(LeaveRequest $leaveRequest)
     {
@@ -225,10 +244,6 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request deleted.');
     }
 
-
-    /**
-     * Cancel the specified leave request.
-     */
     public function cancel(Request $request, LeaveRequest $leaveRequest)
     {
         $this->authorize('cancel-request', $leaveRequest);
@@ -239,44 +254,14 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request canceled successfully.');
     }
 
-    /**
-     * Display the calendar view of leave requests.
-     */
-    public function calendar()
-    {
-        $user = Auth::user();
-        $leaveRequests = LeaveRequest::with('leaveType')->where('user_id', $user->id)->get();
-
-        // Get non-working days based on user role
-        $nonWorkingDaysQuery = NonWorkingDay::query();
-
-        // Replace hasRole with direct role check (assuming 'role' column exists)
-        if ($user->role !== 'Admin') {
-            if ($user->role === 'Manager') {
-                // Managers see their department's non-working days
-                $nonWorkingDaysQuery->where('department_id', $user->department_id);
-            } else {
-                // Regular users see global non-working days (department_id = null)
-                $nonWorkingDaysQuery->whereNull('department_id');
-            }
-        }
-
-        $nonWorkingDays = $nonWorkingDaysQuery->get();
-        $leaveTypes = LeaveType::all();
-
-        return view('calendars.department', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
-    }
 
     public function history($id)
     {
         $changs = LeaveRequest::with(['user', 'leaveType', 'statusChanges.user'])->findOrFail($id);
-
         $latestStatusChange = $changs->statusChanges->sortByDesc('changed_at')->first();
 
         return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
-
-
 
     public function exportPDF(Request $request)
     {
@@ -470,33 +455,247 @@ class LeaveRequestController extends Controller
 
 
 
-    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
-    public function yearly()
+    protected function getCambodianHolidays($year)
     {
-        $user = Auth::user();
+        $response = Http::get('https://calendarific.com/api/v2/holidays', [
+            'api_key' => env('CALENDARIFIC_API_KEY'),
+            'country' => 'KH',
+            'year' => $year,
+            'type' => 'national'
+        ]);
 
-        $leaveRequests = LeaveRequest::with('leaveType')
-            ->where('user_id', $user->id)
+        if ($response->failed()) {
+            return []; // fallback if error
+        }
+
+        $data = $response->json();
+
+        $holidays = [];
+
+        foreach ($data['response']['holidays'] ?? [] as $holiday) {
+            $date = $holiday['date']['iso']; // e.g. "2025-04-14"
+            $name = $holiday['name'];
+            $holidays[$date] = $name;
+        }
+
+        return $holidays;
+    }
+    
+    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    public function yearly(Request $request)
+    {
+        $year = $request->input('year', now()->year);
+        $user = auth()->user();
+
+        $leaveRequests = LeaveRequest::where('user_id', $user->id)
+            ->where(function ($query) use ($year) {
+                $query->whereDate('start_date', '<=', "$year-12-31")
+                    ->whereDate('end_date', '>=', "$year-01-01");
+            })
             ->get();
 
-        $leaveTypes = LeaveType::all();
+        $holidays = $this->getCambodianHolidays($year);
 
-        return view('calendars.yearly', compact('leaveRequests', 'leaveTypes'));
+        return view('calendars.yearly', compact('leaveRequests', 'year', 'holidays'));
     }
+
 
     // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
-    public function workmates()
+    public function workmates(Request $request)
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
-        $workmates = User::where('department_id', $user->department_id)
-            ->where('id', '!=', $user->id)
-            ->get();
+        // Admins see all users
+        if ($user->hasRole('Admin')) { // or use $user->is_admin if using a boolean flag
+            $workmates = User::all();
+        } else {
+            $workmates = User::where('department_id', $user->department_id)->get();
+        }
+        
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+        $currentDate = Carbon::create($year, $month, 1);
 
-        $leaveRequests = LeaveRequest::with('leaveType', 'user')
+        // Always start on Sunday and end on Saturday
+        $startDate = $currentDate->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
+        $endDate = $currentDate->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
+
+        // Fetch leave requests more efficiently
+        $leaveRequests = LeaveRequest::with('user')
             ->whereIn('user_id', $workmates->pluck('id'))
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate])
+                ->orWhere(function ($q) use ($startDate, $endDate) {
+                    $q->where('start_date', '<', $startDate)
+                        ->where('end_date', '>', $endDate);
+                });
+            })
             ->get();
 
-        return view('calendars.workmates', compact('leaveRequests', 'workmates'));
+        $statusColors = [
+            'Planned' => '#A59F9F',
+            'Accepted' => '#447F44',
+            'Requested' => '#FC9A1D',
+            'Rejected' => '#F80300',
+            'Cancellation' => '#F80300',
+            'Canceled' => '#F80300',
+        ];
+
+        $leaveMap = [];
+
+        foreach ($leaveRequests as $leave) {
+            $start = Carbon::parse($leave->start_date)->startOfDay();
+            $end = Carbon::parse($leave->end_date)->startOfDay();
+            
+            // Create period including both start and end dates
+            $period = CarbonPeriod::create($start, $end);
+
+            foreach ($period as $date) {
+                $dateKey = $date->format('Y-m-d');
+                $isFirstDay = $date->isSameDay($start);
+                $isLastDay = $date->isSameDay($end);
+
+                $isHalfDay = false;
+                $halfDayType = null;
+
+                // Half-day logic
+                if ($isFirstDay && $isLastDay) {
+                    // Single day leave
+                    if ($leave->start_time === 'morning' && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    } elseif ($leave->start_time === 'afternoon' && $leave->end_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    }
+                } else {
+                    // Multi-day leave
+                    if ($isFirstDay && $leave->start_time === 'afternoon') {
+                        $isHalfDay = true;
+                        $halfDayType = 'PM';
+                    } elseif ($isLastDay && $leave->end_time === 'morning') {
+                        $isHalfDay = true;
+                        $halfDayType = 'AM';
+                    }
+                }
+
+                $leaveMap[$leave->user->id][$dateKey] = [
+                    'status' => $leave->status,
+                    'name' => $leave->user->name,
+                    'is_half_day' => $isHalfDay,
+                    'half_day_type' => $halfDayType,
+                ];
+            }
+        }
+
+        // Build calendar weeks
+        $weeks = [];
+        $week = [];
+        $date = $startDate->copy();
+
+        while ($date <= $endDate) {
+            $dayData = [
+                'date' => $date->copy(),
+                'is_current_month' => $date->month == $currentDate->month,
+                'users' => [],
+            ];
+
+            foreach ($workmates as $workmate) {
+                $dateKey = $date->format('Y-m-d');
+                $leaveData = $leaveMap[$workmate->id][$dateKey] ?? null;
+
+                $dayData['users'][] = $leaveData ?: [
+                    'status' => null,
+                    'name' => $workmate->name,
+                    'is_half_day' => false,
+                    'half_day_type' => null,
+                ];
+            }
+
+            $week[] = $dayData;
+
+            if ($date->dayOfWeek == Carbon::SATURDAY) {
+                $weeks[] = $week;
+                $week = [];
+            }
+
+            $date->addDay();
+        }
+
+        // Ensure we don't miss the last week if it doesn't end on Saturday
+        if (!empty($week)) {
+            $weeks[] = $week;
+        }
+
+        return view('calendars.workmates', [
+            'weeks' => $weeks,
+            'currentDate' => $currentDate,
+            'workmates' => $workmates,
+            'statusColors' => $statusColors, // Pass to view
+        ]);
     }
+
+
+    public function department(Request $request)
+    {
+        $month = $request->input('month', now()->month);
+        $year = $request->input('year', now()->year);
+        $selectedDepartmentIds = (array) $request->input('departments', ['all']);
+
+        $currentDate = Carbon::create($year, $month, 1);
+        $monthName = $currentDate->format('F');
+        $isToday = $currentDate->format('Y-m') === now()->format('Y-m');
+
+        $startDate = $currentDate->copy()->startOfWeek(Carbon::SUNDAY);
+        $dates = collect();
+        for ($i = 0; $i < 42; $i++) {
+            $dates->push($startDate->copy()->addDays($i));
+        }
+
+        $weeks = $dates->chunk(7);
+
+        $departments = Department::all();
+        $endDate = $startDate->copy()->addDays(41);
+
+        $leaveRequestsQuery = LeaveRequest::with('user.department')
+            ->whereDate('start_date', '<=', $endDate)
+            ->whereDate('end_date', '>=', $startDate);
+
+        if (!in_array('all', $selectedDepartmentIds) && count($selectedDepartmentIds) > 0) {
+            $leaveRequestsQuery->whereHas('user.department', function ($query) use ($selectedDepartmentIds) {
+                $query->whereIn('id', $selectedDepartmentIds);
+            });
+        }
+
+        $leaveRequests = $leaveRequestsQuery->get();
+
+        $events = [];
+        foreach ($leaveRequests as $leave) {
+            $period = CarbonPeriod::create($leave->start_date, $leave->end_date);
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $status = ucfirst(strtolower($leave->status ?? 'Planned')); // Normalize case
+                $events[$dateStr][] = [
+                    'title' => $leave->user->name,
+                    'status' => $status,
+                ];
+            }
+        }
+
+        $statusColors  = [
+            'Planned' => '#A59F9F',
+            'Accepted' => '#447F44',
+            'Requested' => '#FC9A1D',
+            'Rejected' => '#F80300',
+            'Cancellation' => '#F80300',
+            'Canceled' => '#F80300',
+        ];
+
+        return view('calendars.department', compact(
+            'month', 'year', 'monthName', 'weeks', 'events',
+            'currentDate', 'isToday', 'departments', 'selectedDepartmentIds', 'statusColors'
+        ));
+    }
+
 }

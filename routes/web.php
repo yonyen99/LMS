@@ -15,9 +15,13 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SubordinateController;
 use App\Http\Controllers\LeaveSummaryController;
 use App\Http\Controllers\LeaveRequestActionController;
+use App\Http\Controllers\OTController;
+use App\Http\Controllers\TelegramController;
 use App\Models\LeaveRequest;
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\DelegationController;
+use App\Http\Controllers\LeaveBalanceController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -26,14 +30,14 @@ Auth::routes(['register' => false]);
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::get('/calendars.department', [LeaveRequestController::class, 'calendar'])->name('calendars.department');
+    //Calendar
+    Route::get('/calendars.department', [LeaveRequestController::class, 'department'])->name('calendars.department');
     Route::get('/calendars/individual', [LeaveRequestController::class, 'individual'])->name('calendars.individual');
     Route::get('/calendars/yearly', [LeaveRequestController::class, 'yearly'])->name('calendars.yearly');
     Route::get('/calendars/workmates', [LeaveRequestController::class, 'workmates'])->name('calendars.workmates');
+    Route::get('/calendars/global', [LeaveRequestController::class, 'global'])->name('calendars.global');
 
-
-
-
+    //user requested and cancel
     Route::get('/leave-requests/create', [LeaveRequestController::class, 'create'])->name('leave-requests.create');
     Route::get('/leave-requests/{id}/history', [LeaveRequestController::class, 'history'])->name('leave-requests.history');
     Route::post('/leave-requests/{leaveRequest}/cancel', [LeaveRequestController::class, 'cancel'])->name('leave-requests.cancel');
@@ -77,11 +81,16 @@ Route::middleware(['auth'])->group(function () {
         ->middleware(['role:Admin|Super Admin|HR|Manager|Team Lead|Employee']);
 });
 
+/**
+ * leave request actions via email
+ */
 Route::middleware(['signed'])->group(function () {
     Route::get('/leave-requests/email/accept/{id}', [LeaveRequestActionController::class, 'accept'])->name('leave-request.email.accept');
     Route::get('/leave-requests/email/reject/{id}', [LeaveRequestActionController::class, 'reject'])->name('leave-request.email.reject');
     Route::get('/leave-requests/email/cancel/{id}', [LeaveRequestActionController::class, 'cancel'])->name('leave-request.email.cancel');
 });
+
+
 
 Route::get('auth/google', [GoogleController::class, 'googlepage'])->name('google.redirect');
 Route::get('auth/google/callback', [GoogleController::class, 'googlecallback'])->name('google.callback');
@@ -91,8 +100,60 @@ Route::post('/notifications/{id}/mark-read', [MessageController::class, 'markAsR
 Route::patch('/leave-requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('leave-requests.update-status');
 
 
+/**
+ * export leave requests as PDF
+ */
 
 Route::get('/leave-requests/export-pdf', [LeaveRequestController::class, 'exportPDF'])
     ->middleware('auth')
     ->name('leave-requests.exportPDF')
     ->can('export', \App\Models\LeaveRequest::class);
+
+
+/**
+ * over time router
+ */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/over-time', [OTController::class, 'index'])->name('over-time.index');
+    Route::get('/over-time/create', [OTController::class, 'create'])->name('over-time.create');
+    Route::post('/over-time/store', [OTController::class, 'store'])->name('over-time.store');
+    Route::get('/over-time/edit/{id}', [OTController::class, 'edit'])->name('over-time.edit');
+    Route::patch('/over-time/update/{id}', [OTController::class, 'update'])->name('over-time.update');
+    Route::get('/over-time/{id}', [OTController::class, 'show'])->name('over-time.show');
+    Route::delete('/over-time/{id}', [OTController::class, 'destroy'])->name('over-time.destroy');
+    Route::post('/over-time/{id}/accept', [OTController::class, 'accept'])->name('over-time.accept');
+    Route::post('/over-time/{id}/reject', [OTController::class, 'reject'])->name('over-time.reject');
+    Route::post('/over-time/{id}/cancel', [OTController::class, 'cancel'])->name('over-time.cancel');
+    Route::get('/ot', [OTController::class, 'overTime'])->name('over-time.list');
+});
+
+/**
+ * over time rquest router Overtime Notification Routes
+ */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/notifications/ot', [NotificationController::class, 'ot'])->name('notifications.ot');
+    Route::post('/notifications/ot/{id}/update-status', [NotificationController::class, 'updateOtStatus'])->name('notifications.update-ot-status');
+});
+
+Route::middleware(['auth'])->group(function () {
+        Route::resource('delegations', DelegationController::class);
+});
+
+
+/**
+ * exportr over time requests as PDF and as an Excel file
+ */
+
+Route::get('/overtime/export-pdf', [OTController::class, 'exportPDF'])->name('over-time.exportPDF');
+
+Route::get('/overtime/export-excel', [OTController::class, 'exportExcel'])->name('over-time.exportExcel');
+
+
+/**
+ * leave balance routes
+ */
+
+
+Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');

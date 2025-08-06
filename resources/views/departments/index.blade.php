@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -45,7 +44,7 @@
                         <tr>
                             <th scope="col" width="60px">#</th>
                             <th scope="col">Name</th>
-                            <th scope="col">Description</th>
+                            <th scope="col" class="d-none d-md-table-cell">Description</th>
                             <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
@@ -54,7 +53,7 @@
                         <tr>
                             <th scope="row">{{ ($departments->currentPage() - 1) * $departments->perPage() + $loop->iteration }}</th>
                             <td>{{ $department->name }}</td>
-                            <td>{{ Str::limit($department->description, 50) }}</td>
+                            <td class="d-none d-md-table-cell">{{ Str::limit($department->description, 50) }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -300,6 +299,11 @@
     }
     .btn-close-white {
         filter: invert(1) grayscale(100%) brightness(200%);
+    }
+    @media screen and (max-width: 767px) {
+        .d-none.d-md-table-cell {
+            display: none !important;
+        }
     }
 </style>
 @endsection
