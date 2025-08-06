@@ -247,7 +247,7 @@
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
                                                         href="{{ route('subordinates.index') }}">My Subordinates</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-balance.index' ? 'active' : '' }}"
-                                                        href="#" disabled>Leave Balance</a></li>
+                                                        href="{{route('leave-balances.index')}}" disabled>Leave Balance</a></li>
                                                 <li>
                                                     <hr class="dropdown-divider">
                                                 </li>
