@@ -164,3 +164,17 @@ Route::get('leave-balances/users/{user}', [LeaveBalanceController::class, 'show'
 // For showing specific leave type details
 Route::get('leave-balances/users/{user}/leave-types/{leaveType}', [LeaveBalanceController::class, 'show'])
     ->name('leave-balances.show.leave-type');
+
+
+// Export leave balance details to PDF and Excel
+
+Route::middleware(['auth'])->group(function () {
+    // Export routes
+    Route::get('leave-balances/{user}/export-pdf', [LeaveBalanceController::class, 'exportPDF'])
+        ->name('leave-balances.export-pdf')
+        ->middleware('can:export,user');
+
+    Route::get('leave-balances/{user}/export-excel', [LeaveBalanceController::class, 'exportExcel'])
+        ->name('leave-balances.export-excel')
+        ->middleware('can:export,user');
+});

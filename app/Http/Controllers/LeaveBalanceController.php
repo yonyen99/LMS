@@ -9,9 +9,23 @@ use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LeaveBalanceExport;
 
 class LeaveBalanceController extends Controller
 {
+
+    /**
+     * Display the leave balance for the authenticated user.
+     * This method retrieves the leave balance information for the current user,
+     * including their entitlements, usage, and available leave.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+
+
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -103,6 +117,15 @@ class LeaveBalanceController extends Controller
         ));
     }
 
+    /**
+     * 
+     * Show leave balance details for a specific user.
+     * This method is used to display the leave balance details for a specific user.
+     * It checks if the user is authorized to view the details and retrieves the leave balance information
+     * for the specified user.
+     * 
+     */
+
     public function show(User $user) // Using route model binding
     {
         $currentUser = Auth::user();
@@ -135,6 +158,17 @@ class LeaveBalanceController extends Controller
             'summaries' => $summaries,
         ]);
     }
+
+    /**
+     * Get leave usage for a specific user and leave type.
+     * This method retrieves the leave usage for a specific user and leave type,
+     * including the total taken, requested, and planned durations.
+     *
+     * @param int $userId
+     * @param int $leaveTypeId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+
     protected function getLeaveUsage($userId, $leaveTypeId)
     {
         return LeaveRequest::where('user_id', $userId)
@@ -143,5 +177,82 @@ class LeaveBalanceController extends Controller
             ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
             ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
             ->first();
+    }
+
+    /**
+     * 
+     * Export leave balance details to PDF.
+     * This method exports the leave balance details of a specific user to a PDF file.
+     * It checks if the user is authorized to export the details and generates a PDF file
+     * containing the leave balance information.
+     */
+
+
+    public function exportPDF(User $user)
+    {
+        $currentUser = Auth::user();
+
+        // Authorization is handled by middleware, but keeping this as backup
+        if (!$currentUser->can('export', $user)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $leaveTypes = LeaveType::all();
+        $summaries = $leaveTypes->map(function ($type) use ($user) {
+            $usage = $this->getLeaveUsage($user->id, $type->id);
+            return [
+                'leaveType' => $type,
+                'entitled' => $type->typical_annual_requests,
+                'taken' => $usage->taken,
+                'requested' => $usage->requested,
+                'planned' => $usage->planned,
+                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+            ];
+        });
+
+        $pdf = PDF::loadView('leave_types.leave_balance_pdf', [
+            'user' => $user,
+            'summaries' => $summaries,
+            'generated_at' => now()->format('Y-m-d H:i:s'),
+        ])->setPaper('a4', 'portrait');
+
+        $filename = "leave_balance_{$user->employee_id}_{$user->name}.pdf";
+
+        return $pdf->download($filename);
+    }
+
+
+    /**
+     * 
+     * Export leave balance details to Excel.
+     * This method exports the leave balance details of a specific user to an Excel file.
+     * It checks if the user is authorized to export the details and generates an Excel file
+     * containing the leave balance information.
+     */
+
+    public function exportExcel(User $user)
+    {
+        $currentUser = Auth::user();
+
+        if (!$currentUser->can('export', $user)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $leaveTypes = LeaveType::all();
+        $summaries = $leaveTypes->map(function ($type) use ($user) {
+            $usage = $this->getLeaveUsage($user->id, $type->id);
+            return [
+                'leaveType' => $type,
+                'entitled' => $type->typical_annual_requests,
+                'taken' => $usage->taken,
+                'requested' => $usage->requested,
+                'planned' => $usage->planned,
+                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+            ];
+        });
+
+        $filename = "leave_balance_{$user->employee_id}_{$user->name}.xlsx";
+
+        return Excel::download(new LeaveBalanceExport($user, $summaries), $filename);
     }
 }

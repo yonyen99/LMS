@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\LeaveRequest;
+use App\Models\User;
 use App\Policies\LeaveRequestPolicy;
+use App\Policies\LeaveBalancePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,6 +18,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         LeaveRequest::class => LeaveRequestPolicy::class,
+         User::class => LeaveBalancePolicy::class,
     ];
 
     /**
