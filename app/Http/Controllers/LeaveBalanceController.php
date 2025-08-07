@@ -4,29 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\LeaveRequest;
-use App\Models\LeaveBalance;
 use App\Models\LeaveSummary;
 use App\Models\LeaveType;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LeaveBalanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $user = Auth::user();
         $departmentId = $user->department_id;
         $userId = $user->id;
 
+        Log::info('LeaveBalanceController: Request Data', ['department_id' => $request->department_id, 'user_id' => $userId]);
+
         // Get entitled days per leave type
         $deptEntitlements = collect();
         if ($user->hasRole('Admin')) {
-            // Admins see leave summaries for all departments or a specific department
             $deptEntitlements = LeaveSummary::with('leaveType')
                 ->when($request->department_id, function ($query) use ($request) {
                     $query->where('department_id', $request->department_id);
@@ -34,7 +32,6 @@ class LeaveBalanceController extends Controller
                 ->get()
                 ->keyBy('leave_type_id');
         } else {
-            // Non-Admins (Managers, Employees) see their department's summaries
             if ($departmentId) {
                 $deptEntitlements = LeaveSummary::with('leaveType')
                     ->where('department_id', $departmentId)
@@ -43,50 +40,55 @@ class LeaveBalanceController extends Controller
             }
         }
 
-        // Fallback if no entitlements (e.g., no department or no records)
+        // Fallback for Admins if no entitlements
         if ($deptEntitlements->isEmpty() && $user->hasRole('Admin')) {
-            // Fetch all leave types as a fallback for Admins
             $deptEntitlements = LeaveType::all()->mapWithKeys(function ($leaveType) {
                 return [$leaveType->id => (object)[
                     'leaveType' => $leaveType,
                     'department_id' => null,
+                    'entitled' => $leaveType->typical_annual_requests ?? 0,
                 ]];
             });
         }
 
-        // Get total taken (Accepted) for this user
-        $taken = LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_taken'))
+        Log::info('LeaveBalanceController: Entitlements', $deptEntitlements->toArray());
+
+        // Get total taken, requested, and planned for this user
+        $taken = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_taken'))
             ->where('user_id', $userId)
             ->where('status', 'Accepted')
             ->groupBy('leave_type_id')
             ->pluck('total_taken', 'leave_type_id');
 
-        // Get total requested (Requested) for this user
-        $requested = LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_requested'))
+        $requested = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_requested'))
             ->where('user_id', $userId)
-            ->where('status', 'Requested')
+            ->whereIn('status', ['Requested', 'Planned', 'Accepted'])
             ->groupBy('leave_type_id')
             ->pluck('total_requested', 'leave_type_id');
 
-        // Get total planned (Planned) for this user
-        $planned = LeaveRequest::select('leave_type_id', DB::raw('SUM(duration) as total_planned'))
+        $planned = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_planned'))
             ->where('user_id', $userId)
             ->where('status', 'Planned')
             ->groupBy('leave_type_id')
             ->pluck('total_planned', 'leave_type_id');
 
+        Log::info('LeaveBalanceController: Taken', $taken->toArray());
+        Log::info('LeaveBalanceController: Requested', $requested->toArray());
+        Log::info('LeaveBalanceController: Planned', $planned->toArray());
+
         // Build summaries for the authenticated user
         $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $planned, $user) {
-            $baseEntitled = $entitlement->leaveType->typical_annual_requests ?? 0;
+            $baseEntitled = $entitlement->entitled ?? $entitlement->leaveType->typical_annual_requests ?? 0;
 
-            // If user is a Manager, add 2 extra entitled days
             if ($user->hasRole('Manager')) {
                 $baseEntitled += 2;
             }
+            $baseEntitled = min($baseEntitled, 40); // Ensure max 40 days
 
-            $takenDays = $taken[$leaveTypeId] ?? 0;
-            $requestedDays = $requested[$leaveTypeId] ?? 0;
-            $plannedDays = $planned[$leaveTypeId] ?? 0;
+            $takenDays = (float)($taken[$leaveTypeId] ?? 0);
+            $requestedDays = (float)($requested[$leaveTypeId] ?? 0);
+            $plannedDays = (float)($planned[$leaveTypeId] ?? 0);
+
             $availableActual = max($baseEntitled - $takenDays, 0);
             $availableSimulated = max($baseEntitled - ($takenDays + $requestedDays), 0);
 
@@ -101,104 +103,76 @@ class LeaveBalanceController extends Controller
             ];
         });
 
+        Log::info('LeaveBalanceController: Summaries', $summaries->toArray());
+
         // Fetch employee request data based on role
         $employeeRequests = collect();
         $departments = collect();
         $selectedDepartment = $request->department_id;
 
-        if ($user->hasRole('Admin')) {
-            // Admins can see all employees and filter by department
+        if ($user->hasRole('Admin') || $user->hasRole('Manager')) {
             $query = User::query()->with('department')
                 ->whereHas('leaveRequests')
-                ->when($selectedDepartment, function ($q) use ($selectedDepartment) {
+                ->when($user->hasRole('Admin') && $selectedDepartment, function ($q) use ($selectedDepartment) {
                     $q->where('department_id', $selectedDepartment);
+                })
+                ->when($user->hasRole('Manager'), function ($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
                 });
 
             $employeeRequests = $query->get()->map(function ($employee) {
+                $leaveSummaries = LeaveSummary::where('department_id', $employee->department_id)
+                    ->with('leaveType')
+                    ->get();
+
+                $totalEntitled = 0;
+                $totalRequested = 0;
+                $leaveTypes = $leaveSummaries->isEmpty() ? LeaveType::all() : $leaveSummaries;
+
+                foreach ($leaveTypes as $leaveType) {
+                    $baseEntitled = $leaveSummaries->isEmpty()
+                        ? ($leaveType->typical_annual_requests ?? 0)
+                        : ($leaveType->entitled ?? $leaveType->leaveType->typical_annual_requests ?? 0);
+
+                    if ($employee->hasRole('Manager')) {
+                        $baseEntitled += 2;
+                    }
+
+                    $totalEntitled += $baseEntitled;
+                    $totalRequested += (float)LeaveRequest::where('user_id', $employee->id)
+                        ->where('leave_type_id', $leaveType->leave_type_id ?? $leaveType->id)
+                        ->whereIn('status', ['Requested', 'Planned', 'Accepted'])
+                        ->sum('duration');
+                }
+
+                // Cap total entitled at 40 days per user
+                $totalEntitled = min($totalEntitled, 40);
                 $requestedCount = LeaveRequest::where('user_id', $employee->id)->count();
-                $leaveTypeCount = LeaveType::count();
-                $nonRequestedCount = $leaveTypeCount - LeaveRequest::where('user_id', $employee->id)
-                    ->distinct('leave_type_id')->count();
+
+                // Debug log for this user
+                Log::info('Employee Calculation', [
+                    'user_id' => $employee->id,
+                    'total_entitled' => $totalEntitled,
+                    'total_requested' => $totalRequested,
+                    'days_can_request' => max($totalEntitled - $totalRequested, 0),
+                ]);
 
                 return (object)[
                     'name' => $employee->name,
                     'department' => $employee->department->name ?? 'N/A',
                     'requested_count' => $requestedCount,
-                    'non_requested_count' => $nonRequestedCount,
+                    'total_entitled' => $totalEntitled,
+                    'total_requested' => $totalRequested,
                 ];
             });
 
-            // Fetch all departments for the filter dropdown
-            $departments = Department::all();
-        } elseif ($user->hasRole('Manager')) {
-            // Managers see only employees in their department
-            $employeeRequests = User::where('department_id', $departmentId)
-                ->whereHas('leaveRequests')
-                ->with('department')
-                ->get()
-                ->map(function ($employee) {
-                    $requestedCount = LeaveRequest::where('user_id', $employee->id)->count();
-                    $leaveTypeCount = LeaveType::count();
-                    $nonRequestedCount = $leaveTypeCount - LeaveRequest::where('user_id', $employee->id)
-                        ->distinct('leave_type_id')->count();
-
-                    return (object)[
-                        'name' => $employee->name,
-                        'department' => $employee->department->name ?? 'N/A',
-                        'requested_count' => $requestedCount,
-                        'non_requested_count' => $nonRequestedCount,
-                    ];
-                });
+            if ($user->hasRole('Admin')) {
+                $departments = Department::all();
+            }
         }
 
+        Log::info('LeaveBalanceController: Employee Requests', $employeeRequests->toArray());
+
         return view('leave_types.leave_balance', compact('summaries', 'employeeRequests', 'departments', 'selectedDepartment'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }
