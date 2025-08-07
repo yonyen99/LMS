@@ -4,13 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\LeaveRequest;
-use App\Models\LeaveSummary;
 use App\Models\LeaveType;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class LeaveBalanceController extends Controller
 {
@@ -20,149 +18,78 @@ class LeaveBalanceController extends Controller
         $departmentId = $user->department_id;
         $userId = $user->id;
 
-        Log::info('LeaveBalanceController: Request Data', ['department_id' => $request->department_id, 'user_id' => $userId]);
+        // Get all leave types with their default entitlements
+        $leaveTypes = LeaveType::all()->keyBy('id');
 
-        // Get entitled days per leave type
-        $deptEntitlements = collect();
-        if ($user->hasRole('Admin')) {
-            $deptEntitlements = LeaveSummary::with('leaveType')
-                ->when($request->department_id, function ($query) use ($request) {
-                    $query->where('department_id', $request->department_id);
-                })
-                ->get()
-                ->keyBy('leave_type_id');
-        } else {
-            if ($departmentId) {
-                $deptEntitlements = LeaveSummary::with('leaveType')
-                    ->where('department_id', $departmentId)
-                    ->get()
-                    ->keyBy('leave_type_id');
-            }
-        }
-
-        // Fallback for Admins if no entitlements
-        if ($deptEntitlements->isEmpty() && $user->hasRole('Admin')) {
-            $deptEntitlements = LeaveType::all()->mapWithKeys(function ($leaveType) {
-                return [$leaveType->id => (object)[
-                    'leaveType' => $leaveType,
-                    'department_id' => null,
-                    'entitled' => $leaveType->typical_annual_requests ?? 0,
-                ]];
-            });
-        }
-
-        Log::info('LeaveBalanceController: Entitlements', $deptEntitlements->toArray());
-
-        // Get total taken, requested, and planned for this user
-        $taken = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_taken'))
-            ->where('user_id', $userId)
-            ->where('status', 'Accepted')
+        // Get leave usage for current user grouped by leave type
+        $usage = LeaveRequest::where('user_id', $userId)
+            ->select('leave_type_id')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Accepted" THEN duration ELSE 0 END), 0) as taken')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
             ->groupBy('leave_type_id')
-            ->pluck('total_taken', 'leave_type_id');
+            ->get()
+            ->keyBy('leave_type_id');
 
-        $requested = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_requested'))
-            ->where('user_id', $userId)
-            ->whereIn('status', ['Requested', 'Planned', 'Accepted'])
-            ->groupBy('leave_type_id')
-            ->pluck('total_requested', 'leave_type_id');
-
-        $planned = LeaveRequest::select('leave_type_id', DB::raw('COALESCE(SUM(duration), 0) as total_planned'))
-            ->where('user_id', $userId)
-            ->where('status', 'Planned')
-            ->groupBy('leave_type_id')
-            ->pluck('total_planned', 'leave_type_id');
-
-        Log::info('LeaveBalanceController: Taken', $taken->toArray());
-        Log::info('LeaveBalanceController: Requested', $requested->toArray());
-        Log::info('LeaveBalanceController: Planned', $planned->toArray());
-
-        // Build summaries for the authenticated user
-        $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $planned, $user) {
-            $baseEntitled = $entitlement->entitled ?? $entitlement->leaveType->typical_annual_requests ?? 0;
-
-            if ($user->hasRole('Manager')) {
-                $baseEntitled += 2;
-            }
-            $baseEntitled = min($baseEntitled, 40); // Ensure max 40 days
-
-            $takenDays = (float)($taken[$leaveTypeId] ?? 0);
-            $requestedDays = (float)($requested[$leaveTypeId] ?? 0);
-            $plannedDays = (float)($planned[$leaveTypeId] ?? 0);
-
-            $availableActual = max($baseEntitled - $takenDays, 0);
-            $availableSimulated = max($baseEntitled - ($takenDays + $requestedDays), 0);
+        // Build leave summaries
+        $summaries = $leaveTypes->map(function ($leaveType) use ($usage) {
+            $entitled = (float)$leaveType->typical_annual_requests;
+            $taken = (float)($usage[$leaveType->id]->taken ?? 0);
+            $requested = (float)($usage[$leaveType->id]->requested ?? 0);
+            $planned = (float)($usage[$leaveType->id]->planned ?? 0);
 
             return (object)[
-                'leaveType' => $entitlement->leaveType,
-                'entitled' => $baseEntitled,
-                'taken' => $takenDays,
-                'requested' => $requestedDays,
-                'available_actual' => $availableActual,
-                'available_simulated' => $availableSimulated,
-                'planned' => $plannedDays,
+                'leaveType' => $leaveType,
+                'entitled' => $entitled,
+                'taken' => $taken,
+                'requested' => $requested,
+                'planned' => $planned,
+                'available_actual' => max($entitled - $taken, 0),
+                'available_simulated' => max($entitled - ($taken + $requested), 0),
             ];
         });
 
-        Log::info('LeaveBalanceController: Summaries', $summaries->toArray());
+        // Calculate totals
+        $totals = [
+            'entitled' => $summaries->sum('entitled'),
+            'taken' => $summaries->sum('taken'),
+            'available' => $summaries->sum('available_actual'),
+            'requested' => $summaries->sum('requested')
+        ];
 
-        // Fetch employee request data based on role
-        $employeeRequests = collect();
+        // Department overview for managers/admins
+        $departmentOverview = collect();
         $departments = collect();
-        $selectedDepartment = $request->department_id;
 
         if ($user->hasRole('Admin') || $user->hasRole('Manager')) {
-            $query = User::query()->with('department')
-                ->whereHas('leaveRequests')
-                ->when($user->hasRole('Admin') && $selectedDepartment, function ($q) use ($selectedDepartment) {
-                    $q->where('department_id', $selectedDepartment);
-                })
+            $query = User::with(['department', 'leaveRequests'])
+                ->where('id', '!=', $user->id)
                 ->when($user->hasRole('Manager'), function ($q) use ($departmentId) {
-                    $q->where('department_id', $departmentId);
+                    $q->where('department_id', $departmentId)
+                      ->whereDoesntHave('roles', function ($q) {
+                          $q->whereIn('name', ['Admin', 'Manager']);
+                      });
+                })
+                ->when($user->hasRole('Admin'), function ($q) {
+                    $q->whereDoesntHave('roles', function ($q) {
+                        $q->where('name', 'Admin');
+                    });
                 });
 
-            $employeeRequests = $query->get()->map(function ($employee) {
-                $leaveSummaries = LeaveSummary::where('department_id', $employee->department_id)
-                    ->with('leaveType')
-                    ->get();
+            $departmentOverview = $query->get()->map(function ($employee) use ($leaveTypes) {
+                $used = $employee->leaveRequests()
+                    ->where('status', 'Accepted')
+                    ->sum('duration');
 
-                $totalEntitled = 0;
-                $totalRequested = 0;
-                $leaveTypes = $leaveSummaries->isEmpty() ? LeaveType::all() : $leaveSummaries;
-
-                foreach ($leaveTypes as $leaveType) {
-                    $baseEntitled = $leaveSummaries->isEmpty()
-                        ? ($leaveType->typical_annual_requests ?? 0)
-                        : ($leaveType->entitled ?? $leaveType->leaveType->typical_annual_requests ?? 0);
-
-                    if ($employee->hasRole('Manager')) {
-                        $baseEntitled += 2;
-                    }
-
-                    $totalEntitled += $baseEntitled;
-                    $totalRequested += (float)LeaveRequest::where('user_id', $employee->id)
-                        ->where('leave_type_id', $leaveType->leave_type_id ?? $leaveType->id)
-                        ->whereIn('status', ['Requested', 'Planned', 'Accepted'])
-                        ->sum('duration');
-                }
-
-                // Cap total entitled at 40 days per user
-                $totalEntitled = min($totalEntitled, 40);
-                $requestedCount = LeaveRequest::where('user_id', $employee->id)->count();
-
-                // Debug log for this user
-                Log::info('Employee Calculation', [
-                    'user_id' => $employee->id,
-                    'total_entitled' => $totalEntitled,
-                    'total_requested' => $totalRequested,
-                    'days_can_request' => max($totalEntitled - $totalRequested, 0),
-                ]);
+                $entitled = $leaveTypes->sum('typical_annual_requests');
 
                 return (object)[
                     'name' => $employee->name,
                     'department' => $employee->department->name ?? 'N/A',
-                    'requested_count' => $requestedCount,
-                    'total_entitled' => $totalEntitled,
-                    'total_requested' => $totalRequested,
+                    'entitled' => $entitled,
+                    'used' => $used,
+                    'available' => max($entitled - $used, 0),
+                    'utilization' => $entitled > 0 ? ($used / $entitled) * 100 : 0,
                 ];
             });
 
@@ -171,8 +98,12 @@ class LeaveBalanceController extends Controller
             }
         }
 
-        Log::info('LeaveBalanceController: Employee Requests', $employeeRequests->toArray());
-
-        return view('leave_types.leave_balance', compact('summaries', 'employeeRequests', 'departments', 'selectedDepartment'));
+        return view('leave_types.leave_balance', compact(
+            'summaries',
+            'departmentOverview',
+            'departments',
+            'user',
+            'totals'
+        ));
     }
 }
