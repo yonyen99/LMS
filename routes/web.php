@@ -138,7 +138,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-        Route::resource('delegations', DelegationController::class);
+    Route::resource('delegations', DelegationController::class);
 });
 
 
@@ -157,3 +157,10 @@ Route::get('/overtime/export-excel', [OTController::class, 'exportExcel'])->name
 
 
 Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
+// For showing user's all leave types
+Route::get('leave-balances/users/{user}', [LeaveBalanceController::class, 'show'])
+    ->name('leave-balances.show');
+
+// For showing specific leave type details
+Route::get('leave-balances/users/{user}/leave-types/{leaveType}', [LeaveBalanceController::class, 'show'])
+    ->name('leave-balances.show.leave-type');

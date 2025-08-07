@@ -32,9 +32,10 @@
                     <div class="col-sm-7 ps-sm-4 pt-2 scrollable-leave-types">
                         @forelse ($summaries as $summary)
                             @php
-                                $availablePercent = $summary->entitled > 0 
-                                    ? ($summary->available_actual / $summary->entitled) * 100 
-                                    : 0;
+                                $availablePercent =
+                                    $summary->entitled > 0
+                                        ? ($summary->available_actual / $summary->entitled) * 100
+                                        : 0;
                             @endphp
                             <div class="d-flex align-items-center gap-2 mb-2" data-bs-toggle="tooltip"
                                 title="{{ $summary->leaveType->name }}: {{ $summary->available_actual }} / {{ $summary->entitled }} days available">
@@ -89,7 +90,8 @@
                             <div class="mb-4">
                                 <h6 class="fw-semibold mb-1">{{ $summary->leaveType->name }}</h6>
                                 <div class="d-flex justify-content-between small">
-                                    <span class="text-primary">Available: {{ number_format($summary->available_actual, 1) }}</span>
+                                    <span class="text-primary">Available:
+                                        {{ number_format($summary->available_actual, 1) }}</span>
                                     <span class="text-muted">{{ number_format($availablePercent, 1) }}%</span>
                                 </div>
                                 <div class="progress mb-2" style="height: 6px;">
@@ -107,18 +109,25 @@
 
     @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Manager'))
         <div class="card card-1 border-0 p-4 rounded-3 bg-white mt-4 shadow">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
+            <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
                 <h5 class="fw-bold text-primary m-0">
                     <i class="bi bi-person-lines-fill me-2"></i>
-                    @if(Auth::user()->hasRole('Admin')) All Employees @else My Team @endif Leave Overview
+                    @if (Auth::user()->hasRole('Admin'))
+                        All Employees
+                    @else
+                        My Team
+                    @endif Leave Overview
                 </h5>
                 @if (Auth::user()->hasRole('Admin'))
                     <div class="d-flex align-items-center">
                         <label for="departmentFilter" class="me-2 fw-semibold text-muted small">Filter by Department</label>
-                        <select id="departmentFilter" name="department_id" class="form-select shadow-sm rounded-pill" style="width: 200px;">
+                        <select id="departmentFilter" name="department_id" class="form-select shadow-sm rounded-pill"
+                            style="width: 200px;">
                             <option value="">All Departments</option>
                             @foreach ($departments as $department)
-                                <option value="{{ $department->id }}" {{ request('department_id') == $department->id ? 'selected' : '' }}>
+                                <option value="{{ $department->id }}"
+                                    {{ request('department_id') == $department->id ? 'selected' : '' }}>
                                     {{ $department->name }}
                                 </option>
                             @endforeach
@@ -136,6 +145,7 @@
                             <th class="text-center">Used</th>
                             <th class="text-center">Available</th>
                             <th class="text-center">Utilization</th>
+                            <th class="text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -143,7 +153,7 @@
                             <tr class="{{ $employee->is_manager ?? false ? 'table-info' : '' }}">
                                 <td>
                                     {{ $employee->name }}
-                                    @if($employee->is_manager ?? false)
+                                    @if ($employee->is_manager ?? false)
                                         <span class="badge bg-primary ms-2">Manager</span>
                                     @endif
                                 </td>
@@ -151,12 +161,20 @@
                                 <td class="text-center">{{ number_format($employee->entitled, 1) }}</td>
                                 <td class="text-center">{{ number_format($employee->used, 1) }}</td>
                                 <td class="text-center">
-                                    <span class="badge rounded-pill {{ ($employee->available ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
+                                    <span
+                                        class="badge rounded-pill {{ ($employee->available ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
                                         {{ number_format($employee->available, 1) }}
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     {{ number_format($employee->utilization, 1) }}%
+                                </td>
+
+                                <td class="text-end">
+                                    <a href="{{ route('leave-balances.show', $employee->id) }}"
+                                        class="btn btn-sm btn-outline-primary">
+                                        Details
+                                    </a>
                                 </td>
                             </tr>
                         @empty
@@ -182,7 +200,7 @@
                 @if (Auth::user()->hasRole('Admin'))
                     document.getElementById('departmentFilter').addEventListener('change', function() {
                         const departmentId = this.value;
-                        window.location.href = '{{ route('leave-balances.index') }}' + 
+                        window.location.href = '{{ route('leave-balances.index') }}' +
                             (departmentId ? '?department_id=' + departmentId : '');
                     });
                 @endif
@@ -198,21 +216,25 @@
         overflow-y: auto;
         padding-right: 8px;
     }
+
     .scrollable-leave-types::-webkit-scrollbar {
         width: 6px;
     }
+
     .scrollable-leave-types::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
+
     .scrollable-leave-types::-webkit-scrollbar-thumb {
         background: #a0a0a0;
         border-radius: 10px;
     }
+
     .scrollable-leave-types::-webkit-scrollbar-thumb:hover {
         background: #808080;
     }
-    
+
     /* For Firefox */
     .scrollable-leave-types {
         scrollbar-width: thin;

@@ -20,6 +20,7 @@ class LeaveBalanceController extends Controller
 
         // Get all leave types with their default entitlements
         $leaveTypes = LeaveType::all()->keyBy('id');
+        // $leaveTypes = LeaveType::all()->keyBy('id');
 
         // Get leave usage for current user grouped by leave type
         $usage = LeaveRequest::where('user_id', $userId)
@@ -62,18 +63,12 @@ class LeaveBalanceController extends Controller
         $departments = collect();
 
         if ($user->hasRole('Admin') || $user->hasRole('Manager')) {
-            $query = User::with(['department', 'leaveRequests'])
-                ->where('id', '!=', $user->id)
-                ->when($user->hasRole('Manager'), function ($q) use ($departmentId) {
-                    $q->where('department_id', $departmentId)
-                      ->whereDoesntHave('roles', function ($q) {
-                          $q->whereIn('name', ['Admin', 'Manager']);
-                      });
+            $query = User::with(['department', 'leaveRequests', 'roles'])
+                ->whereHas('roles', function ($q) {
+                    $q->where('name', 'Employee'); // Only employees
                 })
-                ->when($user->hasRole('Admin'), function ($q) {
-                    $q->whereDoesntHave('roles', function ($q) {
-                        $q->where('name', 'Admin');
-                    });
+                ->when($user->hasRole('Manager'), function ($q) use ($departmentId) {
+                    $q->where('department_id', $departmentId);
                 });
 
             $departmentOverview = $query->get()->map(function ($employee) use ($leaveTypes) {
@@ -90,6 +85,7 @@ class LeaveBalanceController extends Controller
                     'used' => $used,
                     'available' => max($entitled - $used, 0),
                     'utilization' => $entitled > 0 ? ($used / $entitled) * 100 : 0,
+                    'id' => $employee->id // Make sure ID is included
                 ];
             });
 
@@ -105,5 +101,47 @@ class LeaveBalanceController extends Controller
             'user',
             'totals'
         ));
+    }
+
+    public function show(User $user) // Using route model binding
+    {
+        $currentUser = Auth::user();
+
+        // Authorization check for managers
+        if ($currentUser->hasRole('Manager') && $user->department_id != $currentUser->department_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Check if the user is an employee
+        if (!$user->hasRole('Employee')) {
+            abort(403, 'Only employee records can be viewed');
+        }
+
+        $leaveTypes = LeaveType::all();
+        $summaries = $leaveTypes->map(function ($type) use ($user) {
+            $usage = $this->getLeaveUsage($user->id, $type->id);
+            return (object)[
+                'leaveType' => $type,
+                'entitled' => $type->typical_annual_requests,
+                'taken' => $usage->taken,
+                'requested' => $usage->requested,
+                'planned' => $usage->planned,
+                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+            ];
+        });
+
+        return view('leave_types.leave_balance_detail', [
+            'user' => $user,
+            'summaries' => $summaries,
+        ]);
+    }
+    protected function getLeaveUsage($userId, $leaveTypeId)
+    {
+        return LeaveRequest::where('user_id', $userId)
+            ->where('leave_type_id', $leaveTypeId)
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Accepted" THEN duration ELSE 0 END), 0) as taken')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
+            ->first();
     }
 }
