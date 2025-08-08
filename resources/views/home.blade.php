@@ -370,7 +370,8 @@
                                     {{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}
                                 </th>
                                 <td>{{ optional($request->start_date)->format('d/m/Y') }}
-                                    ({{ ucfirst($request->start_time) }})</td>
+                                    ({{ ucfirst($request->start_time) }})
+                                </td>
                                 <td>{{ optional($request->end_date)->format('d/m/Y') }}
                                     ({{ ucfirst($request->end_time) }})</td>
                                 <td class="d-none d-md-table-cell">{{ $request->reason ?? '-' }}</td>
@@ -507,19 +508,6 @@
                     </div>
                 </div>
             @endif
-
-    @endif
-
-    @if ($leaveRequests->hasPages())
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
-            <div class="text-muted">
-                Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
-                {{ $leaveRequests->total() }} entries
-            </div>
-            <div>
-                {{ $leaveRequests->onEachSide(1)->links() }}
-            </div>
-        </div>
     @endif
 
     <div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel"

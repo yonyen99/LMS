@@ -354,29 +354,46 @@ class OTController extends Controller
         $user = auth()->user();
         $overtime = OvertimeRequest::findOrFail($id);
 
+        // Authorization check
         if (
             !$user->hasRole('Admin') &&
             !($user->hasRole('Manager') && $overtime->user->department_id === $user->department_id) &&
             $user->id !== $overtime->user_id
         ) {
-            return redirect()->route('over-time.index')->with('error', 'You are not authorized to cancel this request.');
+            return redirect()->route('over-time.index')
+                ->with('error', 'You are not authorized to cancel this request.');
         }
 
-        DB::transaction(function () use ($overtime, $user) {
+        try {
+            DB::beginTransaction();
+
+            // Use the correct status value based on your database schema
+            // Try 'cancelled' if 'canceled' doesn't work
+            $statusValue = 'cancelled'; // or 'canceled' depending on your schema
+
             $overtime->update([
-                'status' => 'canceled',
+                'status' => $statusValue,
                 'action_by' => $user->id,
                 'last_changed_at' => now(),
             ]);
 
             if (auth()->id() !== $overtime->user_id) {
-                Mail::to($overtime->user->email)->queue(new OvertimeRequestStatusUpdated($overtime));
+                Mail::to($overtime->user->email)
+                    ->queue(new OvertimeRequestStatusUpdated($overtime));
             }
-        });
 
-        return redirect()->route('over-time.index')->with('success', 'Overtime request cancelled successfully.');
+            DB::commit();
+
+            return redirect()->route('over-time.index')
+                ->with('success', 'Overtime request cancelled successfully.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to cancel overtime request: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', 'Failed to cancel request: ' . $e->getMessage());
+        }
     }
-
     /**
      * Search overtime requests by date, by name,  and by department
      */

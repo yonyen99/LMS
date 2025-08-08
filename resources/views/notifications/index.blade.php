@@ -246,19 +246,9 @@
                                         </button>
                                         <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm"
                                             aria-labelledby="actionsDropdown{{ $request->id }}">
-                                            <li>
-                                                <button type="button"
-                                                    class="dropdown-item d-flex align-items-center gap-2 view-request"
-                                                    data-bs-toggle="modal" data-bs-target="#leaveRequestModal"
-                                                    data-request-id="{{ $request->id }}">
-                                                    <i class="bi bi-eye"></i> View Details
-                                                </button>
-                                            </li>
+                                         
 
                                             @if (auth()->check())
-                                                <li>
-                                                    <hr class="dropdown-divider">
-                                                </li>
                                                 <li class="dropdown-header">Change Status</li>
                                                 @foreach (['Accepted', 'Rejected', 'Cancellation', 'Canceled'] as $newStatus)
                                                     @php
@@ -297,18 +287,7 @@
                                                 <li>
                                                     <hr class="dropdown-divider">
                                                 </li>
-                                                <li>
-                                                    <form action="{{ route('leave-requests.destroy', $request->id) }}"
-                                                        method="POST"
-                                                        onsubmit="return confirm('Are you sure you want to delete this request?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                            class="dropdown-item d-flex align-items-center gap-2 text-danger">
-                                                            <i class="bi bi-trash"></i> Delete Request
-                                                        </button>
-                                                    </form>
-                                                </li>
+                                               
                                             @endif
                                         </ul>
                                     </div>
