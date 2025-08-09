@@ -17,13 +17,14 @@
 
                     <div class="d-flex flex-column flex-md-row gap-3">
                         <!-- Search Form -->
-                        <form class="d-flex" method="GET">
+                        <form class="d-flex" method="GET" action="{{ route('over-time.index') }}">
                             <div class="input-group">
                                 <input type="text" name="search" class="form-control" placeholder="Search..."
                                     value="{{ request('search') }}">
                                 <button class="btn btn-primary" type="submit">
                                     <i class="bi bi-search"></i>
                                 </button>
+                               
                             </div>
                         </form>
 
@@ -35,12 +36,12 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="exportDropdown">
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('over-time.exportPDF') }}">
+                                    <a class="dropdown-item" href="{{ route('over-time.exportPDF') . '?' . http_build_query(request()->query()) }}">
                                         <i class="bi bi-file-earmark-pdf text-danger me-2"></i> PDF
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('over-time.exportExcel') }}">
+                                    <a class="dropdown-item" href="{{ route('over-time.exportExcel') . '?' . http_build_query(request()->query()) }}">
                                         <i class="bi bi-file-earmark-excel text-success me-2"></i> Excel
                                     </a>
                                 </li>
@@ -49,7 +50,7 @@
                     </div>
                 </div>
 
-                <!-- Stats Cards -->
+                <!-- Stats Cards (Unfiltered Totals) -->
                 <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
                     <div class="col">
                         <div class="card border-start border-primary border-4 shadow-sm h-100">
@@ -77,9 +78,9 @@
                                     <div>
                                         <p class="text-muted small mb-1">Approved</p>
                                         <h3 class="mb-0">{{ $approvedRequests }}</h3>
-                                        <small
-                                            class="text-muted">{{ $totalRequests > 0 ? round(($approvedRequests / $totalRequests) * 100, 1) : 0 }}%
-                                            of total</small>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($approvedRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -95,9 +96,9 @@
                                     <div>
                                         <p class="text-muted small mb-1">Pending</p>
                                         <h3 class="mb-0">{{ $pendingRequests }}</h3>
-                                        <small
-                                            class="text-muted">{{ $totalRequests > 0 ? round(($pendingRequests / $totalRequests) * 100, 1) : 0 }}%
-                                            of total</small>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($pendingRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -112,8 +113,10 @@
                                     </div>
                                     <div>
                                         <p class="text-muted small mb-1">Rejected/Canceled</p>
-                                        {{-- <h3 class="mb-0">{{ $rejectedCancelledRequests }}</h3> --}}
-                                        {{-- <small class="text-muted">{{ $totalRequests > 0 ? round(($rejectedCancelledRequests/$totalRequests)*100, 1) : 0 }}% of total</small> --}}
+                                        <h3 class="mb-0">{{ $rejectedCancelledRequests }}</h3>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($rejectedCancelledRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -124,33 +127,32 @@
                 <!-- Status Filter Tabs -->
                 <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('status') === null ? 'active' : '' }}" id="all-tab"
-                            data-bs-toggle="tab" type="button" role="tab">
+                        <a class="nav-link {{ !request('status') ? 'active' : '' }}" 
+                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => null, 'page' => null])) }}">
                             All Requests
-                        </button>
+                        </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('status') === 'requested' ? 'active' : '' }}" id="pending-tab"
-                            data-bs-toggle="tab" type="button" role="tab">
+                        <a class="nav-link {{ request('status') === 'requested' ? 'active' : '' }}" 
+                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'requested', 'page' => null])) }}">
                             Pending
-                        </button>
+                        </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}" id="approved-tab"
-                            data-bs-toggle="tab" type="button" role="tab">
+                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}" 
+                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'approved', 'page' => null])) }}">
                             Approved
-                        </button>
+                        </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button
-                            class="nav-link {{ in_array(request('status'), ['rejected', 'canceled']) ? 'active' : '' }}"
-                            id="rejected-tab" data-bs-toggle="tab" type="button" role="tab">
+                        <a class="nav-link {{ in_array(request('status'), ['rejected', 'cancelled']) ? 'active' : '' }}" 
+                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'rejected_canceled', 'page' => null])) }}">
                             Rejected/Canceled
-                        </button>
+                        </a>
                     </li>
                 </ul>
 
-                <!-- Table -->
+                <!-- Table (Filtered Results) -->
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
@@ -167,8 +169,7 @@
                         <tbody>
                             @forelse ($overtimes as $ot)
                                 <tr>
-                                    <td>{{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}
-                                    </td>
+                                    <td>{{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}</td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
@@ -186,14 +187,14 @@
                                     </td>
                                     <td class="d-none d-md-table-cell">{{ $ot->department->name }}</td>
                                     <td class="d-none d-lg-table-cell">
-                                        {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}</td>
+                                        {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}
+                                    </td>
                                     <td class="d-none d-lg-table-cell">
                                         {{ ucwords(str_replace('_', ' ', $ot->time_period)) }}
-                                        <small class="text-muted d-block">{{ $ot->hours }} hours</small>
+                                        <small class="text-muted d-block">{{ $ot->duration }} hours</small>
                                     </td>
                                     <td class="d-none d-sm-table-cell text-center">
-                                        <span
-                                            class="badge rounded-pill bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : 'danger') }}">
+                                        <span class="badge rounded-pill bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : 'danger') }}">
                                             {{ ucfirst($ot->status) }}
                                         </span>
                                     </td>
@@ -205,15 +206,13 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
-                                                    <a class="dropdown-item"
-                                                        href="{{ route('over-time.show', $ot->id) }}">
+                                                    <a class="dropdown-item" href="{{ route('over-time.show', $ot->id) }}">
                                                         <i class="bi bi-eye me-2"></i> View Details
                                                     </a>
                                                 </li>
                                                 @if (auth()->user()->id === $ot->user_id && $ot->status === 'requested')
                                                     <li>
-                                                        <a class="dropdown-item"
-                                                            href="{{ route('over-time.edit', $ot->id) }}">
+                                                        <a class="dropdown-item" href="{{ route('over-time.edit', $ot->id) }}">
                                                             <i class="bi bi-pencil me-2"></i> Edit
                                                         </a>
                                                     </li>
@@ -292,7 +291,7 @@
                         {{ $overtimes->total() }} entries
                     </div>
                     <div>
-                        {{ $overtimes->links() }}
+                        {{ $overtimes->appends(request()->query())->links() }}
                     </div>
                 </div>
             </div>
@@ -308,30 +307,6 @@
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
-
-            // Status filter tabs functionality
-            const statusTabs = document.querySelectorAll('#statusTabs .nav-link');
-            statusTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const statusMap = {
-                        'all-tab': '',
-                        'pending-tab': 'requested',
-                        'approved-tab': 'approved',
-                        'rejected-tab': 'rejected_canceled'
-                    };
-
-                    const status = statusMap[this.id];
-                    const url = new URL(window.location.href);
-
-                    if (status) {
-                        url.searchParams.set('status', status);
-                    } else {
-                        url.searchParams.delete('status');
-                    }
-
-                    window.location.href = url.toString();
-                });
-            });
         });
     </script>
 @endsection

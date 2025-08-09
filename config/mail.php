@@ -85,6 +85,12 @@ return [
                 'log',
             ],
         ],
+
+        'from' => [
+            'address' => env('MAIL_FROM_ADDRESS', 'chheadeveloper@gmail.com'),
+            'name' => env('MAIL_FROM_NAME', 'Leave Mangement System'),
+        ],
+
     ],
 
     /*

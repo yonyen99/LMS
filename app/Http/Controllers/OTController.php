@@ -25,19 +25,18 @@ class OTController extends Controller
         $this->middleware(['auth', 'role:Employee|Manager|Admin']);
     }
 
-
     /**
      * Display a listing of the overtime requests
      * Users can see their own requests, Managers can see their department's requests,
      * and Admins can see all requests.
      */
-
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
 
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
 
+        // Apply role-based filtering
         if ($user->hasRole('Employee')) {
             $query->where('user_id', $user->id);
         } elseif ($user->hasRole('Manager')) {
@@ -50,13 +49,39 @@ class OTController extends Controller
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 
+        // Apply search filters
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
+        }
+
+        if ($request->filled('name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->name . '%');
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'rejected_canceled') {
+                $query->whereIn('status', ['rejected', 'cancelled']);
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
         $totalRequests = $query->count();
         $approvedRequests = (clone $query)->where('status', 'approved')->count();
         $pendingRequests = (clone $query)->where('status', 'requested')->count();
+        $rejectedCancelledRequests = (clone $query)->whereIn('status', ['rejected', 'cancelled'])->count();
 
         $overtimes = $query->latest()->paginate(10);
 
-        return view('over_time.list_over_time', compact('overtimes', 'totalRequests', 'approvedRequests', 'pendingRequests'));
+        $departments = Department::pluck('name', 'id'); // For department dropdown in search form
+
+        return view('over_time.list_over_time', compact('overtimes', 'totalRequests', 'approvedRequests', 'pendingRequests', 'rejectedCancelledRequests', 'departments'));
     }
 
     /**
@@ -64,13 +89,13 @@ class OTController extends Controller
      * Only users with a department can submit an overtime request.
      * If the user is not assigned to a department, they will receive a validation error.
      */
-
-    public function overTime()
+    public function overTime(Request $request)
     {
         $user = auth()->user();
 
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
 
+        // Apply role-based filtering
         if ($user->hasRole('Employee')) {
             $query->where('user_id', $user->id);
         } elseif ($user->hasRole('Manager')) {
@@ -83,11 +108,45 @@ class OTController extends Controller
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 
+        // Apply search filters
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
+        }
+
+        if ($request->filled('name')) {
+            $query->whereHas('user', function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->name . '%');
+            });
+        }
+
+        if ($request->filled('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'rejected_canceled') {
+                $query->whereIn('status', ['rejected', 'cancelled']);
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        $totalRequests = $query->count();
+        $approvedRequests = (clone $query)->where('status', 'approved')->count();
+        $pendingRequests = (clone $query)->where('status', 'requested')->count();
+        $rejectedCancelledRequests = (clone $query)->whereIn('status', ['rejected', 'cancelled'])->count();
+
+        $overtimes = $query->latest()->paginate(10);
+
+        $departments = Department::pluck('name', 'id'); // For department dropdown in search form
+
         return view('over_time.over_time', [
-            'overtimes' => $query->latest()->paginate(10),
-            'totalRequests' => $query->count(),
-            'approvedRequests' => $query->where('status', 'approved')->count(),
-            'pendingRequests' => $query->where('status', 'requested')->count(),
+            'overtimes' => $overtimes,
+            'totalRequests' => $totalRequests,
+            'approvedRequests' => $approvedRequests,
+            'pendingRequests' => $pendingRequests,
+            'rejectedCancelledRequests' => $rejectedCancelledRequests,
+            'departments' => $departments,
         ]);
     }
 
@@ -96,7 +155,6 @@ class OTController extends Controller
      * The user must be assigned to a department to submit an overtime request.
      * If the user is not assigned to a department, they will receive a validation error.
      */
-
     public function create()
     {
         $departments = Department::pluck('name', 'id');
@@ -108,7 +166,6 @@ class OTController extends Controller
      * The user must be assigned to a department to submit an overtime request.
      * If the user is not assigned to a department, they will receive a validation error.
      */
-
     public function store(Request $request)
     {
         $request->validate([
@@ -141,7 +198,7 @@ class OTController extends Controller
                 'requested_at'    => now(),
                 'last_changed_at' => now(),
                 'user_id'         => $user->id,
-                'department_id'   => $user->department_id, // Add department_id
+                'department_id'   => $user->department_id,
             ]);
         });
 
@@ -188,7 +245,6 @@ class OTController extends Controller
      * Only the user who created the request can edit it.
      * If the user is not authorized, they will be redirected with an error message.
      */
-
     public function edit($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -206,7 +262,6 @@ class OTController extends Controller
      * Only the user who created the request can update it.
      * If the user is not authorized, they will be redirected with an error message.
      */
-
     public function update(Request $request, $id)
     {
         $user = auth()->user();
@@ -249,19 +304,16 @@ class OTController extends Controller
         return redirect()->route('over-time.index')->with('success', 'Overtime request updated successfully.');
     }
 
-
     /**
      * Show an overtime request
      * Only the user who created the request, or an Admin/Manager in the same department
      * can view the request.
      */
-
-
     public function show($id)
     {
-        $overtime = OvertimeRequest::findOrFail($id);
+        $overtime = OvertimeRequest::with(['user', 'department', 'actionBy'])->findOrFail($id);
 
-        if ($overtime->user_id !== Auth::id() && !Auth::user()->hasAnyRole(['Manager', 'Admin'])) {
+        if ($overtime->user_id !== Auth::id() && !(Auth::user()->hasRole('Manager') || Auth::user()->hasRole('Admin'))) {
             return redirect()->route('over-time.index')->with('error', 'You are not authorized to view this request.');
         }
 
@@ -273,7 +325,6 @@ class OTController extends Controller
      * Only the user who created the request can delete it.
      * If the user is not authorized, they will be redirected with an error message.
      */
-
     public function destroy($id)
     {
         $overtime = OvertimeRequest::findOrFail($id);
@@ -292,7 +343,6 @@ class OTController extends Controller
      * Only an Admin or a Manager in the same department can accept the request.
      * If the user is not authorized, they will be redirected with an error message.
      */
-
     public function accept(Request $request, $id)
     {
         $user = auth()->user();
@@ -320,7 +370,6 @@ class OTController extends Controller
      * Only an Admin or a Manager in the same department can reject the request.
      * If the user is not authorized, they will be redirected with an error message.
      */
-
     public function reject(Request $request, $id)
     {
         $user = auth()->user();
@@ -348,7 +397,6 @@ class OTController extends Controller
      * Only the user who created the request, or an Admin/Manager in the same department
      * can cancel the request.
      */
-
     public function cancel(Request $request, $id)
     {
         $user = auth()->user();
@@ -367,9 +415,7 @@ class OTController extends Controller
         try {
             DB::beginTransaction();
 
-            // Use the correct status value based on your database schema
-            // Try 'cancelled' if 'canceled' doesn't work
-            $statusValue = 'cancelled'; // or 'canceled' depending on your schema
+            $statusValue = 'cancelled'; // Ensure consistency with double 'l'
 
             $overtime->update([
                 'status' => $statusValue,
@@ -394,14 +440,30 @@ class OTController extends Controller
                 ->with('error', 'Failed to cancel request: ' . $e->getMessage());
         }
     }
-    /**
-     * Search overtime requests by date, by name,  and by department
-     */
 
+    /**
+     * Search overtime requests by date, name, department, and status
+     */
     public function search(Request $request)
     {
+        $user = auth()->user();
+
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
 
+        // Apply role-based filtering
+        if ($user->hasRole('Employee')) {
+            $query->where('user_id', $user->id);
+        } elseif ($user->hasRole('Manager')) {
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('department_id', $user->department_id);
+            });
+        } elseif ($user->hasRole('Admin')) {
+            // Admins see all requests
+        } else {
+            return redirect()->route('home')->with('error', 'Unauthorized access.');
+        }
+
+        // Apply search filters
         if ($request->filled('date')) {
             $query->whereDate('overtime_date', $request->date);
         }
@@ -416,16 +478,29 @@ class OTController extends Controller
             $query->where('department_id', $request->department_id);
         }
 
+        if ($request->filled('status')) {
+            if ($request->status === 'rejected_canceled') {
+                $query->whereIn('status', ['rejected', 'cancelled']);
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+
+        $totalRequests = $query->count();
+        $approvedRequests = (clone $query)->where('status', 'approved')->count();
+        $pendingRequests = (clone $query)->where('status', 'requested')->count();
+        $rejectedCancelledRequests = (clone $query)->whereIn('status', ['rejected', 'cancelled'])->count();
+
         $overtimes = $query->latest()->paginate(10);
 
-        return view('over_time.list_over_time', compact('overtimes'));
-    }
+        $departments = Department::pluck('name', 'id'); // For department dropdown in search form
 
+        return view('over_time.list_over_time', compact('overtimes', 'totalRequests', 'approvedRequests', 'pendingRequests', 'rejectedCancelledRequests', 'departments'));
+    }
 
     /**
      * Export overtime requests as PDF
      */
-
     public function exportPDF(Request $request)
     {
         $query = OvertimeRequest::with(['user', 'department', 'actionBy']);
