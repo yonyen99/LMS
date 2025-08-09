@@ -3,6 +3,7 @@
 @section('title', 'Leave Balance Details')
 
 @section('content')
+<div class="container-fluid">
     <div class="container-fluid py-3 py-md-4">
         <div class="card shadow-sm">
             <div class="card-header bg-white border-bottom-0">

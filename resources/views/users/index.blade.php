@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="card shadow-sm">
+<div class="container-fluid">
+<div class="card shadow-sm ">
     <div class="card-header bg-primary text-white">
         <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0">User Management Dashboard</h5>
@@ -15,7 +16,7 @@
     
     <!-- Stats Cards Row -->
     <div class="card-body py-3 border-bottom">
-        <div class="row g-3">
+        <div class="row g-3 ">
             <!-- Total Users Card -->
             <div class="col-xl-3 col-md-6">
                 <div class="card card-statistic h-100">

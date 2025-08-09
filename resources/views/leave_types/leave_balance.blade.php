@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+<div class="container-fluid">
     <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
             <h2 class="fw-bold text-primary m-0">

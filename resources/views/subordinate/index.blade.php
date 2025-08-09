@@ -84,6 +84,7 @@
     </style>
 
     <!-- Card -->
+    <div class="container-fluid">
     <div class="card card-1 border-0 p-4 p-md-5 rounded-4 shadow-sm bg-white">
         <!-- Header -->
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3 mb-4">
