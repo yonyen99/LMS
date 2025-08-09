@@ -267,11 +267,10 @@
                                                         Delegations
                                                     </a>
                                                 </li>
-
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
                                                         href="{{ route('subordinates.index') }}">My Subordinates</a></li>
                                                 <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-balance.index' ? 'active' : '' }}"
-                                                        href="{{route('leave-balances.index')}}" disabled>Leave Balance</a></li>
+                                                        href="{{ route('leave-balances.index') }}" disabled>Leave Balance</a></li>
                                                 <li>
                                                     <hr class="dropdown-divider">
                                                 </li>
@@ -326,7 +325,6 @@
                                             </li>
                                             <li><a class="dropdown-item" href="{{ route('over-time.index') }}">List of OT
                                                     Worked</a></li>
-
                                             @if (Auth::user()->hasRole('Employee'))
                                                 <li><a class="dropdown-item" href="{{ route('over-time.create') }}">Submit an OT
                                                         Request</a></li>
@@ -366,7 +364,7 @@
 
                         <ul class="navbar-nav ms-auto align-items-center">
                             @if (!Auth::user()->hasRole('Employee'))
-                                <div class="me-3">
+                                <li class="nav-item">
                                     <button id="notificationToggle" class="position-relative p-1 bg-transparent border-0"
                                         style="font-size: 20px;">
                                         <i class="bi bi-bell-fill text-primary"></i>
@@ -376,7 +374,7 @@
                                             {{ $requests }}
                                         </span>
                                     </button>
-                                </div>
+                                </li>
                             @endif
 
                             @guest
@@ -567,8 +565,58 @@
                                         style="background: #F5811E">New Request</a>
                                 </li>
                             @endcanany
-                        @endauth
-                    </ul>
+
+                            @if (!Auth::user()->hasRole('Employee'))
+                                <li class="nav-item">
+                                    <button id="offcanvasNotificationToggle" class="position-relative p-1 bg-transparent border-0"
+                                        style="font-size: 20px;">
+                                        <i class="bi bi-bell-fill text-primary"></i>
+                                        <span
+                                            class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style="font-size: 0.7rem; padding: 0.4em 0.6em;">
+                                            {{ $requests }}
+                                        </span>
+                                    </button>
+                                </li>
+                            @endif
+
+                            <li class="nav-item dropdown">
+                                <a id="offcanvasNavbarDropdown"
+                                    class="nav-link dropdown-toggle d-flex align-items-center {{ Route::currentRouteName() === 'users.show' ? 'active' : '' }}"
+                                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    @if (Auth::user()->images)
+                                        <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
+                                            class="rounded-circle me-2"
+                                            style="width: 45px; height: 45px; object-fit: cover;">
+                                    @else
+                                        <i class="bi bi-person-circle me-2 fs-5"></i>
+                                    @endif
+                                    <span class="d-none d-lg-inline">{{ Auth::user()->name }}</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end card-1 card-2"
+                                    aria-labelledby="offcanvasNavbarDropdown">
+                                    <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.show' ? 'active' : '' }}"
+                                            href="{{ route('users.show', Auth::user()->id) }}">
+                                            @if (Auth::user()->images)
+                                                <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
+                                                    class="rounded-circle me-2"
+                                                    style="width: 20px; height: 20px; object-fit: cover;">
+                                            @else
+                                                <i class="bi bi-person-circle me-2 fs-5"></i>
+                                            @endif View Profile
+                                        </a></li>
+                                    <li><a class="dropdown-item {{ Route::currentRouteName() === 'logout' ? 'active' : '' }}"
+                                            href="{{ route('logout') }}"
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
+                                                class="bi bi-box-arrow-right me-2"></i> {{ __('Logout') }}</a>
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                            class="d-none">@csrf</form>
+                                    </li>
+                                </ul>
+                            </li>
+                        @endguest
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -658,6 +706,7 @@
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const bellButton = document.getElementById('notificationToggle');
+                const offcanvasBellButton = document.getElementById('offcanvasNotificationToggle');
                 const container = document.getElementById('notificationContainer');
 
                 function toggleNotification() {
@@ -666,47 +715,48 @@
                         'none';
                 }
 
-                // Toggle on bell click
+                // Toggle on bell click (both desktop and offcanvas)
                 if (bellButton && container) {
                     bellButton.addEventListener('click', function(event) {
-                        event.stopPropagation(); // prevent event from bubbling up
+                        event.stopPropagation();
                         toggleNotification();
                     });
-
-                    // Hide when clicking outside
-                    document.addEventListener('click', function(event) {
-                        if (!container.contains(event.target) && event.target !== bellButton && !bellButton
-                            .contains(event.target)) {
-                            container.style.display = 'none';
-                        }
+                }
+                if (offcanvasBellButton && container) {
+                    offcanvasBellButton.addEventListener('click', function(event) {
+                        event.stopPropagation();
+                        toggleNotification();
                     });
                 }
+
+                // Hide when clicking outside
+                document.addEventListener('click', function(event) {
+                    if (!container.contains(event.target) && event.target !== bellButton && event.target !== offcanvasBellButton) {
+                        container.style.display = 'none';
+                    }
+                });
 
                 // Modal view functionality
                 document.querySelectorAll('.view-request').forEach(button => {
                     button.addEventListener('click', function() {
-                        // Basic fields
                         document.getElementById('modalType').textContent = this.dataset.type || '-';
                         document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
                         document.getElementById('modalReason').textContent = this.dataset.reason || '-';
 
-                        // Format start date and time
                         const startDate = this.dataset.startDate || '-';
                         const startTime = this.dataset.startTime || '';
                         document.getElementById('modalStart').innerHTML = `
-                        ${startDate}
-                        ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
-                    `;
+                            ${startDate}
+                            ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
+                        `;
 
-                        // Format end date and time
                         const endDate = this.dataset.endDate || '-';
                         const endTime = this.dataset.endTime || '';
                         document.getElementById('modalEnd').innerHTML = `
-                        ${endDate}
-                        ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
-                    `;
+                            ${endDate}
+                            ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
+                        `;
 
-                        // Status badge
                         const status = (this.dataset.status || '').toLowerCase();
                         const statusMap = {
                             planned: 'secondary',
@@ -719,8 +769,8 @@
                         const badgeClass = statusMap[status] || 'light';
 
                         document.getElementById('modalStatus').innerHTML = `
-                        <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
-                    `;
+                            <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
+                        `;
                     });
                 });
             });
