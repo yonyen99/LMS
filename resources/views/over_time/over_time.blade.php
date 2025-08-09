@@ -2,193 +2,287 @@
 
 @section('title', 'Overtime Work List')
 
-@section('styles')
-    <style>
-        .transition-all {
-            transition: all 0.3s ease-in-out;
-        }
-
-        .hover-scale:hover {
-            transform: scale(1.05);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-primary,
-        .btn-success {
-            font-weight: 500;
-        }
-
-        .pagination .page-link {
-            border-radius: 0.375rem;
-        }
-
-        .pagination .active>.page-link {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            color: #fff;
-        }
-
-        .table-footer {
-            background-color: #f1f3f5;
-            font-weight: 500;
-            text-align: center;
-        }
-
-        @media (max-width: 768px) {
-            .input-group {
-                flex-wrap: nowrap;
-            }
-
-            .btn {
-                font-size: 0.875rem;
-                padding: 0.5rem 1rem;
-            }
-        }
-    </style>
-@endsection
-
 @section('content')
-    <div class="container py-5 shadow-sm w-full rounded bg-white p-4">
+    <div class="container-fluid py-4">
+        <div class="card shadow-sm rounded-3">
+            <div class="card-body">
+                {{-- Header Section --}}
+                <div class="row align-items-center g-3 mb-4">
+                    {{-- Title --}}
+                    <div class="col-md-4">
+                        <h1 class="h4 mb-0 fw-bold text-primary">
+                            <i class="bi bi-clock-history me-2"></i>Overtime Work List
+                        </h1>
+                    </div>
 
-        {{-- Header --}}
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold text-dark m-0">Overtime Work List</h2>
+                    {{-- Search and Actions --}}
+                    <div class="col-md-8">
+                        <div class="d-flex flex-column flex-md-row gap-3 justify-content-md-end">
+                            {{-- Search --}}
+                            <div class="flex-grow-1 flex-md-grow-0" style="min-width: 250px;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control border-start-0"
+                                        placeholder="Search by name or department">
+                                    <button class="btn btn-outline-primary" type="button">
+                                        Search
+                                    </button>
+                                </div>
+                            </div>
 
-            <div class="d-flex flex-column flex-md-row align-items-stretch gap-3 mt-3 mt-md-0 w-40 w-md-auto">
-                {{-- Search --}}
-                <form method="GET" class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Search by name or dept"
-                        value="{{ request('search') }}">
-                    <button class="btn btn-primary" type="submit" title="Search">
-                        Search
-                    </button>
-                </form>
-
-                {{-- Export Buttons --}}
-                <div class="d-flex gap-2">
-                    <a href="#" class="btn btn-success d-flex align-items-center gap-2 transition-all hover-scale">
-                        <i class="bi bi-file-earmark-excel"></i> Excel
-                    </a>
-                    <a href="#" class="btn btn-primary d-flex align-items-center gap-2 transition-all hover-scale">
-                        <i class="bi bi-file-earmark-pdf"></i> PDF
-                    </a>
+                            {{-- Export Dropdown --}}
+                            <div class="dropdown">
+                                <button class="btn btn-primary dropdown-toggle d-flex align-items-center gap-1" type="button" 
+                                        id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-download"></i>
+                                    <span class="d-none d-sm-inline">Export</span>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="exportDropdown">
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                                            <i class="bi bi-file-earmark-excel text-success"></i>
+                                            <span>Export to Excel</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                                            <i class="bi bi-file-earmark-pdf text-danger"></i>
+                                            <span>Export to PDF</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                {{-- Table Section --}}
+                @if ($overtimes->count())
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" class="text-center">#</th>
+                                    <th scope="col">Employee</th>
+                                    <th scope="col" class="d-none d-md-table-cell">Department</th>
+                                    <th scope="col" class="d-none d-lg-table-cell">Date</th>
+                                    <th scope="col" class="d-none d-lg-table-cell text-center">Hours</th>
+                                    <th scope="col" class="d-none d-xl-table-cell">Reason</th>
+                                    <th scope="col" class="d-none d-sm-table-cell text-center">Status</th>
+                                    <th scope="col" class="d-none d-md-table-cell">Action By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($overtimes as $ot)
+                                    <tr class="position-relative">
+                                        <td class="text-center fw-semibold">
+                                            {{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="flex-shrink-0 me-2">
+                                                    <div class="avatar avatar-sm">
+                                                        <span class="avatar-text bg-primary text-white rounded-circle">
+                                                            {{ substr($ot->user->name, 0, 1) }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <span class="fw-medium">{{ $ot->user->name }}</span>
+                                                    <small class="text-muted d-md-none d-block">{{ $ot->department->name }}</small>
+                                                    <small class="text-muted d-lg-none d-block">
+                                                        {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="d-none d-md-table-cell">{{ $ot->department->name }}</td>
+                                        <td class="d-none d-lg-table-cell">
+                                            {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}
+                                        </td>
+                                        <td class="d-none d-lg-table-cell text-center">
+                                            {{ \Carbon\Carbon::parse($ot->start_time)->diffInHours(\Carbon\Carbon::parse($ot->end_time)) }}
+                                            <small class="text-muted">hours</small>
+                                        </td>
+                                        <td class="d-none d-xl-table-cell text-truncate" style="max-width: 200px;">
+                                            {{ $ot->reason ?: 'No reason provided' }}
+                                        </td>
+                                        <td class="d-none d-sm-table-cell text-center">
+                                            @if ($ot->status === 'approved')
+                                                <span class="badge bg-success bg-opacity-10 text-success">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Approved
+                                                </span>
+                                            @elseif($ot->status === 'pending')
+                                                <span class="badge bg-warning bg-opacity-10 text-warning">
+                                                    <i class="bi bi-clock-history me-1"></i>Pending
+                                                </span>
+                                            @else
+                                                <span class="badge bg-danger bg-opacity-10 text-danger">
+                                                    <i class="bi bi-x-circle-fill me-1"></i>{{ ucfirst($ot->status) }}
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="d-none d-md-table-cell">
+                                            @if ($ot->actionBy)
+                                                <div class="d-flex align-items-center">
+                                                    <div class="flex-shrink-0 me-2">
+                                                        <div class="avatar avatar-xs">
+                                                            <span class="avatar-text bg-secondary text-white rounded-circle">
+                                                                {{ substr($ot->actionBy->name, 0, 1) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        {{ $ot->actionBy->name }}
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <span class="text-muted">N/A</span>
+                                            @endif
+                                        </td>
+                                    
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- Pagination --}}
+                    <nav aria-label="Page navigation" class="mt-4 d-flex justify-content-end">
+                        <ul class="pagination justify-content-center flex-wrap">
+                            {{-- First Page Link --}}
+                            <li class="page-item {{ $overtimes->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $overtimes->url(1) }}" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+
+                            {{-- Previous Page Link --}}
+                            <li class="page-item {{ $overtimes->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $overtimes->previousPageUrl() }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+
+                            {{-- Page Numbers --}}
+                            @php
+                                $start = max(1, $overtimes->currentPage() - 2);
+                                $end = min($overtimes->lastPage(), $overtimes->currentPage() + 2);
+                            @endphp
+
+                            @if ($start > 1)
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+
+                            @for ($i = $start; $i <= $end; $i++)
+                                <li class="page-item {{ $overtimes->currentPage() == $i ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $overtimes->url($i) }}">{{ $i }}</a>
+                                </li>
+                            @endfor
+
+                            @if ($end < $overtimes->lastPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            @endif
+
+                            {{-- Next Page Link --}}
+                            <li class="page-item {{ !$overtimes->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $overtimes->nextPageUrl() }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+
+                            {{-- Last Page Link --}}
+                            <li class="page-item {{ !$overtimes->hasMorePages() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $overtimes->url($overtimes->lastPage()) }}"
+                                    aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                @else
+                    <div class="alert alert-info text-center py-4">
+                        <div class="d-flex flex-column align-items-center">
+                            <i class="bi bi-clock-history fs-1 mb-3"></i>
+                            <h5 class="mb-1">No overtime records found</h5>
+                            <p class="mb-0">There are currently no overtime requests to display</p>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
-
-        {{-- Table --}}
-        @if ($overtimes->count())
-            @foreach ($overtimes->chunk(10) as $chunkIndex => $chunk)
-                <!-- Overtime Requests Table -->
-                <div class="table-responsive mb-4 shadow-sm rounded">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light text-center">
-                            <tr>
-                                <th scope="col" width="60px">#</th>
-                                <th scope="col">Employee Name</th>
-                                <th scope="col" class="d-none d-md-table-cell">Department</th>
-                                <th scope="col" class="d-none d-md-table-cell">Date</th>
-                                <th scope="col" class="d-none d-md-table-cell">Total Hours</th>
-                                <th scope="col" class="d-none d-md-table-cell">Reason</th>
-                                <th scope="col" class="d-none d-md-table-cell">Status</th>
-                                <th scope="col" class="d-none d-md-table-cell">Action By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($overtimes as $ot)
-                                <tr class="transition">
-                                    <td class="text-center fw-semibold">
-                                        {{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}
-                                    </td>
-                                    <td>{{ $ot->user->name }}</td>
-                                    <td class="d-none d-md-table-cell text-muted">{{ $ot->department->name }}</td>
-                                    <td class="d-none d-md-table-cell">
-                                        {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}</td>
-                                    <td class="d-none d-md-table-cell text-center">
-                                        {{ \Carbon\Carbon::parse($ot->start_time)->diffInHours(\Carbon\Carbon::parse($ot->end_time)) }}
-                                    </td>
-                                    <td class="d-none d-md-table-cell">{{ $ot->reason ?: 'No reason provided' }}</td>
-                                    <td class="d-none d-md-table-cell text-center">
-                                        @if ($ot->status === 'approved')
-                                            <span class="badge bg-success">Approved</span>
-                                        @elseif($ot->status === 'pending')
-                                            <span class="badge bg-warning text-dark">Pending</span>
-                                        @else
-                                            <span class="badge bg-danger">{{ ucfirst($ot->status) }}</span>
-                                        @endif
-                                    </td>
-                                    <td class="d-none d-md-table-cell">
-                                        @if ($ot->actionBy)
-                                            <span>{{ $ot->actionBy->name }}</span>
-                                        @else
-                                            <span class="text-muted fst-italic">Not Assigned</span>
-                                        @endif
-                                    </td>
-                                  
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="text-center py-4">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <i class="bi bi-clock fs-1 text-muted mb-2"></i>
-                                            <h5 class="text-muted">No overtime requests found</h5>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="9" class="table-footer">Page {{ $overtimes->currentPage() }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            @endforeach
-
-            {{-- Pagination --}}
-            <nav class="mt-4 d-flex justify-content-end">
-                <ul class="pagination justify-content-center flex-wrap gap-1">
-                    {{-- First --}}
-                    <li class="page-item {{ $overtimes->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $overtimes->url(1) }}" aria-label="First">
-                            &laquo;
-                        </a>
-                    </li>
-
-                    {{-- Prev --}}
-                    <li class="page-item {{ $overtimes->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $overtimes->previousPageUrl() }}" aria-label="Previous">
-                            &lsaquo;
-                        </a>
-                    </li>
-
-                    {{-- Page numbers --}}
-                    @for ($i = max(1, $overtimes->currentPage() - 2); $i <= min($overtimes->lastPage(), $overtimes->currentPage() + 2); $i++)
-                        <li class="page-item {{ $overtimes->currentPage() == $i ? 'active' : '' }}">
-                            <a class="page-link" href="{{ $overtimes->url($i) }}">{{ $i }}</a>
-                        </li>
-                    @endfor
-
-                    {{-- Next --}}
-                    <li class="page-item {{ !$overtimes->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $overtimes->nextPageUrl() }}" aria-label="Next">
-                            &rsaquo;
-                        </a>
-                    </li>
-
-                    {{-- Last --}}
-                    <li class="page-item {{ !$overtimes->hasMorePages() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $overtimes->url($overtimes->lastPage()) }}" aria-label="Last">
-                            &raquo;
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        @else
-            <div class="alert alert-info text-center shadow-sm rounded">
-                No overtime records found.
-            </div>
-        @endif
     </div>
 @endsection
+
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Make table rows clickable for viewing details
+            document.querySelectorAll('tbody tr').forEach(row => {
+                // Skip if the click is on a button or action cell
+                row.addEventListener('click', (e) => {
+                    if (!e.target.closest('button') && !e.target.closest('.actions')) {
+                        // Handle row click (e.g., view details)
+                        console.log('View overtime details for row');
+                    }
+                });
+            });
+
+            // Export functionality
+            document.querySelectorAll('.export-option').forEach(option => {
+                option.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const format = this.getAttribute('data-format');
+                    console.log(`Exporting to ${format} format`);
+                    // Add your export logic here
+                });
+            });
+        });
+    </script>
+@endsection
+
+<style>
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        vertical-align: middle;
+    }
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        font-size: 0.875rem;
+    }
+    .avatar-xs {
+        width: 24px;
+        height: 24px;
+        font-size: 0.75rem;
+    }
+    .avatar-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+    .dropdown-menu {
+        min-width: 200px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(var(--bs-primary-rgb), 0.05);
+        cursor: pointer;
+    }
+    .badge {
+        padding: 0.35em 0.65em;
+        font-weight: 500;
+    }
+</style>

@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="m-2">
-    <div class="card card-1 p-3 p-md-4 mb-4">
+    <div class="m-2">
+        <div class="card card-1 p-3 p-md-4 mb-4">
             <form method="GET" action="{{ route('notifications.index') }}">
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
@@ -80,7 +80,8 @@
                         <select class="form-select" id="type" name="type" onchange="this.form.submit()">
                             <option value="">All</option>
                             @foreach ($leaveTypes as $type)
-                                <option value="{{ $type->name }}" {{ request('type') == $type->name ? 'selected' : '' }}>
+                                <option value="{{ $type->name }}"
+                                    {{ request('type') == $type->name ? 'selected' : '' }}>
                                     {{ $type->name }}
                                 </option>
                             @endforeach
@@ -176,106 +177,164 @@
         {{-- Leave Requests Table --}}
         <div class="card card-1 card-2 p-3">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
+                <table class="table table-hover align-middle">
                     <thead class="table-light">
-                        <tr class="text-center">
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Reason</th>
-                            <th>Duration</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Requested</th>
-                            <th>Last Change</th>
-                            <th>Action</th>
+                        <tr>
+                            <th scope="col" width="60px">ID</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col" class="d-none d-lg-table-cell">Reason</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col" class="d-none d-md-table-cell">Type</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="d-none d-md-table-cell">Requested</th>
+                            <th scope="col" class="d-none d-lg-table-cell">Last Change</th>
+                            <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if ($leaveRequests->isEmpty())
-                            <tr>
-                                <td colspan="11" class="text-center text-muted">No leave requests found.</td>
-                            </tr>
-                        @else
-                            @foreach ($leaveRequests as $request)
-                                @php
-                                    $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y') : '-';
-                                    $endDate = $request->end_date ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y') : '-';
-                                    $requestedAt = $request->requested_at ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y') : '-';
-                                    $lastChangedAt = $request->last_changed_at ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y') : '-';
-                                    $displayStatus = ucfirst(strtolower($request->status));
-                                    $colors = $statusColors[$displayStatus] ?? ['text' => '#000000', 'bg' => '#e0e0e0'];
-                                @endphp
-                                <tr class="text-center">
-                                    <td>{{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}</td>
-                                    <td>{{ $request->user->name }}</td>
-                                    <td>{{ optional($request->start_date)->format('d/m/Y') }} ({{ ucfirst($request->start_time) }})</td>
-                                    <td>{{ optional($request->end_date)->format('d/m/Y') }} ({{ ucfirst($request->end_time) }})</td>
-                                    <td>{{ $request->reason ?? '-' }}</td>
-                                    <td>{{ number_format($request->duration, 2) }}</td>
-                                    <td>{{ optional($request->leaveType)->name ?? '-' }}</td>
-                                    <td>
-                                        <span style="
-                                            color: {{ $colors['text'] }};
-                                            background-color: {{ $colors['bg'] }};
-                                            padding: 2px 8px;
-                                            border-radius: 10px;
-                                            font-weight: 500;
-                                            display: inline-block;">
-                                            {{ $displayStatus }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $requestedAt }}</td>
-                                    <td>{{ $lastChangedAt }}</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                                                id="actionsDropdown{{ $request->id }}" data-bs-toggle="dropdown"
-                                                aria-expanded="false" aria-haspopup="true"
-                                                aria-label="Actions for request #{{ $request->id }}" style="min-width: 50px;">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
+                        @forelse ($leaveRequests as $request)
+                            @php
+                                $displayStatus = ucfirst(strtolower($request->status));
+                                $badgeColor = match (strtolower($request->status)) {
+                                    'approved' => 'success',
+                                    'accepted' => 'success',
+                                    'requested' => 'warning',
+                                    'rejected' => 'danger',
+                                    'canceled' => 'secondary',
+                                    'cancellation' => 'secondary',
+                                    default => 'primary',
+                                };
 
-                                            <ul class="dropdown-menu dropdown-menu-end"
-                                                aria-labelledby="actionsDropdown{{ $request->id }}">
-                                                @if(auth()->check())
-                                                    <li class="dropdown-header">Change Status</li>
-                                                    @foreach(['Accepted', 'Rejected', 'Cancellation', 'Canceled'] as $newStatus)
-                                                        <li>
-                                                            <form action="{{ route('notifications.update-status', $request->id) }}"
-                                                                method="POST"
-                                                                onsubmit="return confirm('Change status to {{ $newStatus }}?');">
-                                                                @csrf
-                                                                <input type="hidden" name="status" value="{{ $newStatus }}">
-                                                                <button type="submit"
-                                                                    class="dropdown-item d-flex align-items-center">
-                                                                    <i class="bi bi-arrow-repeat me-2"></i> {{ $newStatus }}
-                                                                </button>
-                                                            </form>
-                                                        </li>
-                                                    @endforeach
-                                                @endif
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        @endif
+                                $startDate = $request->start_date
+                                    ? \Carbon\Carbon::parse($request->start_date)->format('d/m/Y')
+                                    : '-';
+                                $endDate = $request->end_date
+                                    ? \Carbon\Carbon::parse($request->end_date)->format('d/m/Y')
+                                    : '-';
+                                $requestedAt = $request->requested_at
+                                    ? \Carbon\Carbon::parse($request->requested_at)->format('d/m/Y')
+                                    : '-';
+                                $lastChangedAt = $request->last_changed_at
+                                    ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y')
+                                    : '-';
+                            @endphp
+                            <tr class="transition">
+                                <th scope="row">
+                                    {{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}
+                                </th>
+                                <td>{{ $request->user->name }}</td>
+                                <td>{{ $startDate }} ({{ ucfirst($request->start_time) }})</td>
+                                <td>{{ $endDate }} ({{ ucfirst($request->end_time) }})</td>
+                                <td class="d-none d-lg-table-cell">{{ $request->reason ?? '-' }}</td>
+                                <td>{{ number_format($request->duration, 2) }}</td>
+                                <td class="d-none d-md-table-cell">{{ optional($request->leaveType)->name ?? '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $badgeColor }} rounded-pill">
+                                        {{ $displayStatus }}
+                                    </span>
+                                </td>
+                                <td class="d-none d-md-table-cell">{{ $requestedAt }}</td>
+                                <td class="d-none d-lg-table-cell">{{ $lastChangedAt }}</td>
+                                <td>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                            id="actionsDropdown{{ $request->id }}" data-bs-toggle="dropdown"
+                                            aria-expanded="false" aria-label="Actions">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm"
+                                            aria-labelledby="actionsDropdown{{ $request->id }}">
+                                         
+
+                                            @if (auth()->check())
+                                                <li class="dropdown-header">Change Status</li>
+                                                @foreach (['Accepted', 'Rejected', 'Cancellation', 'Canceled'] as $newStatus)
+                                                    @php
+                                                        $statusIcon = match ($newStatus) {
+                                                            'Accepted' => 'bi-check-circle',
+                                                            'Rejected' => 'bi-x-circle',
+                                                            'Cancellation' => 'bi-slash-circle',
+                                                            'Canceled' => 'bi-dash-circle',
+                                                            default => 'bi-arrow-repeat',
+                                                        };
+                                                        $statusColor = match ($newStatus) {
+                                                            'Accepted' => 'text-success',
+                                                            'Rejected' => 'text-danger',
+                                                            default => 'text-secondary',
+                                                        };
+                                                    @endphp
+                                                    <li>
+                                                        <form
+                                                            action="{{ route('notifications.update-status', $request->id) }}"
+                                                            method="POST"
+                                                            onsubmit="return confirm('Change status to {{ $newStatus }}?');">
+                                                            @csrf
+                                                            <input type="hidden" name="status"
+                                                                value="{{ strtolower($newStatus) }}">
+                                                            <button type="submit"
+                                                                class="dropdown-item d-flex align-items-center gap-2 {{ $statusColor }}">
+                                                                <i class="bi {{ $statusIcon }}"></i>
+                                                                {{ $newStatus }}
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endforeach
+                                            @endif
+
+                                            @if (in_array(strtolower($request->status), ['requested', 'pending']))
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                               
+                                            @endif
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="11" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bi bi-calendar-x fs-1 text-muted mb-2"></i>
+                                        <h5 class="text-muted">No leave requests found</h5>
+                                        @if (auth()->user()->can('create', App\Models\LeaveRequest::class))
+                                            <a href="{{ route('leave-requests.create') }}" class="btn btn-primary mt-3">
+                                                <i class="bi bi-plus-circle me-2"></i> Create New Request
+                                            </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
+
+            @if ($leaveRequests->hasPages())
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+                    <div class="text-muted">
+                        Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
+                        {{ $leaveRequests->total() }} entries
+                    </div>
+                    <div>
+                        {{ $leaveRequests->onEachSide(1)->links() }}
+                    </div>
+                </div>
+            @endif
         </div>
 
-        @if($leaveRequests->hasPages())
+        {{-- @if ($leaveRequests->hasPages())
             <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap">
                 <div class="text-muted">
-                    Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of {{ $leaveRequests->total() }} entries
+                    Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
+                    {{ $leaveRequests->total() }} entries
                 </div>
                 <div>
                     {{ $leaveRequests->onEachSide(1)->links() }}
                 </div>
             </div>
-        @endif
+        @endif --}}
     </div>
 @endsection

@@ -2,7 +2,8 @@
 
 @section('content')
     <div class="container-fluid px-2 px-md-4">
-        <div class="card card-2 bg-white p-3 p-md-4 mb-4" style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;" >
+        <div class="card card-2 bg-white p-3 p-md-4 mb-4"
+            style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
             <form method="GET" action="{{ route('leave-requests.index') }}">
                 <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                     <div class="col-auto">
@@ -173,51 +174,60 @@
             </form>
         </div>
 
-        <div class="card card-2 p-3" style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
+        <div class="card card-2 p-3"
+            style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
             {{-- Leave Requests Table --}}
             <div class="table-responsive">
-                <table class="table table-bordered table-hover">
+                <table class="table table-hover align-middle">
                     <thead class="table-light">
-                        <tr class="text-center">
-                            <th class="text-nowrap">ID</th>
-                            <th class="text-nowrap">Start Date</th>
-                            <th class="text-nowrap">End Date</th>
-                            <th class="text-nowrap">Reason</th>
-                            <th class="text-nowrap">Duration</th>
-                            <th class="text-nowrap">Type</th>
-                            <th class="text-nowrap">Status</th>
-                            <th class="text-nowrap">Requested</th>
-                            <th class="text-nowrap">Last Change</th>
-                            <th class="text-nowrap">Action</th>
+                        <tr>
+                            <th scope="col" width="60px">ID</th>
+                            <th scope="col">Start Date</th>
+                            <th scope="col">End Date</th>
+                            <th scope="col" class="d-none d-md-table-cell">Reason</th>
+                            <th scope="col">Duration</th>
+                            <th scope="col" class="d-none d-md-table-cell">Type</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="d-none d-md-table-cell">Requested</th>
+                            <th scope="col" class="d-none d-md-table-cell">Last Change</th>
+                            <th scope="col" width="100px">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($leaveRequests as $request)
                             @php
                                 $displayStatus = ucfirst(strtolower($request->status));
-                                $colors = $statusColors[$displayStatus] ?? ['text' => '#000000', 'bg' => '#e0e0e0'];
+                                $badgeColor = match (strtolower($request->status)) {
+                                    'approved' => 'success',
+                                    'accepted' => 'success',
+                                    'requested' => 'warning',
+                                    'rejected' => 'danger',
+                                    'canceled' => 'secondary',
+                                    'cancellation' => 'secondary',
+                                    default => 'primary',
+                                };
                             @endphp
-                            <tr class="text-center">
-                                <td class="text-nowrap">
+                            <tr class="transition">
+                                <th scope="row">
                                     {{ ($leaveRequests->currentPage() - 1) * $leaveRequests->perPage() + $loop->iteration }}
+                                </th>
+                                <td>{{ optional($request->start_date)->format('d/m/Y') }}
+                                    ({{ ucfirst($request->start_time) }})
                                 </td>
-                                <td class="text-nowrap">{{ optional($request->start_date)->format('d/m/Y') }}
-                                    ({{ ucfirst($request->start_time) }})</td>
-                                <td class="text-nowrap">{{ optional($request->end_date)->format('d/m/Y') }}
+                                <td>{{ optional($request->end_date)->format('d/m/Y') }}
                                     ({{ ucfirst($request->end_time) }})</td>
-                                <td class="text-wrap">{{ $request->reason ?? '-' }}</td>
-                                <td class="text-nowrap">{{ number_format($request->duration, 2) }}</td>
-                                <td class="text-nowrap">{{ optional($request->leaveType)->name ?? '-' }}</td>
-                                <td class="text-nowrap">
-                                    <span class="badge"
-                                        style="color: {{ $colors['text'] }}; background-color: {{ $colors['bg'] }};">
+                                <td class="d-none d-md-table-cell">{{ $request->reason ?? '-' }}</td>
+                                <td>{{ number_format($request->duration, 2) }}</td>
+                                <td class="d-none d-md-table-cell">{{ optional($request->leaveType)->name ?? '-' }}</td>
+                                <td>
+                                    <span class="badge bg-{{ $badgeColor }}">
                                         {{ $displayStatus }}
                                     </span>
                                 </td>
-                                <td class="text-nowrap">{{ optional($request->requested_at)->format('d/m/Y') ?? '-' }}
-                                </td>
-                                <td class="text-nowrap">{{ optional($request->last_changed_at)->format('d/m/Y') ?? '-' }}
-                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    {{ optional($request->requested_at)->format('d/m/Y') ?? '-' }}</td>
+                                <td class="d-none d-md-table-cell">
+                                    {{ optional($request->last_changed_at)->format('d/m/Y') ?? '-' }}</td>
                                 <td>
                                     <div class="dropdown">
                                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -225,10 +235,11 @@
                                             aria-expanded="false">
                                             <i class="bi bi-three-dots-vertical"></i>
                                         </button>
-                                        <ul class="dropdown-menu dropdown-menu-end">
+                                        <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm"
+                                            aria-labelledby="actionsDropdown{{ $request->id }}">
                                             <li>
                                                 <button type="button"
-                                                    class="dropdown-item d-flex align-items-center view-request"
+                                                    class="dropdown-item d-flex align-items-center gap-2 view-request"
                                                     data-bs-toggle="modal" data-bs-target="#leaveRequestModal"
                                                     data-type="{{ $request->leaveType->name }}"
                                                     data-duration="{{ $request->duration }}"
@@ -238,7 +249,7 @@
                                                     data-end-time="{{ $request->end_time }}"
                                                     data-reason="{{ $request->reason }}"
                                                     data-status="{{ $request->status }}">
-                                                    <i class="bi bi-eye me-2 text-primary"></i> View
+                                                    <i class="bi bi-eye text-primary"></i> View
                                                 </button>
                                             </li>
 
@@ -252,9 +263,9 @@
                                             @endphp
                                             @if (in_array(strtolower($request->status), $showHistoryStatuses))
                                                 <li>
-                                                    <a class="dropdown-item d-flex align-items-center"
+                                                    <a class="dropdown-item d-flex align-items-center gap-2"
                                                         href="{{ route('leave-requests.history', $request->id) }}">
-                                                        <i class="bi bi-arrow-counterclockwise me-2 text-primary"></i>
+                                                        <i class="bi bi-arrow-counterclockwise text-primary"></i>
                                                         History
                                                     </a>
                                                 </li>
@@ -278,8 +289,8 @@
                                                         @csrf
                                                         @method('PATCH')
                                                         <button type="submit" name="status" value="requested"
-                                                            class="dropdown-item d-flex align-items-center text-warning">
-                                                            <i class="bi bi-check2-circle me-2"></i> Requested
+                                                            class="dropdown-item d-flex align-items-center gap-2 text-warning">
+                                                            <i class="bi bi-check2-circle"></i> Request
                                                         </button>
                                                     </form>
                                                 </li>
@@ -293,8 +304,8 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit"
-                                                            class="dropdown-item d-flex align-items-center text-danger">
-                                                            <i class="bi bi-trash me-2"></i> Delete
+                                                            class="dropdown-item d-flex align-items-center gap-2 text-danger">
+                                                            <i class="bi bi-trash"></i> Delete
                                                         </button>
                                                     </form>
                                                 </li>
@@ -304,8 +315,8 @@
                                                         onsubmit="return confirm('Are you sure you want to cancel this request?');">
                                                         @csrf
                                                         <button type="submit"
-                                                            class="dropdown-item d-flex align-items-center text-secondary">
-                                                            <i class="bi bi-x-circle me-2"></i> Cancel
+                                                            class="dropdown-item d-flex align-items-center gap-2 text-secondary">
+                                                            <i class="bi bi-x-circle"></i> Cancel
                                                         </button>
                                                     </form>
                                                 </li>
@@ -316,7 +327,12 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center text-muted">No leave requests found.</td>
+                                <td colspan="10" class="text-center py-4">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="bi bi-calendar-x fs-1 text-muted mb-2"></i>
+                                        <h5 class="text-muted">No leave requests found</h5>
+                                    </div>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -333,8 +349,21 @@
                         {{ $leaveRequests->onEachSide(1)->links() }}
                     </div>
                 </div>
-            @endif
+
+                {{-- @if ($leaveRequests->hasPages())
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
+                        <div class="text-muted">
+                            Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
+                            {{ $leaveRequests->total() }} entries
+                        </div>
+                        <div>
+                            {{ $leaveRequests->onEachSide(1)->links() }}
+                        </div>
+                    </div>
+                @endif --}}
         </div>
+
+        @endif
 
     </div>
 
@@ -379,4 +408,6 @@
             </div>
         </div>
     </div>
-@endsection
+
+
+    @endsection
