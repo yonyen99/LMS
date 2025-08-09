@@ -109,6 +109,30 @@
             z-index: 1050;
         }
 
+        /* Offcanvas Styling */
+        .offcanvas {
+            width: 250px !important;
+        }
+
+        .offcanvas-header {
+            background-color: #f8f9fa;
+        }
+
+        .offcanvas-title {
+            font-weight: 600;
+        }
+
+        .offcanvas-body .nav-link {
+            padding: 0.5rem 1rem;
+            color: #444;
+        }
+
+        .offcanvas-body .nav-link.active {
+            background-color: #e9ecef;
+            color: #3f80ea;
+            border-radius: 5px;
+        }
+
         /* Responsive Adjustments */
         @media (max-width: 767.98px) {
             .navbar-brand img {
@@ -148,6 +172,10 @@
             .notification-item .alert {
                 padding: 0.75rem;
                 font-size: 0.9rem;
+            }
+
+            .offcanvas {
+                width: 80% !important;
             }
         }
 
@@ -192,27 +220,23 @@
                             style="height: 70px; border-radius: 5px;">
                     </a>
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
-                        aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                        aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="bi bi-justify fs-5"></i>
                     </button>
 
                     <div class="collapse navbar-collapse" id="mainNavbar">
                         <ul class="navbar-nav me-auto align-items-center">
                             @auth
-                                <li class="nav-item me-3">
-                                    <i class="bi bi-justify fs-5"></i>
-                                </li>
-
                                 @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
-                                    <li class="nav-item ">
+                                    <li class="nav-item">
                                         <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
                                             href="/">Dashboard</a>
                                     </li>
                                 @endunless
 
                                 @canany(['create-role', 'edit-role', 'delete-role'])
-                                    <li class="nav-item dropdown ">
+                                    <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
                                             href="#" id="permissionDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Permissions</a>
@@ -232,7 +256,7 @@
                                 @unless (Auth::user()->hasRole('Employee'))
                                     @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                         'delete-request', 'view-request', 'cancel-request'])
-                                        <li class="nav-item dropdown ">
+                                        <li class="nav-item dropdown">
                                             <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
                                                 href="#" id="approvalDropdown" role="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">Approval</a>
@@ -265,7 +289,7 @@
 
                                 @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
                                     'delete-request', 'view-request', 'cancel-request'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['calendar.individual'])) ? 'active' : '' }}"
                                             href="#" id="requestDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Requested</a>
@@ -307,15 +331,13 @@
                                                 <li><a class="dropdown-item" href="{{ route('over-time.create') }}">Submit an OT
                                                         Request</a></li>
                                             @endif
-
-
                                         </ul>
                                     </li>
                                 @endcanany
 
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
                                     'create-department', 'edit-department', 'delete-department'])
-                                    <li class="nav-item dropdown me-3">
+                                    <li class="nav-item dropdown">
                                         <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['calendars.individual', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
                                             href="#" id="calendarDropdown" role="button" data-bs-toggle="dropdown"
                                             aria-expanded="false">Calendar</a>
@@ -333,7 +355,7 @@
                                 @endcanany
 
                                 @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
-                                    <li class="nav-item me-2">
+                                    <li class="nav-item">
                                         <a href="{{ route('leave-requests.create') }}"
                                             class="btn btn-warning fw-semibold text-white rounded px-3 py-1 {{ Route::currentRouteName() === 'leave-requests.create' ? 'active' : '' }}"
                                             style="background: #F5811E">New Request</a>
@@ -404,6 +426,152 @@
                     </div>
                 </div>
             </nav>
+
+            <!-- Offcanvas Menu -->
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <ul class="navbar-nav">
+                        @auth
+                            @unless (Auth::user()->hasRole('Employee') || Auth::user()->hasRole('Manager'))
+                                <li class="nav-item">
+                                    <a class="nav-link {{ Route::currentRouteName() === 'home' ? 'active' : '' }}"
+                                        href="/">Dashboard</a>
+                                </li>
+                            @endunless
+
+                            @canany(['create-role', 'edit-role', 'delete-role'])
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['roles.index', 'users.index', 'departments.index', 'leave-types.index']) ? 'active' : '' }}"
+                                        href="#" id="offcanvasPermissionDropdown" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Permissions</a>
+                                    <ul class="dropdown-menu card-1 card-2" aria-labelledby="offcanvasPermissionDropdown">
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'roles.index' ? 'active' : '' }}"
+                                                href="{{ route('roles.index') }}">Manage Roles</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'users.index' ? 'active' : '' }}"
+                                                href="{{ route('users.index') }}">Manage Users</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'departments.index' ? 'active' : '' }}"
+                                                href="{{ route('departments.index') }}">Manage Departments</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-types.index' ? 'active' : '' }}"
+                                                href="{{ route('leave-types.index') }}">Manage Leave Types</a></li>
+                                    </ul>
+                                </li>
+                            @endcanany
+
+                            @unless (Auth::user()->hasRole('Employee'))
+                                @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
+                                    'delete-request', 'view-request', 'cancel-request'])
+                                    <li class="nav-item dropdown">
+                                        <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['notifications.index', 'subordinates.index']) ? 'active' : '' }}"
+                                            href="#" id="offcanvasApprovalDropdown" role="button" data-bs-toggle="dropdown"
+                                            aria-expanded="false">Approval</a>
+                                        <ul class="dropdown-menu card-1 card-2" aria-labelledby="offcanvasApprovalDropdown">
+                                            <li>
+                                                <a class="dropdown-item {{ Route::currentRouteName() === 'delegations.index' ? 'active' : '' }}"
+                                                    href="{{ route('delegations.index') }}">
+                                                    Delegations
+                                                </a>
+                                            </li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'subordinates.index' ? 'active' : '' }}"
+                                                    href="{{ route('subordinates.index') }}">My Subordinates</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-balance.index' ? 'active' : '' }}"
+                                                    href="{{ route('leave-balances.index') }}" disabled>Leave Balance</a></li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <h6 class="dropdown-header">APPROVAL</h6>
+                                            </li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'notifications.index' ? 'active' : '' }}"
+                                                    href="{{ route('notifications.index') }}">Leave Requests</a></li>
+                                            <li><a class="dropdown-item {{ Route::currentRouteName() === 'overtime.index' ? 'active' : '' }}"
+                                                    href="{{ route('over-time.list') }}" disabled>Overtime</a></li>
+                                        </ul>
+                                    </li>
+                                @endcanany
+                            @endunless
+
+                            @canany(['create-user', 'edit-user', 'delete-user', 'create-request', 'edit-request',
+                                'delete-request', 'view-request', 'cancel-request'])
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['counters.index', 'leave-requests.index']) || (Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['calendar.individual'])) ? 'active' : '' }}"
+                                        href="#" id="offcanvasRequestDropdown" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Requested</a>
+                                    <ul class="dropdown-menu card-1 card-2" aria-labelledby="offcanvasRequestDropdown">
+                                        <li>
+                                            <h6 class="dropdown-header">LEAVES</h6>
+                                        </li>
+                                        @php
+                                            $allowedRoles = ['Super Admin', 'Admin', 'HR'];
+                                            $userRoles = auth()
+                                                ->user()
+                                                ->roles()
+                                                ->pluck('name')
+                                                ->map(fn($r) => strtolower($r))
+                                                ->toArray();
+                                            $allowedRolesLower = array_map('strtolower', $allowedRoles);
+                                            $isAdmin = count(array_intersect($userRoles, $allowedRolesLower)) > 0;
+                                            $routeName = $isAdmin ? 'leave-summaries.index' : 'user-leave.index';
+                                            $isActive = $isAdmin
+                                                ? request()->routeIs('leave-summaries.*')
+                                                : request()->routeIs('user-leave.index');
+                                        @endphp
+                                        <li><a class="dropdown-item {{ $isActive ? 'active' : '' }}"
+                                                href="{{ route($routeName) }}">Counters</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.index' ? 'active' : '' }}"
+                                                href="{{ route('leave-requests.index') }}">List of leave requests</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'leave-requests.create' && !in_array(Route::currentRouteName(), ['calendar.individual']) ? 'active' : '' }}"
+                                                href="{{ route('leave-requests.create') }}">Request a leave</a></li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <h6 class="dropdown-header">OVERTIME</h6>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('over-time.index') }}">List of OT
+                                                Worked</a></li>
+                                        @if (Auth::user()->hasRole('Employee'))
+                                            <li><a class="dropdown-item" href="{{ route('over-time.create') }}">Submit an OT
+                                                    Request</a></li>
+                                        @endif
+                                    </ul>
+                                </li>
+                            @endcanany
+
+                            @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request',
+                                'create-department', 'edit-department', 'delete-department'])
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle {{ in_array(Route::currentRouteName(), ['calendars.individual', 'calendars.yearly', 'calendars.workmates', 'calendars.department', 'calendars.global', 'calendars.tabular']) ? 'active' : '' }}"
+                                        href="#" id="offcanvasCalendarDropdown" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Calendar</a>
+                                    <ul class="dropdown-menu card-1 card-2" aria-labelledby="offcanvasCalendarDropdown">
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.individual' ? 'active' : '' }}"
+                                                href="{{ route('calendars.individual') }}">My Calendar</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.yearly' ? 'active' : '' }}"
+                                                href="{{ route('calendars.yearly') }}">Yearly Calendar</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.workmates' ? 'active' : '' }}"
+                                                href="{{ route('calendars.workmates') }}">My Workmates</a></li>
+                                        <li><a class="dropdown-item {{ Route::currentRouteName() === 'calendars.department' ? 'active' : '' }}"
+                                                href="{{ route('calendars.department') }}">Department</a></li>
+                                    </ul>
+                                </li>
+                            @endcanany
+
+                            @canany(['create-request', 'edit-request', 'delete-request', 'view-request', 'cancel-request'])
+                                <li class="nav-item">
+                                    <a href="{{ route('leave-requests.create') }}"
+                                        class="btn btn-warning fw-semibold text-white rounded px-3 py-1 {{ Route::currentRouteName() === 'leave-requests.create' ? 'active' : '' }}"
+                                        style="background: #F5811E">New Request</a>
+                                </li>
+                            @endcanany
+                        @endauth
+                    </ul>
+                </div>
+            </div>
+
             <div id="notificationContainer" style="display: none;">
                 <div class="card shadow">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -486,7 +654,7 @@
             </div>
         </main>
     </div>
-    {{-- @section('scripts')
+    @section('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
                 const bellButton = document.getElementById('notificationToggle');
@@ -513,48 +681,51 @@
                         }
                     });
                 }
-            });
-            document.querySelectorAll('.view-request').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Basic fields
-                    document.getElementById('modalType').textContent = this.dataset.type || '-';
-                    document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
-                    document.getElementById('modalReason').textContent = this.dataset.reason || '-';
 
-                    // Format start date and time
-                    const startDate = this.dataset.startDate || '-';
-                    const startTime = this.dataset.startTime || '';
-                    document.getElementById('modalStart').innerHTML = `
-                    ${startDate}
-                    ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
-                `;
+                // Modal view functionality
+                document.querySelectorAll('.view-request').forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Basic fields
+                        document.getElementById('modalType').textContent = this.dataset.type || '-';
+                        document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
+                        document.getElementById('modalReason').textContent = this.dataset.reason || '-';
 
-                    // Format end date and time
-                    const endDate = this.dataset.endDate || '-';
-                    const endTime = this.dataset.endTime || '';
-                    document.getElementById('modalEnd').innerHTML = `
-                    ${endDate}
-                    ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
-                `;
+                        // Format start date and time
+                        const startDate = this.dataset.startDate || '-';
+                        const startTime = this.dataset.startTime || '';
+                        document.getElementById('modalStart').innerHTML = `
+                        ${startDate}
+                        ${startTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${startTime}</span>` : ''}
+                    `;
 
-                    // Status badge
-                    const status = (this.dataset.status || '').toLowerCase();
-                    const statusMap = {
-                        planned: 'secondary',
-                        accepted: 'success',
-                        requested: 'warning',
-                        rejected: 'danger',
-                        cancellation: 'danger',
-                        canceled: 'danger'
-                    };
-                    const badgeClass = statusMap[status] || 'light';
+                        // Format end date and time
+                        const endDate = this.dataset.endDate || '-';
+                        const endTime = this.dataset.endTime || '';
+                        document.getElementById('modalEnd').innerHTML = `
+                        ${endDate}
+                        ${endTime ? `<span class="badge bg-info text-white ms-2 text-capitalize">${endTime}</span>` : ''}
+                    `;
 
-                    document.getElementById('modalStatus').innerHTML = `
-                    <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
-                `;
+                        // Status badge
+                        const status = (this.dataset.status || '').toLowerCase();
+                        const statusMap = {
+                            planned: 'secondary',
+                            accepted: 'success',
+                            requested: 'warning',
+                            rejected: 'danger',
+                            cancellation: 'danger',
+                            canceled: 'danger'
+                        };
+                        const badgeClass = statusMap[status] || 'light';
+
+                        document.getElementById('modalStatus').innerHTML = `
+                        <span class="badge bg-${badgeClass} text-white text-capitalize">${status}</span>
+                    `;
+                    });
                 });
             });
-        </script> --}}
+        </script>
+    @endsection
 </body>
 
 </html>
