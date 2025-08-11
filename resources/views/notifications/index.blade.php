@@ -398,17 +398,6 @@
                 @endif
             </div>
 
-            {{-- @if ($leaveRequests->hasPages())
-                <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap">
-                    <div class="text-muted">
-                        Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
-                        {{ $leaveRequests->total() }} entries
-                    </div>
-                    <div>
-                        {{ $leaveRequests->onEachSide(1)->links() }}
-                    </div>
-                </div>
-            @endif --}}
         </div>
 
         {{-- View Modal --}}

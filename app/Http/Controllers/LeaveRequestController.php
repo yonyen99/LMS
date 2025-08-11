@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use App\Exports\LeaveRequestExport;
+use App\Mail\LeaveRequestAccepted;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
@@ -415,16 +416,57 @@ class LeaveRequestController extends Controller
         }
     }
 
+    // public function updateStatus(Request $request, $id)
+    // {
+    //     $leave = LeaveRequest::findOrFail($id);
+
+    //     if (strtolower($leave->status) === 'planned') {
+    //         $leave->status = $request->input('status');
+    //         $leave->save();
+    //     }
+
+    //     return redirect()->back()->with('success', 'Leave request status updated.');
+    // }
+
+
     public function updateStatus(Request $request, $id)
     {
-        $leave = LeaveRequest::findOrFail($id);
+        try {
+            $leave = LeaveRequest::findOrFail($id);
+            $this->authorize('update', $leave); // Ensure authorization
 
-        if (strtolower($leave->status) === 'planned') {
-            $leave->status = $request->input('status');
-            $leave->save();
+            $newStatus = $request->input('status');
+            $allowedCurrentStatuses = ['planned', 'requested'];
+            $allowedNewStatuses = ['Accepted', 'Rejected', 'Cancellation', 'Canceled'];
+
+            Log::info('Updating leave request ID ' . $id . ': Current status = ' . $leave->status . ', New status = ' . $newStatus);
+
+            if (in_array(strtolower($leave->status), $allowedCurrentStatuses) && in_array($newStatus, $allowedNewStatuses)) {
+                $leave->status = $newStatus;
+                $leave->last_changed_at = now();
+                $leave->save();
+
+                if ($newStatus === 'Accepted' && $leave->user && $leave->user->email) {
+                    try {
+                        Mail::to($leave->user->email)->send(new LeaveRequestAccepted($leave));
+                        Log::info('Email sent successfully to: ' . $leave->user->email);
+                    } catch (\Exception $e) {
+                        Log::error('Failed to send email for leave request ID ' . $leave->id . ': ' . $e->getMessage());
+                        return redirect()->back()->with('error', 'Leave request status updated, but failed to send email: ' . $e->getMessage());
+                    }
+                } else {
+                    Log::warning('Email not sent for leave request ID ' . $leave->id . ': Invalid user or email');
+                }
+            } else {
+                Log::warning('Invalid status transition for leave request ID ' . $id . ': Current = ' . $leave->status . ', New = ' . $newStatus);
+                return redirect()->back()->with('error', 'Invalid status transition.');
+            }
+
+            return redirect()->back()->with('success', 'Leave request status updated.');
+        } catch (\Exception $e) {
+            Log::error('Error in updateStatus for leave request ID ' . $id . ': ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update leave request status: ' . $e->getMessage());
         }
-
-        return redirect()->back()->with('success', 'Leave request status updated.');
     }
 
     // 1️⃣ My Calendar
@@ -480,7 +522,7 @@ class LeaveRequestController extends Controller
 
         return $holidays;
     }
-    
+
     // 2️⃣ Yearly Calendar (simplified, display all 12 months)
     public function yearly(Request $request)
     {
@@ -511,7 +553,7 @@ class LeaveRequestController extends Controller
         } else {
             $workmates = User::where('department_id', $user->department_id)->get();
         }
-        
+
         $month = $request->input('month', now()->month);
         $year = $request->input('year', now()->year);
         $currentDate = Carbon::create($year, $month, 1);
@@ -525,11 +567,11 @@ class LeaveRequestController extends Controller
             ->whereIn('user_id', $workmates->pluck('id'))
             ->where(function ($q) use ($startDate, $endDate) {
                 $q->whereBetween('start_date', [$startDate, $endDate])
-                ->orWhereBetween('end_date', [$startDate, $endDate])
-                ->orWhere(function ($q) use ($startDate, $endDate) {
-                    $q->where('start_date', '<', $startDate)
-                        ->where('end_date', '>', $endDate);
-                });
+                    ->orWhereBetween('end_date', [$startDate, $endDate])
+                    ->orWhere(function ($q) use ($startDate, $endDate) {
+                        $q->where('start_date', '<', $startDate)
+                            ->where('end_date', '>', $endDate);
+                    });
             })
             ->get();
 
@@ -547,7 +589,7 @@ class LeaveRequestController extends Controller
         foreach ($leaveRequests as $leave) {
             $start = Carbon::parse($leave->start_date)->startOfDay();
             $end = Carbon::parse($leave->end_date)->startOfDay();
-            
+
             // Create period including both start and end dates
             $period = CarbonPeriod::create($start, $end);
 
@@ -693,9 +735,16 @@ class LeaveRequestController extends Controller
         ];
 
         return view('calendars.department', compact(
-            'month', 'year', 'monthName', 'weeks', 'events',
-            'currentDate', 'isToday', 'departments', 'selectedDepartmentIds', 'statusColors'
+            'month',
+            'year',
+            'monthName',
+            'weeks',
+            'events',
+            'currentDate',
+            'isToday',
+            'departments',
+            'selectedDepartmentIds',
+            'statusColors'
         ));
     }
-
 }
