@@ -111,4 +111,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(LeaveSummary::class);
     }
+
+    public function delegation()
+    {
+        return $this->belongsTo(Delegation::class, 'delegation_id');
+    }
 }

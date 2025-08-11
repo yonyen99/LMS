@@ -689,21 +689,25 @@ class LeaveRequestController extends Controller
         $monthName = $currentDate->format('F');
         $isToday = $currentDate->format('Y-m') === now()->format('Y-m');
 
+        // Start on Sunday
         $startDate = $currentDate->copy()->startOfWeek(Carbon::SUNDAY);
+
+        // Collect 42 days (6 weeks view)
         $dates = collect();
         for ($i = 0; $i < 42; $i++) {
             $dates->push($startDate->copy()->addDays($i));
         }
-
         $weeks = $dates->chunk(7);
 
         $departments = Department::all();
         $endDate = $startDate->copy()->addDays(41);
 
-        $leaveRequestsQuery = LeaveRequest::with('user.department')
+        // Load leave requests with Department + Delegation
+        $leaveRequestsQuery = LeaveRequest::with(['user.department', 'user.delegation'])
             ->whereDate('start_date', '<=', $endDate)
             ->whereDate('end_date', '>=', $startDate);
 
+        // Filter by department if selected
         if (!in_array('all', $selectedDepartmentIds) && count($selectedDepartmentIds) > 0) {
             $leaveRequestsQuery->whereHas('user.department', function ($query) use ($selectedDepartmentIds) {
                 $query->whereIn('id', $selectedDepartmentIds);
@@ -712,26 +716,28 @@ class LeaveRequestController extends Controller
 
         $leaveRequests = $leaveRequestsQuery->get();
 
+        // Build events with delegation info
         $events = [];
         foreach ($leaveRequests as $leave) {
             $period = CarbonPeriod::create($leave->start_date, $leave->end_date);
             foreach ($period as $date) {
                 $dateStr = $date->toDateString();
-                $status = ucfirst(strtolower($leave->status ?? 'Planned')); // Normalize case
+                $status = ucfirst(strtolower($leave->status ?? 'Planned'));
                 $events[$dateStr][] = [
-                    'title' => $leave->user->name,
-                    'status' => $status,
+                    'title'      => $leave->user->name,
+                    'status'     => $status,
+                    'delegation' => $leave->user->delegation->name ?? null, // delegation name
                 ];
             }
         }
 
         $statusColors  = [
-            'Planned' => '#A59F9F',
-            'Accepted' => '#447F44',
-            'Requested' => '#FC9A1D',
-            'Rejected' => '#F80300',
+            'Planned'      => '#A59F9F',
+            'Accepted'     => '#447F44',
+            'Requested'    => '#FC9A1D',
+            'Rejected'     => '#F80300',
             'Cancellation' => '#F80300',
-            'Canceled' => '#F80300',
+            'Canceled'     => '#F80300',
         ];
 
         return view('calendars.department', compact(
