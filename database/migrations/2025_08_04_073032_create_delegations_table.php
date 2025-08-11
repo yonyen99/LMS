@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('delegator_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('delegatee_id')->constrained('users')->onDelete('cascade');
-            $table->string('type');
+            $table->string('delegation_type');
             $table->date('start_date');
             $table->date('end_date');
             $table->text('remarks')->nullable();
