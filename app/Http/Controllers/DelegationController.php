@@ -6,6 +6,7 @@ use App\Models\Delegation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DelegationController extends Controller
 {
@@ -28,19 +29,15 @@ class DelegationController extends Controller
         $validated = $request->validate([
             'delegator_id' => 'required|exists:users,id',
             'delegatee_id' => 'required|exists:users,id|different:delegator_id',
-            'delegation_type' => 'required|string|max:255',
+            'delegation_type' => 'required|string|max:255', // Changed from 'type' to 'delegation_type'
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         try {
-            Delegation::create([
-                'delegator_id' => $validated['delegator_id'],
-                'delegatee_id' => $validated['delegatee_id'],
-                'delegation_type' => $validated['delegation_type'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-            ]);
+            DB::transaction(function () use ($validated) {
+                Delegation::create($validated);
+            });
 
             return redirect()->route('delegations.index')
                 ->with('success', 'Delegation created successfully.');
