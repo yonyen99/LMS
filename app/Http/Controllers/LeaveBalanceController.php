@@ -77,13 +77,14 @@ class LeaveBalanceController extends Controller
         $departments = collect();
 
         if ($user->hasRole('Admin') || $user->hasRole('Manager')) {
-            $query = User::with(['department', 'leaveRequests', 'roles'])
-                ->whereHas('roles', function ($q) {
-                    $q->where('name', 'Employee'); // Only employees
-                })
-                ->when($user->hasRole('Manager'), function ($q) use ($departmentId) {
-                    $q->where('department_id', $departmentId);
-                });
+            $query = User::with(['department', 'leaveRequests', 'roles']);
+
+            // If Manager → filter only employees in their department
+            if ($user->hasRole('Manager')) {
+                $query->whereHas('roles', function ($q) {
+                    $q->where('name', 'Employee');
+                })->where('department_id', $departmentId);
+            }
 
             $departmentOverview = $query->get()->map(function ($employee) use ($leaveTypes) {
                 $used = $employee->leaveRequests()
@@ -92,21 +93,23 @@ class LeaveBalanceController extends Controller
 
                 $entitled = $leaveTypes->sum('typical_annual_requests');
 
-                return (object)[
-                    'name' => $employee->name,
-                    'department' => $employee->department->name ?? 'N/A',
-                    'entitled' => $entitled,
-                    'used' => $used,
-                    'available' => max($entitled - $used, 0),
-                    'utilization' => $entitled > 0 ? ($used / $entitled) * 100 : 0,
-                    'id' => $employee->id // Make sure ID is included
+                return (object) [
+                    'name'         => $employee->name,
+                    'department'   => $employee->department->name ?? 'N/A',
+                    'entitled'     => $entitled,
+                    'used'         => $used,
+                    'available'    => max($entitled - $used, 0),
+                    'utilization'  => $entitled > 0 ? ($used / $entitled) * 100 : 0,
+                    'id'           => $employee->id
                 ];
             });
 
+            // Admin can see all departments
             if ($user->hasRole('Admin')) {
                 $departments = Department::all();
             }
         }
+
 
         return view('leave_types.leave_balance', compact(
             'summaries',
@@ -130,14 +133,16 @@ class LeaveBalanceController extends Controller
     {
         $currentUser = Auth::user();
 
-        // Authorization check for managers
-        if ($currentUser->hasRole('Manager') && $user->department_id != $currentUser->department_id) {
-            abort(403, 'Unauthorized action.');
+        // Manager restriction: can only view employees in their department
+        if ($currentUser->hasRole('Manager')) {
+            if ($user->department_id != $currentUser->department_id || !$user->hasRole('Employee')) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
-        // Check if the user is an employee
-        if (!$user->hasRole('Employee')) {
-            abort(403, 'Only employee records can be viewed');
+        // Non-admin & non-manager restriction: can only view employees (optional safeguard)
+        if (!$currentUser->hasRole('Admin') && !$currentUser->hasRole('Manager') && !$user->hasRole('Employee')) {
+            abort(403, 'Only employee records can be viewed.');
         }
 
         $leaveTypes = LeaveType::all();
@@ -157,7 +162,8 @@ class LeaveBalanceController extends Controller
             'user' => $user,
             'summaries' => $summaries,
         ]);
-    }
+}
+
 
     /**
      * Get leave usage for a specific user and leave type.
