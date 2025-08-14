@@ -178,3 +178,9 @@ Route::middleware(['auth'])->group(function () {
         ->name('leave-balances.export-excel')
         ->middleware('can:export,user');
 });
+
+
+// send back emails to employees and departments when leave requests are accepted
+Route::post('/leave-requests/{leaveRequest}/accept', 
+    [LeaveRequestController::class, 'acceptRequest']
+)->name('leave-requests.accept')->middleware('auth');

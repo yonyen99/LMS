@@ -233,6 +233,115 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
 
+
+    /**
+     * function use for send email back to all 
+     * employee in the same department when a
+     * dmin or manager accept request
+     */
+
+    /**
+     * Approve leave request and send email notification
+     */
+    public function acceptRequest(LeaveRequest $leaveRequest)
+    {
+        $this->authorize('accept', $leaveRequest);
+
+        $approver = auth()->user();
+
+        // Debug logging - helps identify real-world issues
+        Log::debug('Accept request initiated', [
+            'approver_id' => $approver->id,
+            'approver_email' => $approver->email,
+            'leave_request_id' => $leaveRequest->id,
+            'env_mailer' => config('mail.default')
+        ]);
+
+        // Load relationships with fallbacks
+        $leaveRequest->loadMissing(['user', 'leaveType']);
+
+        if (!$leaveRequest->user || !$leaveRequest->user->email) {
+            Log::error('Invalid leave request data for email', [
+                'has_user' => (bool)$leaveRequest->user,
+                'has_email' => $leaveRequest->user ? (bool)$leaveRequest->user->email : false
+            ]);
+            return back()->with('error', 'Cannot send notification - missing recipient data');
+        }
+
+        DB::beginTransaction();
+
+        try {
+            // Update approval status
+            if ($approver->hasRole('Manager')) {
+                $leaveRequest->manager_approved = true;
+            }
+            if ($approver->hasRole('Admin')) {
+                $leaveRequest->admin_approved = true;
+            }
+
+            $leaveRequest->status = 'Accepted';
+            $leaveRequest->last_changed_at = now();
+            $leaveRequest->save();
+
+            DB::commit();
+
+            // Immediate email sending with detailed logging
+            $this->sendRealTimeEmail($leaveRequest, $approver);
+
+            return redirect()->route('leave-requests.index')
+                ->with('success', 'Leave request approved successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Approval process failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->with('error', 'Approval process failed');
+        }
+    }
+
+    protected function sendRealTimeEmail(LeaveRequest $leaveRequest, $approver)
+    {
+        try {
+            $recipient = $leaveRequest->user;
+            $email = $recipient->email;
+
+            Log::debug('Attempting to send approval email', [
+                'recipient_id' => $recipient->id,
+                'recipient_email' => $email,
+                'approver_id' => $approver->id
+            ]);
+
+            // Test connection first
+            Mail::raw('Test connection', function ($message) use ($email) {
+                $message->to($email)->subject('Connection Test');
+            });
+            Log::debug('Connection test email sent successfully');
+
+            // Send actual email
+            Mail::to($email)->send(new LeaveRequestAccepted(
+                $leaveRequest,
+                $approver->name
+            ));
+
+            Log::info('Approval email sent successfully', [
+                'leave_request_id' => $leaveRequest->id,
+                'recipient_email' => $email
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Email sending failed', [
+                'error' => $e->getMessage(),
+                'leave_request_id' => $leaveRequest->id,
+                'recipient_email' => $email ?? 'null',
+                'smtp' => [
+                    'host' => config('mail.mailers.smtp.host'),
+                    'port' => config('mail.mailers.smtp.port'),
+                    'username' => config('mail.mailers.smtp.username')
+                ]
+            ]);
+        }
+    }
+
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
@@ -416,58 +525,18 @@ class LeaveRequestController extends Controller
         }
     }
 
-    // public function updateStatus(Request $request, $id)
-    // {
-    //     $leave = LeaveRequest::findOrFail($id);
-
-    //     if (strtolower($leave->status) === 'planned') {
-    //         $leave->status = $request->input('status');
-    //         $leave->save();
-    //     }
-
-    //     return redirect()->back()->with('success', 'Leave request status updated.');
-    // }
-
-
     public function updateStatus(Request $request, $id)
     {
-        try {
-            $leave = LeaveRequest::findOrFail($id);
-            $this->authorize('update', $leave); // Ensure authorization
+        $leave = LeaveRequest::findOrFail($id);
 
-            $newStatus = $request->input('status');
-            $allowedCurrentStatuses = ['planned', 'requested'];
-            $allowedNewStatuses = ['Accepted', 'Rejected', 'Cancellation', 'Canceled'];
-
-            Log::info('Updating leave request ID ' . $id . ': Current status = ' . $leave->status . ', New status = ' . $newStatus);
-
-            if (in_array(strtolower($leave->status), $allowedCurrentStatuses) && in_array($newStatus, $allowedNewStatuses)) {
-                $leave->status = $newStatus;
-                $leave->last_changed_at = now();
-                $leave->save();
-
-                if ($newStatus === 'Accepted' && $leave->user && $leave->user->email) {
-                    try {
-                        Mail::to($leave->user->email)->send(new LeaveRequestAccepted($leave));
-                        Log::info('Email sent successfully to: ' . $leave->user->email);
-                    } catch (\Exception $e) {
-                        Log::error('Failed to send email for leave request ID ' . $leave->id . ': ' . $e->getMessage());
-                        return redirect()->back()->with('error', 'Leave request status updated, but failed to send email: ' . $e->getMessage());
-                    }
-                } else {
-                    Log::warning('Email not sent for leave request ID ' . $leave->id . ': Invalid user or email');
-                }
-            } else {
-                Log::warning('Invalid status transition for leave request ID ' . $id . ': Current = ' . $leave->status . ', New = ' . $newStatus);
-                return redirect()->back()->with('error', 'Invalid status transition.');
-            }
-
-            return redirect()->back()->with('success', 'Leave request status updated.');
-        } catch (\Exception $e) {
-            Log::error('Error in updateStatus for leave request ID ' . $id . ': ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to update leave request status: ' . $e->getMessage());
+        if (strtolower($leave->status) === 'planned') {
+            $leave->status = $request->input('status');
+            $leave->save();
         }
+
+        return redirect()->back()->with('success', 'Leave request status updated.');
     }
+
 
     // 1️⃣ My Calendar
     public function individual(Request $request)
