@@ -66,21 +66,32 @@ class HomeController extends Controller
             });
         }
 
-        $notificationQuery = LeaveRequest::with(['user', 'leaveType'])
+        $user = Auth::user();
+
+        $notificationsQuery = LeaveRequest::with(['user', 'leaveType'])
             ->where('status', 'Requested');
 
-        if (auth()->user()->hasRole('Manager')) {
-            $notificationQuery->where('user_id', '!=', auth()->id());
+        if ($user->hasRole('Manager')) {
+            $notificationsQuery
+                ->whereHas('user', function ($q) use ($user) {
+                    $q->where('department_id', $user->department_id) // same department
+                    ->where('id', '!=', $user->id);                // not themselves
+                })
+                ->whereHas('user.roles', function ($r) {
+                    $r->where('name', 'Employee'); // strictly employees only
+                });
         }
 
-        $notifications = $notificationQuery->latest()->get();
+        $notifications = $notificationsQuery->latest()->get();
 
+        
+        // Count leave requests based on user roles
         $requests = 0;
 
         if (Auth::check()) {
             $user = Auth::user();
 
-            if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+            if ($user->hasRole(['Admin', 'HR'])) {
                 // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
 
