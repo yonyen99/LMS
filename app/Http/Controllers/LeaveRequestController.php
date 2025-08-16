@@ -3,26 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Mail\LeaveRequestSubmitted;
-use Illuminate\Support\Facades\DB;
+use App\Mail\LeaveRequestAccepted;
+use App\Mail\DepartmentLeaveNotification;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
-use App\Models\NonWorkingDay;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\View\View;
 use App\Models\LeaveSummary;
 use App\Models\User;
 use App\Models\Department;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\NonWorkingDay;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
-use App\Exports\LeaveRequestExport;
-use App\Mail\LeaveRequestAccepted;
+use Illuminate\View\View;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Yasumi\Yasumi;
 use Illuminate\Support\Facades\Http;
 
 class LeaveRequestController extends Controller
@@ -243,105 +241,139 @@ class LeaveRequestController extends Controller
     /**
      * Approve leave request and send email notification
      */
+
+
+
     public function acceptRequest(LeaveRequest $leaveRequest)
     {
         $this->authorize('accept', $leaveRequest);
 
         $approver = auth()->user();
 
-        // Debug logging - helps identify real-world issues
-        Log::debug('Accept request initiated', [
+        Log::info('Leave approval initiated', [
+            'leave_request_id' => $leaveRequest->id,
             'approver_id' => $approver->id,
             'approver_email' => $approver->email,
-            'leave_request_id' => $leaveRequest->id,
-            'env_mailer' => config('mail.default')
         ]);
 
-        // Load relationships with fallbacks
-        $leaveRequest->loadMissing(['user', 'leaveType']);
-
-        if (!$leaveRequest->user || !$leaveRequest->user->email) {
-            Log::error('Invalid leave request data for email', [
-                'has_user' => (bool)$leaveRequest->user,
-                'has_email' => $leaveRequest->user ? (bool)$leaveRequest->user->email : false
-            ]);
-            return back()->with('error', 'Cannot send notification - missing recipient data');
-        }
-
-        DB::beginTransaction();
-
         try {
-            // Update approval status
-            if ($approver->hasRole('Manager')) {
-                $leaveRequest->manager_approved = true;
+            DB::transaction(function () use ($leaveRequest, $approver) {
+                // Update leave request status
+                $leaveRequest->update([
+                    'status' => 'Accepted',
+                    'approved_by' => $approver->id,
+                    'last_changed_at' => now()
+                ]);
+
+                // Update leave summary if needed
+                $summary = LeaveSummary::where('department_id', $leaveRequest->user->department_id)
+                    ->where('leave_type_id', $leaveRequest->leave_type_id)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($summary) {
+                    $summary->taken += $leaveRequest->duration;
+                    $summary->available_actual = max($summary->entitled - $summary->taken, 0);
+                    $summary->save();
+                }
+            });
+
+            // Reload relationships
+            $leaveRequest->load(['user.department.users', 'leaveType']);
+            $employee = $leaveRequest->user;
+
+            // Verify employee email exists
+            if (empty($employee->email)) {
+                Log::error('Employee email missing', [
+                    'leave_request_id' => $leaveRequest->id,
+                    'employee_id' => $employee->id
+                ]);
+                return redirect()->route('leave-requests.index')
+                    ->with('warning', 'Leave approved but employee email missing.');
             }
-            if ($approver->hasRole('Admin')) {
-                $leaveRequest->admin_approved = true;
+
+            // Send notification to the employee who requested leave
+            Mail::to($employee->email)
+                ->queue(new LeaveRequestAccepted($leaveRequest, $approver->name));
+
+            Log::info('Employee notification sent', [
+                'leave_request_id' => $leaveRequest->id,
+                'employee_email' => $employee->email
+            ]);
+
+            // Send notifications to all department members (including the employee)
+            if ($employee->department_id) {
+                $departmentMembers = $employee->department->users()
+                    ->where('is_active', true)
+                    ->whereNotNull('email')
+                    ->get();
+
+                if ($departmentMembers->isNotEmpty()) {
+                    foreach ($departmentMembers as $member) {
+                        try {
+                            // Skip if this is the employee (already notified above)
+                            if ($member->id === $employee->id) {
+                                continue;
+                            }
+
+                            Mail::to($member->email)
+                                ->queue(new DepartmentLeaveNotification($leaveRequest, $approver->name));
+
+                            Log::debug('Department notification queued', [
+                                'leave_request_id' => $leaveRequest->id,
+                                'recipient_id' => $member->id,
+                                'recipient_email' => $member->email
+                            ]);
+                        } catch (\Exception $e) {
+                            Log::error('Failed to queue department notification', [
+                                'leave_request_id' => $leaveRequest->id,
+                                'recipient_id' => $member->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
             }
 
-            $leaveRequest->status = 'Accepted';
-            $leaveRequest->last_changed_at = now();
-            $leaveRequest->save();
+            // Telegram Notification
+            $botToken = config('services.telegram.bot_token');
+            $chatId = config('services.telegram.chat_id');
 
-            DB::commit();
+            if ($botToken && $chatId) {
+                $message = "✅ *Leave Request Approved*\n\n"
+                    . "👤 *Employee:* {$employee->name}\n"
+                    . "🏢 *Department:* {$employee->department->name}\n"
+                    . "👨‍💼 *Approved By:* {$approver->name}\n"
+                    . "📅 *Dates:* {$leaveRequest->start_date->format('M d')} - {$leaveRequest->end_date->format('M d')}\n"
+                    . "🕒 *Duration:* {$leaveRequest->duration} day(s)";
 
-            // Immediate email sending with detailed logging
-            $this->sendRealTimeEmail($leaveRequest, $approver);
+                try {
+                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+                        'chat_id' => $chatId,
+                        'text' => $message,
+                        'parse_mode' => 'Markdown',
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send Telegram notification', [
+                        'leave_request_id' => $leaveRequest->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             return redirect()->route('leave-requests.index')
-                ->with('success', 'Leave request approved successfully');
+                ->with('success', 'Leave approved and notifications sent to department.');
         } catch (\Exception $e) {
-            DB::rollBack();
             Log::error('Approval process failed', [
+                'leave_request_id' => $leaveRequest->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return back()->with('error', 'Approval process failed');
+            return back()->with('error', 'Approval process failed: ' . $e->getMessage());
         }
     }
 
-    protected function sendRealTimeEmail(LeaveRequest $leaveRequest, $approver)
-    {
-        try {
-            $recipient = $leaveRequest->user;
-            $email = $recipient->email;
-
-            Log::debug('Attempting to send approval email', [
-                'recipient_id' => $recipient->id,
-                'recipient_email' => $email,
-                'approver_id' => $approver->id
-            ]);
-
-            // Test connection first
-            Mail::raw('Test connection', function ($message) use ($email) {
-                $message->to($email)->subject('Connection Test');
-            });
-            Log::debug('Connection test email sent successfully');
-
-            // Send actual email
-            Mail::to($email)->send(new LeaveRequestAccepted(
-                $leaveRequest,
-                $approver->name
-            ));
-
-            Log::info('Approval email sent successfully', [
-                'leave_request_id' => $leaveRequest->id,
-                'recipient_email' => $email
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Email sending failed', [
-                'error' => $e->getMessage(),
-                'leave_request_id' => $leaveRequest->id,
-                'recipient_email' => $email ?? 'null',
-                'smtp' => [
-                    'host' => config('mail.mailers.smtp.host'),
-                    'port' => config('mail.mailers.smtp.port'),
-                    'username' => config('mail.mailers.smtp.username')
-                ]
-            ]);
-        }
-    }
-
+    
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));

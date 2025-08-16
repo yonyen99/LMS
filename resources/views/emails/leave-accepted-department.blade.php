@@ -1,39 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>{{ $subject }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #17a2b8; color: white; padding: 15px; text-align: center; }
-        .content { padding: 20px; border: 1px solid #ddd; }
-        .footer { margin-top: 20px; font-size: 0.9em; color: #666; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Leave Notice: {{ $requesterName }}</h1>
-        </div>
-        <div class="content">
-            <p>Dear Team Member,</p>
-            
-            <p>This is to inform you that {{ $requesterName }}'s leave request has been approved by {{ $approverName }}:</p>
-            
-            <p><strong>Leave Details:</strong></p>
-            <ul>
-                <li><strong>Type:</strong> {{ $leaveType }}</li>
-                <li><strong>Dates:</strong> {{ $startDate }} to {{ $endDate }}</li>
-                <li><strong>Duration:</strong> {{ $duration }} days</li>
-            </ul>
+@component('mail::message')
+# Leave Request Approved in {{ $departmentName }}
 
-            <p>Please plan accordingly for any coverage needed during this period.</p>
-            
-            <div class="footer">
-                <p>Best regards,<br>{{ config('app.name') }}</p>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+**{{ $employeeName }}** ({{ $employeeEmail }}) has had their leave request approved by **{{ $approverName }}**.
+
+## Leave Details
+@component('mail::panel')
+- **Type:** {{ $leaveRequest->leaveType->name ?? 'N/A' }}
+- **Start Date:** {{ $leaveRequest->start_date->format('M d, Y') }}
+- **End Date:** {{ $leaveRequest->end_date->format('M d, Y') }}
+- **Duration:** {{ $leaveRequest->duration }} day(s)
+- **Reason:** {{ $leaveRequest->reason }}
+- **Status:** Approved
+@endcomponent
+
+@component('mail::button', ['url' => route('leave-requests.show', $leaveRequest->id), 'color' => 'primary'])
+View Leave Details
+@endcomponent
+
+@component('mail::subcopy')
+You're receiving this notification because you're a member of the {{ $departmentName }} department.
+If this doesn't concern you, please ignore this email.
+@endcomponent
+
+Thanks,<br>
+{{ config('app.name') }}
+@endcomponent

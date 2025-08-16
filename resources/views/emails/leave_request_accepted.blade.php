@@ -1,22 +1,23 @@
 @component('mail::message')
-@if($notificationType === 'department')
-# Leave Approval Notice
-**{{ $leaveRequest->user->name }}**'s leave has been approved.
-@else
 # Leave Request Approved
-Your leave request has been approved!
-@endif
 
-**Details:**
-- **Type:** {{ $leaveRequest->leaveType->name }}
-- **Dates:** {{ $leaveRequest->start_date->format('M d, Y') }} to {{ $leaveRequest->end_date->format('M d, Y') }}
-- **Duration:** {{ $leaveRequest->duration }} day(s)
-- **Status:** Approved
+Dear {{ $leaveRequest->user->name }},
 
-@component('mail::button', ['url' => route('leave-requests.index')])
-View Leave Calendar
+We are pleased to inform you that your leave request has been approved.
+
+**Leave Details:**
+- Type: {{ $leaveRequest->leaveType->name ?? 'N/A' }}
+- Dates: {{ $leaveRequest->start_date->format('M d, Y') }} to {{ $leaveRequest->end_date->format('M d, Y') }}
+- Duration: {{ $leaveRequest->duration }} days
+- Approved By: {{ $approverName }}
+- Reason: {{ $leaveRequest->reason }}
+
+@component('mail::button', ['url' => route('leave-requests.show', $leaveRequest->id), 'color' => 'success'])
+View Leave Details
 @endcomponent
 
-Thanks,  
+If you have any questions, please contact your manager.
+
+Best regards,<br>
 {{ config('app.name') }}
 @endcomponent

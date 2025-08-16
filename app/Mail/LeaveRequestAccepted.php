@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Mail;
 
 use App\Models\LeaveRequest;
@@ -22,14 +21,10 @@ class LeaveRequestAccepted extends Mailable
 
     public function build()
     {
-        return $this->subject("Leave Request Approved")
-            ->view('emails.leave_approved')
+        return $this->subject("Your Leave Request Has Been Approved")
+            ->markdown('emails.leave_request_accepted')
             ->with([
-                'employeeName' => $this->leaveRequest->user->name,
-                'leaveType' => $this->leaveRequest->leaveType->name,
-                'startDate' => $this->leaveRequest->start_date->format('M j, Y'),
-                'endDate' => $this->leaveRequest->end_date->format('M j, Y'),
-                'duration' => $this->leaveRequest->duration,
+                'leaveRequest' => $this->leaveRequest,
                 'approverName' => $this->approverName
             ]);
     }
