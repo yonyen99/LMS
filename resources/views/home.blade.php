@@ -136,18 +136,6 @@
                             </div>
                         </div>
                     </div>
-                    {{-- User Login Section --}}
-                    <div class="card card-2 mt-4 p-4 "
-                        style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center"
-                                style="width: 50px; height: 50px;">
-                                <i class="bi bi-person-fill fs-5"></i>
-                            </div>
-                            <h5 class="ms-3 mb-0">User Login</h5>
-                        </div>
-                        <p><strong>Active:</strong></p>
-                    </div>
 
                 </div>
             </div>
