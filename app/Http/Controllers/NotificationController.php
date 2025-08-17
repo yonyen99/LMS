@@ -8,6 +8,9 @@ use App\Models\LeaveType;
 use App\Models\LeaveSummary;
 use App\Models\LeaveStatusChange;
 use Illuminate\Support\Facades\DB;
+use App\Mail\LeaveRequestAcceptedMail;
+use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 
 class NotificationController extends Controller
 {
@@ -25,14 +28,12 @@ class NotificationController extends Controller
         $query = LeaveRequest::with(['user', 'leaveType'])
             ->whereIn('status', $statusRequestOptions);
 
-        // Manager can only see requests from their department (excluding their own)
+        // Manager can only see requests from their department (including their own)
         if (auth()->user()->hasRole('Manager')) {
             $departmentId = auth()->user()->department_id;
-            $userId = auth()->id();
 
-            $query->whereHas('user', function ($q) use ($departmentId, $userId) {
-                $q->where('department_id', $departmentId)
-                ->where('id', '!=', $userId);
+            $query->whereHas('user', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
             });
         }
 
@@ -65,12 +66,12 @@ class NotificationController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
-                ->orWhere('duration', 'like', "%{$search}%")
-                ->orWhere('start_date', 'like', "%{$search}%")
-                ->orWhere('end_date', 'like', "%{$search}%")
-                ->orWhere('start_time', 'like', "%{$search}%")
-                ->orWhere('end_time', 'like', "%{$search}%")
-                ->orWhere('status', 'like', "%{$search}%");
+                    ->orWhere('duration', 'like', "%{$search}%")
+                    ->orWhere('start_date', 'like', "%{$search}%")
+                    ->orWhere('end_date', 'like', "%{$search}%")
+                    ->orWhere('start_time', 'like', "%{$search}%")
+                    ->orWhere('end_time', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
 
                 $q->orWhereHas('leaveType', function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%");
@@ -78,7 +79,7 @@ class NotificationController extends Controller
 
                 $q->orWhereHas('user', function ($sub) use ($search) {
                     $sub->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                        ->orWhere('email', 'like', "%{$search}%");
                 });
             });
         }
@@ -94,15 +95,22 @@ class NotificationController extends Controller
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate(10);
         $leaveTypes = LeaveType::all();
 
+        // return view('notifications.index', compact(
+        //     'unreadCount',
+        //     'leaveRequests',
+        //     'leaveTypes',
+        //     'statusRequestOptions',
+        //     'statusColors'
+        // ));
+
         return view('notifications.index', compact(
             'unreadCount',
-            'leaveRequests',
+            'leaveRequests',   // ✅ NOT $notifications
             'leaveTypes',
             'statusRequestOptions',
             'statusColors'
         ));
     }
-
 
     public function updateStatus(Request $request, $id)
     {
@@ -110,7 +118,7 @@ class NotificationController extends Controller
             'status' => 'required|in:Accepted,Rejected,Canceled,Cancellation',
         ]);
 
-        $leaveRequest = LeaveRequest::with('user')->findOrFail($id);
+        $leaveRequest = LeaveRequest::with(['user', 'leaveType'])->findOrFail($id);
         $actingUser = auth()->user();
         $requestUser = $leaveRequest->user;
 
@@ -135,7 +143,7 @@ class NotificationController extends Controller
 
             if ($summary && in_array($newStatus, ['Rejected', 'Canceled'])) {
                 if ($oldStatus === 'Requested') {
-                    $summary->requested -= $leaveRequest->duration; 
+                    $summary->requested -= $leaveRequest->duration;
                     $summary->entitled += $leaveRequest->duration;
                 } elseif ($oldStatus === 'Accepted') {
                     $summary->taken -= $leaveRequest->duration;
@@ -149,24 +157,38 @@ class NotificationController extends Controller
                 $summary->save();
             }
 
-
-
             $leaveRequest->update([
                 'status' => $newStatus,
                 'last_changed_at' => now(),
             ]);
+
             LeaveStatusChange::create([
-            'leave_request_id' => $leaveRequest->id,
-            'user_id' => $actingUser->id,
-            'old_status' => $oldStatus,
-            'new_status' => $newStatus,
-            'changed_at' => now(),
-        ]);
+                'leave_request_id' => $leaveRequest->id,
+                'user_id' => $actingUser->id,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus,
+                'changed_at' => now(),
+            ]);
         });
+
+        // ✅ Send email if Accepted
+        if ($newStatus === 'Accepted') {
+            // Send to employee
+            Mail::to($leaveRequest->user->email)->send(new LeaveRequestAcceptedMail($leaveRequest));
+
+            // Send to all employees in same department
+            $departmentUsers = \App\Models\User::where('department_id', $leaveRequest->user->department_id)
+                ->where('id', '!=', $leaveRequest->user_id) // avoid duplicate to same user
+                ->pluck('email')
+                ->toArray();
+
+            if (!empty($departmentUsers)) {
+                Mail::to($departmentUsers)->send(new LeaveRequestAcceptedMail($leaveRequest));
+            }
+        }
 
         return redirect()->route('notifications.index')->with('success', "Leave request updated to {$newStatus}.");
     }
-
     public function approve(LeaveRequest $leaveRequest)
     {
         DB::transaction(function () use ($leaveRequest) {
@@ -189,5 +211,4 @@ class NotificationController extends Controller
 
         return redirect()->route('notifications.index')->with('success', 'Leave approved.');
     }
-    
 }

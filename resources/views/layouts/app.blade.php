@@ -220,8 +220,9 @@
                             style="height: 70px; border-radius: 5px;">
                     </a>
 
-                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
-                        aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false"
+                        aria-label="Toggle navigation">
                         <i class="bi bi-justify fs-5"></i>
                     </button>
 
@@ -426,7 +427,8 @@
             </nav>
 
             <!-- Offcanvas Menu -->
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar"
+                aria-labelledby="offcanvasNavbarLabel">
                 <div class="offcanvas-header">
                     <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -568,8 +570,8 @@
 
                             @if (!Auth::user()->hasRole('Employee'))
                                 <li class="nav-item">
-                                    <button id="offcanvasNotificationToggle" class="position-relative p-1 bg-transparent border-0"
-                                        style="font-size: 20px;">
+                                    <button id="offcanvasNotificationToggle"
+                                        class="position-relative p-1 bg-transparent border-0" style="font-size: 20px;">
                                         <i class="bi bi-bell-fill text-primary"></i>
                                         <span
                                             class="position-absolute top-1 start-100 translate-middle badge rounded-pill bg-danger"
@@ -586,8 +588,7 @@
                                     href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     @if (Auth::user()->images)
                                         <img src="{{ asset('storage/' . Auth::user()->images) }}" alt="Profile"
-                                            class="rounded-circle me-2"
-                                            style="width: 45px; height: 45px; object-fit: cover;">
+                                            class="rounded-circle me-2" style="width: 45px; height: 45px; object-fit: cover;">
                                     @else
                                         <i class="bi bi-person-circle me-2 fs-5"></i>
                                     @endif
@@ -615,92 +616,100 @@
                                 </ul>
                             </li>
                         @endguest
-                        </ul>
-                    </div>
+                    </ul>
                 </div>
             </div>
+        </div>
 
-            <div id="notificationContainer" style="display: none;">
-                <div class="card shadow">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">Notifications</h4>
-                    </div>
-                    <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        @forelse ($notifications as $request)
-                            <a href="{{ route('notifications.index', $request->id) }}"
-                                class="text-decoration-none text-dark">
-                                <div class="notification-item position-relative" data-id="{{ $request->id }}"
-                                    style="cursor: pointer;">
-                                    <div class="alert shadow-sm rounded-3 {{ $request->is_read ? 'alert-light' : 'alert-primary' }}"
-                                        style="margin: 10px; transition: all 0.3s ease;">
-                                        <div>
-                                            <strong>{{ $request->user->name }}</strong> requested
-                                            <strong class="text-info">{{ $request->leaveType->name ?? 'Leave' }}</strong>
-                                            from
-                                            <strong>{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}</strong>
-                                            ({{ $request->start_time }})
-                                            to
-                                            <strong>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</strong>
-                                            ({{ $request->end_time }}).
-                                        </div>
-                                        @if ($request->reason)
-                                            <div class="mt-2">Reason: <em>{{ $request->reason }}</em></div>
-                                        @endif
-                                        <div class="mt-2">
-                                            Status:
-                                            <span
-                                                class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }}">
-                                                {{ ucfirst($request->status) }}
-                                            </span>
-                                        </div>
-                                        <div class="mt-3">
+        <div id="notificationContainer" style="display: none;">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Notifications</h4>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+
+                    @forelse ($leaveRequests as $request)
+                        <a href="{{ route('notifications.index', $request->id) }}"
+                            class="text-decoration-none text-dark">
+                            <div class="notification-item position-relative" data-id="{{ $request->id }}"
+                                style="cursor: pointer;">
+                                <div class="alert shadow-sm rounded-3 {{ $request->is_read ? 'alert-light' : 'alert-primary' }}"
+                                    style="margin: 10px; transition: all 0.3s ease;">
+
+                                    <div>
+                                        <strong>{{ $request->user->name }}</strong> requested
+                                        <strong class="text-info">{{ $request->leaveType->name ?? 'Leave' }}</strong>
+                                        from
+                                        <strong>{{ \Carbon\Carbon::parse($request->start_date)->format('d M Y') }}</strong>
+                                        ({{ $request->start_time }})
+                                        to
+                                        <strong>{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}</strong>
+                                        ({{ $request->end_time }}).
+                                    </div>
+
+                                    @if ($request->reason)
+                                        <div class="mt-2">Reason: <em>{{ $request->reason }}</em></div>
+                                    @endif
+
+                                    <div class="mt-2">
+                                        Status:
+                                        <span
+                                            class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }}">
+                                            {{ ucfirst($request->status) }}
+                                        </span>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Submitted:
+                                            {{ \Carbon\Carbon::parse($request->requested_at ?? $request->created_at)->format('d M Y') }}
+                                        </small>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            Last updated:
+                                            {{ \Carbon\Carbon::parse($request->last_changed_at ?? $request->updated_at)->format('d M Y') }}
+                                        </small>
+                                        @if ($request->read_at)
                                             <small class="text-muted d-block">
-                                                <i class="fas fa-calendar-alt me-1"></i>
-                                                Submitted:
-                                                {{ \Carbon\Carbon::parse($request->requested_at ?? $request->created_at)->format('d M Y') }}
+                                                <i class="fas fa-eye me-1"></i>
+                                                Read:
+                                                {{ \Carbon\Carbon::parse($request->read_at)->format('d M Y, g:i A') }}
                                             </small>
-                                            <small class="text-muted">
-                                                <i class="fas fa-clock me-1"></i>
-                                                Last updated:
-                                                {{ \Carbon\Carbon::parse($request->last_changed_at ?? $request->updated_at)->format('d M Y') }}
-                                            </small>
-                                            @if ($request->read_at)
-                                                <small class="text-muted d-block">
-                                                    <i class="fas fa-eye me-1"></i>
-                                                    Read:
-                                                    {{ \Carbon\Carbon::parse($request->read_at)->format('d M Y, g:i A') }}
-                                                </small>
-                                            @endif
-                                        </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </a>
-                        @empty
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                No leave requests found.
                             </div>
-                        @endforelse
-                    </div>
+                        </a>
+                    @empty
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No leave requests found.
+                        </div>
+                    @endforelse
+
                 </div>
             </div>
-        @endunless
+        </div>
 
-        <main>
-            <div class="p-4">
-                <div class="row justify-content-center">
-                    <div class="col-md-12">
-                        @if ($message = Session::get('success'))
-                            <div class="alert alert-success text-center" role="alert">
-                                {{ $message }}
-                            </div>
-                        @endif
 
-                        @yield('content')
-                    </div>
+    @endunless
+
+    <main>
+        <div class="p-4">
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    @if ($message = Session::get('success'))
+                        <div class="alert alert-success text-center" role="alert">
+                            {{ $message }}
+                        </div>
+                    @endif
+
+                    @yield('content')
                 </div>
             </div>
-        </main>
+        </div>
+    </main>
     </div>
     @section('scripts')
         <script>
@@ -731,7 +740,8 @@
 
                 // Hide when clicking outside
                 document.addEventListener('click', function(event) {
-                    if (!container.contains(event.target) && event.target !== bellButton && event.target !== offcanvasBellButton) {
+                    if (!container.contains(event.target) && event.target !== bellButton && event.target !==
+                        offcanvasBellButton) {
                         container.style.display = 'none';
                     }
                 });
@@ -740,7 +750,8 @@
                 document.querySelectorAll('.view-request').forEach(button => {
                     button.addEventListener('click', function() {
                         document.getElementById('modalType').textContent = this.dataset.type || '-';
-                        document.getElementById('modalDuration').textContent = this.dataset.duration || '-';
+                        document.getElementById('modalDuration').textContent = this.dataset.duration ||
+                            '-';
                         document.getElementById('modalReason').textContent = this.dataset.reason || '-';
 
                         const startDate = this.dataset.startDate || '-';
