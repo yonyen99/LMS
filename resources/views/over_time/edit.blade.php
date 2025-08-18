@@ -3,8 +3,8 @@
 @section('title', 'Edit Overtime Request')
 
 @section('content')
-<div class="container">
-    <div class="card card-2 shadow-sm">
+<div class="container-fluid py-4">
+    <div class="card shadow-sm">
         <div class="card-header card-2 fw-bold">Edit Overtime Request</div>
 
         <div class="card-body">
@@ -21,7 +21,7 @@
 
             <form action="{{ route('over-time.update', $overtime->id) }}" method="POST" class="needs-validation" novalidate>
                 @csrf
-                @method('PUT')
+                @method('PATCH')
 
                 <div class="row g-3 mb-3">
                     <!-- Overtime Date -->
@@ -136,11 +136,12 @@
     </div>
 </div>
 
-<!-- Flatpickr CSS & JS -->
+<!-- Flatpickr CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+@endsection
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Overtime Date (only today and future allowed)
