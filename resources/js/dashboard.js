@@ -5,8 +5,8 @@ const employeeChart = new Chart(employeeCtx, {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
             {
-                label: "Requests",
-                data: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+                label: "Leave Requests",
+                data: monthlyRequestData, // Use dynamic data from controller
                 backgroundColor: "rgba(54, 162, 235, 0.6)",
                 borderColor: "rgba(54, 162, 235, 1)",
                 borderWidth: 1,
@@ -14,12 +14,36 @@ const employeeChart = new Chart(employeeCtx, {
         ],
     },
     options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
             y: {
                 beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Number of Requests'
+                }
             },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Month'
+                }
+            }
         },
-    },
+        plugins: {
+            legend: {
+                position: 'top',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return `Requests: ${context.raw}`;
+                    }
+                }
+            }
+        }
+    }
 });
 
 // Initialize department chart only if departmentData exists and is not empty
