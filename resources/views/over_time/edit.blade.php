@@ -1,296 +1,350 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Overtime Request')
+@section('title', 'Overtime Requests')
 
 @section('content')
-    <div class="container px-4 py-5">
-        <h1 class="mb-4">Edit Overtime Request</h1>
+    <div class="container-fluid py-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <!-- Header Section -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                    <div>
+                        <h1 class="h4 mb-0 fw-bold">
+                            <i class="bi bi-clock-history me-2"></i> Overtime Requests
+                        </h1>
+                        <p class="text-muted mb-0">Track and manage employee overtime requests</p>
+                    </div>
 
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
+                    <div class="d-flex flex-column flex-md-row gap-3">
+                        <!-- Search Form -->
+                        <form class="d-flex" method="GET" action="{{ route('over-time.index') }}">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" placeholder="Search..."
+                                    value="{{ request('search') }}">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Export Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-download me-1"></i> Export
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="exportDropdown">
+                                <li>
+                                    <a class="dropdown-item"
+                                        href="{{ route('over-time.exportPDF') . '?' . http_build_query(request()->query()) }}">
+                                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> PDF
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item"
+                                        href="{{ route('over-time.exportExcel') . '?' . http_build_query(request()->query()) }}">
+                                        <i class="bi bi-file-earmark-excel text-success me-2"></i> Excel
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Cards (Unfiltered Totals) -->
+                <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+                    <div class="col">
+                        <div class="card border-start border-primary border-4 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                        <i class="bi bi-clock text-primary fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Total Requests</p>
+                                        <h3 class="mb-0">{{ $totalRequests }}</h3>
+                                        <small class="text-muted">All time</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-start border-success border-4 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                                        <i class="bi bi-check-circle text-success fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Approved</p>
+                                        <h3 class="mb-0">{{ $approvedRequests }}</h3>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($approvedRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-start border-warning border-4 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-warning bg-opacity-10 p-3 rounded me-3">
+                                        <i class="bi bi-hourglass-top text-warning fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Pending</p>
+                                        <h3 class="mb-0">{{ $pendingRequests }}</h3>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($pendingRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card border-start border-danger border-4 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded me-3">
+                                        <i class="bi bi-x-circle text-danger fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Rejected/Canceled</p>
+                                        <h3 class="mb-0">{{ $rejectedCancelledRequests }}</h3>
+                                        <small class="text-muted">
+                                            {{ $totalRequests > 0 ? round(($rejectedCancelledRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Filter Tabs -->
+                <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ !request('status') ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => null, 'page' => null])) }}">
+                            All Requests
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'requested' ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'requested', 'page' => null])) }}">
+                            Pending
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'approved', 'page' => null])) }}">
+                            Approved
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link {{ in_array(request('status'), ['rejected', 'cancelled']) ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'rejected_canceled', 'page' => null])) }}">
+                            Rejected/Canceled
+                        </a>
+                    </li>
                 </ul>
-            </div>
-        @endif
 
-        <form action="{{ route('over-time.update', $overtime->id) }}" method="POST" class="needs-validation" novalidate>
-            @csrf
-            @method('PATCH')
+                <!-- Table (Filtered Results) -->
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th width="50">#</th>
+                                <th>Employee</th>
+                                <th class="d-none d-md-table-cell">Department</th>
+                                <th class="d-none d-lg-table-cell">Date</th>
+                                <th class="d-none d-lg-table-cell">Time Period</th>
+                                <th class="d-none d-sm-table-cell text-center">Status</th>
+                                <th width="120">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($overtimes as $ot)
+                                <tr>
+                                    <td>{{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                <div class="avatar avatar-sm rounded-circle me-2">
+                                                    <span class="avatar-text bg-primary p-2 text-white rounded-circle">
+                                                        {{ substr($ot->user->name, 0, 1) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div class="fw-medium">{{ $ot->user->name }}</div>
+                                                <small class="text-muted d-md-none">{{ $ot->department->name }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="d-none d-md-table-cell">{{ $ot->department->name }}</td>
+                                    <td class="d-none d-lg-table-cell">
+                                        {{ \Carbon\Carbon::parse($ot->overtime_date)->format('M d, Y') }}
+                                    </td>
+                                    <td class="d-none d-lg-table-cell">
+                                        {{ ucwords(str_replace('_', ' ', $ot->time_period)) }}
+                                        <small class="text-muted d-block">{{ $ot->duration }} hours</small>
+                                    </td>
+                                    <td class="d-none d-sm-table-cell text-center">
+                                        <span
+                                            class="badge rounded-pill bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : 'danger') }}">
+                                            {{ ucfirst($ot->status) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                                type="button" data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('over-time.show', $ot->id) }}">
+                                                        <i class="bi bi-eye me-2"></i> View Details
+                                                    </a>
+                                                </li>
 
-            <!-- Overtime Date -->
-            <div class="mb-3">
-                <label for="overtime_date" class="form-label">Overtime Date</label>
-                <input type="date" class="form-control @error('overtime_date') is-invalid @enderror" id="overtime_date"
-                    name="overtime_date" value="{{ old('overtime_date', $overtime->overtime_date->format('Y-m-d')) }}" required>
-                @error('overtime_date')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+                                                @if (auth()->user()->id === $ot->user_id && $ot->status === 'requested')
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('over-time.edit', $ot->id) }}">
+                                                            <i class="bi bi-pencil me-2"></i> Edit
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.destroy', $ot->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit"
+                                                                class="dropdown-item text-danger btn-confirm"
+                                                                data-message="Are you sure you want to delete this request?">
+                                                                <i class="bi bi-trash me-2"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.cancel', $ot->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="dropdown-item text-warning btn-confirm"
+                                                                data-message="Are you sure you want to cancel this request?">
+                                                                <i class="bi bi-slash-circle me-2"></i> Cancel
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
 
-            <!-- Time Period -->
-            <div class="mb-3">
-                <label for="time_period" class="form-label">Time Period</label>
-                <select class="form-select @error('time_period') is-invalid @enderror" id="time_period" name="time_period"
-                    required>
-                    <option value="" disabled>Select Time Period</option>
-                    <option value="before_shift"
-                        {{ old('time_period', $overtime->time_period) == 'before_shift' ? 'selected' : '' }}>Before Shift
-                    </option>
-                    <option value="after_shift"
-                        {{ old('time_period', $overtime->time_period) == 'after_shift' ? 'selected' : '' }}>After Shift
-                    </option>
-                    <option value="weekend"
-                        {{ old('time_period', $overtime->time_period) == 'weekend' ? 'selected' : '' }}>Weekend</option>
-                    <option value="holiday"
-                        {{ old('time_period', $overtime->time_period) == 'holiday' ? 'selected' : '' }}>Holiday</option>
-                </select>
-                @error('time_period')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <!-- Start Time and End Time -->
-            <div class="mb-3 row">
-                <div class="col-md-6">
-                    <label for="start_time" class="form-label">Start Time</label>
-                    <input type="time" class="form-control @error('start_time') is-invalid @enderror" id="start_time"
-                        name="start_time" value="{{ old('start_time', date('H:i', strtotime($overtime->start_time))) }}" required>
-                    @error('start_time')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+                                                @if (auth()->user()->hasAnyRole(['Manager', 'Admin']) && $ot->status === 'requested')
+                                                    <li>
+                                                        <form action="{{ route('over-time.accept', $ot->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="dropdown-item text-success btn-confirm"
+                                                                data-message="Approve this overtime request?">
+                                                                <i class="bi bi-check-circle me-2"></i> Approve
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                    <li>
+                                                        <form action="{{ route('over-time.reject', $ot->id) }}"
+                                                            method="POST" class="d-inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="dropdown-item text-danger btn-confirm"
+                                                                data-message="Reject this overtime request?">
+                                                                <i class="bi bi-x-circle me-2"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="d-flex flex-column align-items-center">
+                                            <i class="bi bi-clock-history fs-1 text-muted mb-3"></i>
+                                            <h5 class="text-muted">No overtime requests found</h5>
+                                            @if (request('search') || request('status'))
+                                                <a href="{{ route('over-time.index') }}"
+                                                    class="btn btn-sm btn-outline-primary mt-2">
+                                                    Clear filters
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-                <div class="col-md-6">
-                    <label for="end_time" class="form-label">End Time</label>
-                    <input type="time" class="form-control @error('end_time') is-invalid @enderror" id="end_time"
-                        name="end_time" value="{{ old('end_time', date('H:i', strtotime($overtime->end_time))) }}" required>
-                    @error('end_time')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted">
+                        Showing {{ $overtimes->firstItem() }} to {{ $overtimes->lastItem() }} of
+                        {{ $overtimes->total() }} entries
+                    </div>
+                    <div>
+                        {{ $overtimes->appends(request()->query())->links() }}
+                    </div>
                 </div>
             </div>
-
-            <!-- Duration -->
-            <div class="mb-3">
-                <label for="duration" class="form-label">Duration (in hours)</label>
-                <input type="number" step="0.5" min="0.5" max="24"
-                    class="form-control @error('duration') is-invalid @enderror" id="duration" name="duration"
-                    value="{{ old('duration', $overtime->duration) }}" required readonly>
-                @error('duration')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <!-- Reason -->
-            <div class="mb-3">
-                <label for="reason" class="form-label">Reason for Overtime</label>
-                <textarea class="form-control @error('reason') is-invalid @enderror" id="reason" name="reason" rows="3"
-                    required>{{ old('reason', $overtime->reason) }}</textarea>
-                @error('reason')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-
-            <!-- Cancel and Submit Buttons -->
-            <div class="mb-3">
-                <a href="{{ route('over-time.index') }}" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-primary">Update Request</button>
-            </div>
-        </form>
+        </div>
     </div>
+@endsection
 
-    <!-- Bootstrap validation and duration calculation script -->
+@section('scripts')
     <script>
-        (() => {
-            'use strict';
-
-            // Bootstrap form validation
-            const forms = document.querySelectorAll('.needs-validation');
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                    }
-                    form.classList.add('was-validated');
-                }, false);
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
-            // Auto-calculate duration based on start_time and end_time
-            const startTimeInput = document.getElementById('start_time');
-            const endTimeInput = document.getElementById('end_time');
-            const durationInput = document.getElementById('duration');
+            // SweetAlert confirmation for buttons
+            document.querySelectorAll('.btn-confirm').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let form = this.closest('form');
+                    let message = this.getAttribute('data-message') || "Are you sure?";
 
-            function convertTo24Hour(timeStr) {
-                const [time, modifier] = timeStr.split(' ');
-                let [hours, minutes] = time.split(':');
-                if (modifier && modifier.toUpperCase() === 'PM' && hours !== '12') hours = (parseInt(hours) + 12).toString();
-                if (modifier && modifier.toUpperCase() === 'AM' && hours === '12') hours = '00';
-                return `${hours.padStart(2, '0')}:${minutes}`;
-            }
-
-            function calculateDuration() {
-                const startTime = startTimeInput.value;
-                const endTime = endTimeInput.value;
-
-                if (startTime && endTime) {
-                    const start = new Date(`1970-01-01T${startTime}:00`);
-                    const end = new Date(`1970-01-01T${endTime}:00`);
-
-                    // Handle case where end time is on the next day
-                    if (end < start) {
-                        end.setDate(end.getDate() + 1);
-                    }
-
-                    const diffInMs = end - start;
-                    const hours = diffInMs / (1000 * 60 * 60);
-
-                    // Round to nearest 0.5
-                    const roundedHours = Math.round(hours * 2) / 2;
-                    if (roundedHours >= 0.5 && roundedHours <= 24) {
-                        durationInput.value = roundedHours;
-                        durationInput.classList.remove('is-invalid');
-                        if (durationInput.nextElementSibling) {
-                            durationInput.nextElementSibling.textContent = '';
+                    Swal.fire({
+                        title: 'Confirmation',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, proceed',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
                         }
-                    } else {
-                        durationInput.value = '';
-                        durationInput.classList.add('is-invalid');
-                        if (durationInput.nextElementSibling) {
-                            durationInput.nextElementSibling.textContent = 'Duration must be between 0.5 and 24 hours.';
-                        }
-                    }
-                } else {
-                    durationInput.value = '';
-                }
-            }
-
-            startTimeInput.addEventListener('change', calculateDuration);
-            endTimeInput.addEventListener('change', calculateDuration);
-
-            // Trigger initial calculation if values are pre-filled
-            calculateDuration();
-        })();
+                    });
+                });
+            });
+        });
     </script>
-
-    <!-- Modernized CSS for better UX -->
-    <style>
-        body {
-            background-color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .form-label {
-            font-weight: 500;
-            color: #334155;
-            margin-bottom: 0.5rem;
-        }
-
-        .form-control, .form-select {
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            padding: 0.75rem 1rem;
-            font-size: 0.95rem;
-            background-color: #fff;
-            transition: all 0.2s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            outline: none;
-        }
-
-        .form-control.is-invalid, .form-select.is-invalid {
-            border-color: #ef4444;
-            background-color: #fef2f2;
-        }
-
-        .invalid-feedback {
-            font-size: 0.85rem;
-            color: #ef4444;
-            margin-top: 0.25rem;
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background-color: #3b82f6;
-            border-color: #3b82f6;
-        }
-
-        .btn-primary:hover {
-            background-color: #2563eb;
-            border-color: #2563eb;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background-color: #64748b;
-            border-color: #64748b;
-            color: #fff;
-        }
-
-        .btn-secondary:hover {
-            background-color: #475569;
-            border-color: #475569;
-            transform: translateY(-1px);
-        }
-
-        .alert-danger {
-            background-color: #fef2f2;
-            border: 1px solid #ef4444;
-            border-radius: 8px;
-            padding: 1rem;
-            color: #b91c1c;
-        }
-
-        .alert-danger ul {
-            margin: 0;
-            padding-left: 1.5rem;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        @media (max-width: 576px) {
-            .container {
-                padding: 1rem;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .btn {
-                padding: 0.6rem 1.2rem;
-            }
-        }
-    </style>
 @endsection
