@@ -31,7 +31,7 @@
                                class="form-control @error('overtime_date') is-invalid @enderror"
                                id="overtime_date"
                                name="overtime_date"
-                               value="{{ old('overtime_date', $overtime->overtime_date) }}"
+                               value="{{ old('overtime_date', \Carbon\Carbon::parse($overtime->overtime_date)->format('Y-m-d')) }}"
                                placeholder="YYYY-MM-DD"
                                required
                                style="cursor: pointer;">
@@ -64,7 +64,7 @@
                                class="form-control @error('start_time') is-invalid @enderror"
                                id="start_time"
                                name="start_time"
-                               value="{{ old('start_time', $overtime->start_time) }}"
+                               value="{{ old('start_time', \Carbon\Carbon::parse($overtime->start_time)->format('H:i')) }}"
                                required
                                placeholder="HH:MM"
                                style="cursor: pointer;">
@@ -80,7 +80,7 @@
                                class="form-control @error('end_time') is-invalid @enderror"
                                id="end_time"
                                name="end_time"
-                               value="{{ old('end_time', $overtime->end_time) }}"
+                               value="{{ old('end_time', \Carbon\Carbon::parse($overtime->end_time)->format('H:i')) }}"
                                required
                                placeholder="HH:MM"
                                style="cursor: pointer;">
@@ -148,23 +148,35 @@ document.addEventListener('DOMContentLoaded', function () {
     flatpickr('#overtime_date', {
         dateFormat: 'Y-m-d',
         allowInput: true,
-        minDate: "today"
+        minDate: 'today'
     });
 
+    // Start Time
     flatpickr('#start_time', {
         enableTime: true,
         noCalendar: true,
         dateFormat: 'H:i',
         time_24hr: true,
-        allowInput: true
+        allowInput: true,
+        onChange: function(selectedDates, dateStr) {
+            // Ensure the input value is always in H:i format
+            document.getElementById('start_time').value = dateStr;
+            calculateDuration();
+        }
     });
 
+    // End Time
     flatpickr('#end_time', {
         enableTime: true,
         noCalendar: true,
         dateFormat: 'H:i',
         time_24hr: true,
-        allowInput: true
+        allowInput: true,
+        onChange: function(selectedDates, dateStr) {
+            // Ensure the input value is always in H:i format
+            document.getElementById('end_time').value = dateStr;
+            calculateDuration();
+        }
     });
 
     const startTimeInput = document.getElementById('start_time');
@@ -175,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const startTime = startTimeInput.value;
         const endTime = endTimeInput.value;
 
-        if (startTime && endTime) {
+        if (startTime && endTime && /^\d{2}:\d{2}$/.test(startTime) && /^\d{2}:\d{2}$/.test(endTime)) {
             const start = new Date(`1970-01-01T${startTime}:00`);
             const end = new Date(`1970-01-01T${endTime}:00`);
 
@@ -199,6 +211,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     startTimeInput.addEventListener('change', calculateDuration);
     endTimeInput.addEventListener('change', calculateDuration);
+
+    // Trigger initial duration calculation on page load
+    calculateDuration();
 });
 </script>
 @endsection
