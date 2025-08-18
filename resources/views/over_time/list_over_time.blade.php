@@ -24,7 +24,7 @@
                                 <button class="btn btn-primary" type="submit">
                                     <i class="bi bi-search"></i>
                                 </button>
-                               
+
                             </div>
                         </form>
 
@@ -36,12 +36,14 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="exportDropdown">
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('over-time.exportPDF') . '?' . http_build_query(request()->query()) }}">
+                                    <a class="dropdown-item"
+                                        href="{{ route('over-time.exportPDF') . '?' . http_build_query(request()->query()) }}">
                                         <i class="bi bi-file-earmark-pdf text-danger me-2"></i> PDF
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" href="{{ route('over-time.exportExcel') . '?' . http_build_query(request()->query()) }}">
+                                    <a class="dropdown-item"
+                                        href="{{ route('over-time.exportExcel') . '?' . http_build_query(request()->query()) }}">
                                         <i class="bi bi-file-earmark-excel text-success me-2"></i> Excel
                                     </a>
                                 </li>
@@ -79,7 +81,8 @@
                                         <p class="text-muted small mb-1">Approved</p>
                                         <h3 class="mb-0">{{ $approvedRequests }}</h3>
                                         <small class="text-muted">
-                                            {{ $totalRequests > 0 ? round(($approvedRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                            {{ $totalRequests > 0 ? round(($approvedRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
                                         </small>
                                     </div>
                                 </div>
@@ -97,7 +100,8 @@
                                         <p class="text-muted small mb-1">Pending</p>
                                         <h3 class="mb-0">{{ $pendingRequests }}</h3>
                                         <small class="text-muted">
-                                            {{ $totalRequests > 0 ? round(($pendingRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                            {{ $totalRequests > 0 ? round(($pendingRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
                                         </small>
                                     </div>
                                 </div>
@@ -115,7 +119,8 @@
                                         <p class="text-muted small mb-1">Rejected/Canceled</p>
                                         <h3 class="mb-0">{{ $rejectedCancelledRequests }}</h3>
                                         <small class="text-muted">
-                                            {{ $totalRequests > 0 ? round(($rejectedCancelledRequests / $totalRequests) * 100, 1) : 0 }}% of total
+                                            {{ $totalRequests > 0 ? round(($rejectedCancelledRequests / $totalRequests) * 100, 1) : 0 }}%
+                                            of total
                                         </small>
                                     </div>
                                 </div>
@@ -127,26 +132,26 @@
                 <!-- Status Filter Tabs -->
                 <ul class="nav nav-tabs mb-4" id="statusTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link {{ !request('status') ? 'active' : '' }}" 
-                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => null, 'page' => null])) }}">
+                        <a class="nav-link {{ !request('status') ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => null, 'page' => null])) }}">
                             All Requests
                         </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link {{ request('status') === 'requested' ? 'active' : '' }}" 
-                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'requested', 'page' => null])) }}">
+                        <a class="nav-link {{ request('status') === 'requested' ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'requested', 'page' => null])) }}">
                             Pending
                         </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}" 
-                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'approved', 'page' => null])) }}">
+                        <a class="nav-link {{ request('status') === 'approved' ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'approved', 'page' => null])) }}">
                             Approved
                         </a>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <a class="nav-link {{ in_array(request('status'), ['rejected', 'cancelled']) ? 'active' : '' }}" 
-                           href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'rejected_canceled', 'page' => null])) }}">
+                        <a class="nav-link {{ in_array(request('status'), ['rejected', 'cancelled']) ? 'active' : '' }}"
+                            href="{{ route('over-time.index', array_merge(request()->except(['status', 'page']), ['status' => 'rejected_canceled', 'page' => null])) }}">
                             Rejected/Canceled
                         </a>
                     </li>
@@ -169,7 +174,8 @@
                         <tbody>
                             @forelse ($overtimes as $ot)
                                 <tr>
-                                    <td>{{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}</td>
+                                    <td>{{ ($overtimes->currentPage() - 1) * $overtimes->perPage() + $loop->iteration }}
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="flex-shrink-0 me-3">
@@ -194,7 +200,8 @@
                                         <small class="text-muted d-block">{{ $ot->duration }} hours</small>
                                     </td>
                                     <td class="d-none d-sm-table-cell text-center">
-                                        <span class="badge rounded-pill bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : 'danger') }}">
+                                        <span
+                                            class="badge rounded-pill bg-{{ $ot->status == 'approved' ? 'success' : ($ot->status == 'requested' ? 'warning' : 'danger') }}">
                                             {{ ucfirst($ot->status) }}
                                         </span>
                                     </td>
@@ -206,13 +213,16 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('over-time.show', $ot->id) }}">
+                                                    <a class="dropdown-item"
+                                                        href="{{ route('over-time.show', $ot->id) }}">
                                                         <i class="bi bi-eye me-2"></i> View Details
                                                     </a>
                                                 </li>
+
                                                 @if (auth()->user()->id === $ot->user_id && $ot->status === 'requested')
                                                     <li>
-                                                        <a class="dropdown-item" href="{{ route('over-time.edit', $ot->id) }}">
+                                                        <a class="dropdown-item"
+                                                            href="{{ route('over-time.edit', $ot->id) }}">
                                                             <i class="bi bi-pencil me-2"></i> Edit
                                                         </a>
                                                     </li>
@@ -221,8 +231,9 @@
                                                             method="POST" class="d-inline">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="dropdown-item text-danger"
-                                                                onclick="return confirm('Are you sure?')">
+                                                            <button type="submit"
+                                                                class="dropdown-item text-danger btn-confirm"
+                                                                data-message="Are you sure you want to delete this request?">
                                                                 <i class="bi bi-trash me-2"></i> Delete
                                                             </button>
                                                         </form>
@@ -231,20 +242,23 @@
                                                         <form action="{{ route('over-time.cancel', $ot->id) }}"
                                                             method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="dropdown-item text-warning"
-                                                                onclick="return confirm('Are you sure you want to cancel this request?')">
+                                                            <button type="submit"
+                                                                class="dropdown-item text-warning btn-confirm"
+                                                                data-message="Are you sure you want to cancel this request?">
                                                                 <i class="bi bi-slash-circle me-2"></i> Cancel
                                                             </button>
                                                         </form>
                                                     </li>
                                                 @endif
+
                                                 @if (auth()->user()->hasAnyRole(['Manager', 'Admin']) && $ot->status === 'requested')
                                                     <li>
                                                         <form action="{{ route('over-time.accept', $ot->id) }}"
                                                             method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="dropdown-item text-success"
-                                                                onclick="return confirm('Approve this overtime request?')">
+                                                            <button type="submit"
+                                                                class="dropdown-item text-success btn-confirm"
+                                                                data-message="Approve this overtime request?">
                                                                 <i class="bi bi-check-circle me-2"></i> Approve
                                                             </button>
                                                         </form>
@@ -253,8 +267,9 @@
                                                         <form action="{{ route('over-time.reject', $ot->id) }}"
                                                             method="POST" class="d-inline">
                                                             @csrf
-                                                            <button type="submit" class="dropdown-item text-danger"
-                                                                onclick="return confirm('Reject this overtime request?')">
+                                                            <button type="submit"
+                                                                class="dropdown-item text-danger btn-confirm"
+                                                                data-message="Reject this overtime request?">
                                                                 <i class="bi bi-x-circle me-2"></i> Reject
                                                             </button>
                                                         </form>
@@ -263,6 +278,7 @@
                                             </ul>
                                         </div>
                                     </td>
+
                                 </tr>
                             @empty
                                 <tr>
@@ -305,8 +321,33 @@
             // Initialize tooltips
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // SweetAlert confirmation for buttons
+            document.querySelectorAll('.btn-confirm').forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    let form = this.closest('form');
+                    let message = this.getAttribute('data-message') || "Are you sure?";
+
+                    Swal.fire({
+                        title: 'Confirmation',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Yes, proceed',
+                        cancelButtonText: 'Cancel'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
         });
     </script>
+
 @endsection

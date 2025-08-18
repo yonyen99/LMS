@@ -139,10 +139,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize Flatpickr
+    // Overtime Date (only today and future allowed, default today)
     flatpickr('#overtime_date', {
         dateFormat: 'Y-m-d',
-        allowInput: true
+        allowInput: true,
+        minDate: "today",
+        defaultDate: "today"
     });
 
     flatpickr('#start_time', {

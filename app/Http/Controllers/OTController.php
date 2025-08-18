@@ -179,7 +179,6 @@ class OTController extends Controller
 
         $user = auth()->user();
 
-        // Check if the user has a department_id
         if (!$user->department_id) {
             throw ValidationException::withMessages([
                 'department_id' => 'You must be assigned to a department to submit an overtime request.',
@@ -203,6 +202,7 @@ class OTController extends Controller
         });
 
         try {
+            // === EMAIL NOTIFICATION ===
             $managersInSameDept = User::role('Manager')
                 ->where('department_id', $user->department_id)
                 ->pluck('email');
@@ -210,11 +210,16 @@ class OTController extends Controller
             $adminEmails = $managersInSameDept->merge($admins)->unique()->toArray();
 
             if (!empty($adminEmails)) {
-                Mail::to($adminEmails)->queue(new OvertimeRequestSubmitted($overtime));
+                // Send immediately
+                Mail::to($adminEmails)->send(new OvertimeRequestSubmitted($overtime));
+                Log::info("Overtime email sent to: " . implode(', ', $adminEmails));
+            } else {
+                Log::warning("No admin/manager emails found for overtime notification.");
             }
-
+            // === TELEGRAM NOTIFICATION ===
             $botToken = config('services.telegram.bot_token');
-            $chatId = config('services.telegram.chat_id');
+            $chatId   = config('services.telegram.chat_id');
+
             if ($botToken && $chatId) {
                 $departmentName = $user->department ? $user->department->name : 'N/A';
                 $message = "📢 *New Overtime Request Submitted*\n\n"
@@ -227,18 +232,29 @@ class OTController extends Controller
                     . "⏳ *Duration:* {$request->duration} hour(s)\n"
                     . "📝 *Reason:* {$request->reason}\n"
                     . "🔖 *Status:* {$overtime->status}";
-                Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
+
+                $response = Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
                     'chat_id' => $chatId,
                     'text' => $message,
                     'parse_mode' => 'Markdown',
-                ])->throw();
+                ]);
+
+                if ($response->failed()) {
+                    Log::error("Telegram failed: " . $response->body());
+                } else {
+                    Log::info("Telegram message sent to chat_id {$chatId}");
+                }
+            } else {
+                Log::warning("Telegram bot_token or chat_id not configured.");
             }
         } catch (\Exception $e) {
             Log::error('Failed to send overtime notifications: ' . $e->getMessage());
         }
 
-        return redirect()->route('over-time.index')->with('success', 'Overtime request submitted and sent to approvers.');
+        return redirect()->route('over-time.index')
+            ->with('success', 'Overtime request submitted and sent to approvers.');
     }
+
 
     /**
      * Edit an overtime request
