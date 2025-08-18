@@ -6,7 +6,7 @@
     <style>
         body { font-family: DejaVu Sans, sans-serif; }
         .header { text-align: center; margin-bottom: 20px; }
-        .title { font-size: 18px; font-weight: bold; }
+        .title { font-size: 19px; font-weight: bold; }
         .subtitle { font-size: 14px; color: #666; }
         .employee-info { margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
