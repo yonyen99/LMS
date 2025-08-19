@@ -69,6 +69,7 @@
                                     <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $summary->id }}">
                                         @can('update', $summary)
                                         <li>
+
                                             <button class="dropdown-item d-flex align-items-center gap-2"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#editLeaveSummaryModal{{ $summary->id }}">
@@ -119,6 +120,7 @@
                                                 </select>
                                                 @error('department_id')
                                                     <div class="invalid-feedback">{{ $message }}</div>
+
                                                 @enderror
                                             </div>
                                             <div class="mb-3">
@@ -161,6 +163,7 @@
                                             <button type="submit" class="btn btn-primary">Update Leave Summary</button>
                                         </div>
                                     </form>
+
                                 </div>
                             </div>
                         </div>
@@ -223,6 +226,7 @@
         </div>
     </div>
 
+
     {{-- Create Leave Summary Modal --}}
     @can('create', App\Models\LeaveSummary::class)
     <div class="modal fade" id="createLeaveSummaryModal" tabindex="-1" aria-labelledby="createLeaveSummaryModalLabel" aria-hidden="true">
@@ -277,6 +281,7 @@
                         <div class="mb-3">
                             <label for="report_date" class="form-label fw-bold">Report Date <span class="text-danger">*</span></label>
                             <input type="date" name="report_date" id="report_date" class="form-control @error('report_date') is-invalid @enderror"
+
                                    value="{{ old('report_date', now()->format('Y-m-d')) }}" required>
                             @error('report_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -383,6 +388,7 @@
                 const leaveTypeId = select.value;
                 const entitledFieldId = select.getAttribute('data-entitled-field');
                 const entitledInput = document.getElementById(entitledFieldId);
+
 
                 if (entitledInput) {
                     if (leaveTypeId) {

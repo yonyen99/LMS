@@ -22,6 +22,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Facades\Http;
+use App\Exports\LeaveRequestExport;
 
 class LeaveRequestController extends Controller
 {

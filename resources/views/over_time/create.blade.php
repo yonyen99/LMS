@@ -23,7 +23,7 @@
                 <div class="row g-3 mb-3">
                     <!-- Overtime Date -->
                     <div class="col-md-6">
-                        <label for="overtime_date" class="form-label">Overtime Date</label>
+                        <label for="overtime_date" class="form-label">Overtime Date <span style="color: red;">*</span></label>
                         <input type="text"
                                class="form-control @error('overtime_date') is-invalid @enderror"
                                id="overtime_date"
@@ -39,7 +39,7 @@
 
                     <!-- Time Period -->
                     <div class="col-md-6">
-                        <label for="time_period" class="form-label">Time Period</label>
+                        <label for="time_period" class="form-label">Time Period <span style="color: red;">*</span></label>
                         <select name="time_period" id="time_period"
                                 class="form-select @error('time_period') is-invalid @enderror"
                                 required style="cursor: pointer;">
@@ -56,7 +56,7 @@
 
                     <!-- Start Time -->
                     <div class="col-md-6">
-                        <label for="start_time" class="form-label">Start Time</label>
+                        <label for="start_time" class="form-label">Start Time <span style="color: red;">*</span></label>
                         <input type="text"
                                class="form-control @error('start_time') is-invalid @enderror"
                                id="start_time"
@@ -72,7 +72,7 @@
 
                     <!-- End Time -->
                     <div class="col-md-6">
-                        <label for="end_time" class="form-label">End Time</label>
+                        <label for="end_time" class="form-label">End Time <span style="color: red;">*</span></label>
                         <input type="text"
                                class="form-control @error('end_time') is-invalid @enderror"
                                id="end_time"
@@ -107,7 +107,7 @@
 
                     <!-- Reason -->
                     <div class="col-12">
-                        <label for="reason" class="form-label">Reason</label>
+                        <label for="reason" class="form-label">Reason <span style="color: red;">*</span></label>
                         <textarea name="reason"
                                   id="reason"
                                   class="form-control @error('reason') is-invalid @enderror"
@@ -139,10 +139,12 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize Flatpickr
+    // Overtime Date (only today and future allowed, default today)
     flatpickr('#overtime_date', {
         dateFormat: 'Y-m-d',
-        allowInput: true
+        allowInput: true,
+        minDate: "today",
+        defaultDate: "today"
     });
 
     flatpickr('#start_time', {

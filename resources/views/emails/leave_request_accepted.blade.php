@@ -1,23 +1,28 @@
-@component('mail::message')
-# Leave Request Approved
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Leave Request Approved</title>
+</head>
+<body>
+    @if(isset($forRequester) && $forRequester)
+        <p>Hello {{ $leaveRequest->user->name }},</p>
+        <p>Your leave request has been <strong>approved</strong>.</p>
+    @else
+        <p>Hello,</p>
+        <p>Your colleague <strong>{{ $leaveRequest->user->name }}</strong> has had their leave request <strong>approved</strong>.</p>
+    @endif
 
-Dear {{ $leaveRequest->user->name }},
+    <p><strong>Details:</strong></p>
+    <ul>
+        <li>Type: {{ $leaveRequest->leaveType->name ?? 'Leave' }}</li>
+        <li>Duration: {{ $leaveRequest->duration }} days</li>
+        <li>From: {{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('d M Y') }} ({{ ucfirst($leaveRequest->start_time) }})</li>
+        <li>To: {{ \Carbon\Carbon::parse($leaveRequest->end_date)->format('d M Y') }} ({{ ucfirst($leaveRequest->end_time) }})</li>
+    </ul>
 
-We are pleased to inform you that your leave request has been approved.
+    <p>Approved by: {{ auth()->user()->name }}</p>
 
-**Leave Details:**
-- Type: {{ $leaveRequest->leaveType->name ?? 'N/A' }}
-- Dates: {{ $leaveRequest->start_date->format('M d, Y') }} to {{ $leaveRequest->end_date->format('M d, Y') }}
-- Duration: {{ $leaveRequest->duration }} days
-- Approved By: {{ $approverName }}
-- Reason: {{ $leaveRequest->reason }}
-
-@component('mail::button', ['url' => route('leave-requests.show', $leaveRequest->id), 'color' => 'success'])
-View Leave Details
-@endcomponent
-
-If you have any questions, please contact your manager.
-
-Best regards,<br>
-{{ config('app.name') }}
-@endcomponent
+    <p>Thanks,<br>{{ config('app.name') }}</p>
+</body>
+</html>
