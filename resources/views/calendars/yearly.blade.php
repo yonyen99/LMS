@@ -134,14 +134,14 @@
 
     <div class="table-responsive">
         <table class="calendar-table table table-bordered text-center align-middle">
-            <thead class="table-light">
+            {{-- <thead class="table-light">
                 <tr>
                     <th style="padding-left: 20px; font-size: 0.9rem;">Month</th>
                     @for ($day = 1; $day <= 31; $day++)
                         <th style="min-width: 28px; font-size: 0.9rem;">{{ $day }}</th>
                     @endfor
                 </tr>
-            </thead>
+            </thead> --}}
 
             <tbody>
                 @foreach (range(1, 12) as $month)
