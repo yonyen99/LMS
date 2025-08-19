@@ -117,6 +117,15 @@ class HomeController extends Controller
         $totalRequests = LeaveRequest::where('status', 'Requested')->count();
         $totalApproved = LeaveRequest::where('status', 'Accepted')->count();
     
+        // Debug: Log total approved requests details
+        $approvedRequests = LeaveRequest::where('status', 'Accepted')->get(['id', 'user_id', 'start_date', 'status']);
+        Log::info('Total Approved Requests:', [
+            'count' => $totalApproved,
+            'details' => $approvedRequests->toArray(),
+            'user_id' => auth()->id(),
+            'user_roles' => auth()->user()->roles->pluck('name')->toArray()
+        ]);
+    
         // Fetch department user counts with manager and employee names
         $departmentData = Department::with([
             'users' => function ($query) {
@@ -167,12 +176,17 @@ class HomeController extends Controller
             $monthlyRequestsQuery->where('user_id', auth()->id());
         }
     
-        // Debugging: Log the raw query results
+        // Debug: Log the raw query results
         $monthlyRequests = $monthlyRequestsQuery
             ->groupBy('month')
             ->pluck('count', 'month')
             ->toArray();
-        Log::info('Monthly Approved Requests:', ['year' => $currentYear, 'data' => $monthlyRequests]);
+        Log::info('Monthly Approved Requests:', [
+            'year' => $currentYear,
+            'data' => $monthlyRequests,
+            'user_id' => auth()->id(),
+            'user_roles' => auth()->user()->roles->pluck('name')->toArray()
+        ]);
     
         // Initialize array for all 12 months (1 to 12)
         $monthlyRequestData = array_fill(1, 12, 0);

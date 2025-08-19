@@ -6,6 +6,12 @@ const monthlyRequestDataSafe = typeof window.monthlyRequestData !== 'undefined' 
     ? window.monthlyRequestData 
     : Array(12).fill(0);
 
+// Log the safe data for debugging
+console.log('monthlyRequestDataSafe:', monthlyRequestDataSafe);
+
+// Get the current month (0-based index, e.g., August = 7)
+const currentMonthIndex = new Date().getMonth(); // 0 for Jan, 7 for Aug, etc.
+
 const employeeCtx = document.getElementById("employeeChart");
 if (!employeeCtx) {
     console.error('Canvas element with id "employeeChart" not found.');
@@ -43,6 +49,18 @@ if (!employeeCtx) {
                     title: {
                         display: true,
                         text: 'Month'
+                    },
+                    ticks: {
+                        color: function(context) {
+                            // Set blue color for the current month, black for others
+                            return context.index === currentMonthIndex ? '#0000FF' : '#000000';
+                        },
+                        font: function(context) {
+                            // Optional: Make the current month bold for extra emphasis
+                            return context.index === currentMonthIndex 
+                                ? { weight: 'bold' } 
+                                : { weight: 'normal' };
+                        }
                     }
                 }
             },
