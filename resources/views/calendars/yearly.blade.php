@@ -9,23 +9,6 @@
     <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-center gap-3 mb-3">
         <!-- Legend -->
         <div class="d-flex flex-wrap gap-4">
-            @php
-                $statusColors = [
-                    'Planned' => ['color' => '#A59F9F', 'icon' => 'P', 'title' => 'Planned Leave'],
-                    'Accepted' => ['color' => '#447F44', 'icon' => '✓', 'title' => 'Accepted Leave'],
-                    'Requested' => ['color' => '#FC9A1D', 'icon' => '?', 'title' => 'Requested Leave'],
-                    'Rejected' => ['color' => '#F80300', 'icon' => '✗', 'title' => 'Rejected Leave'],
-                    'Cancellation' => ['color' => '#F80300', 'icon' => 'C', 'title' => 'Cancellation Request'],
-                    'Canceled' => ['color' => '#F80300', 'icon' => 'X', 'title' => 'Canceled Leave'],
-                ];
-            @endphp
-
-            @foreach ($statusColors as $label => $data)
-                <span class="badge d-flex align-items-center gap-1" style="background-color: {{ $data['color'] }}; color: white; font-size: 0.9rem;">
-                    <span style="font-weight: bold; font-size: 0.8rem;">{{ $data['icon'] }}</span>
-                    {{ $label }}
-                </span>
-            @endforeach
             
             <!-- Additional legend items -->
             <span class="badge d-flex align-items-center gap-1" style="background-color: #00d2f8; color: white; font-size: 0.9rem;">
