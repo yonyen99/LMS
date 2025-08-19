@@ -10,7 +10,6 @@
         <!-- Legend -->
         <div class="d-flex flex-wrap gap-4">
             
-            <!-- Additional legend items -->
             <span class="badge d-flex align-items-center gap-1" style="background-color: #00d2f8; color: white; font-size: 0.9rem;">
                 <span style="font-weight: bold; font-size: 0.8rem;">I</span>
                 Invalid Day
