@@ -2,8 +2,8 @@
 
 @section('content')
 @canany(['create-department', 'edit-department', 'delete-department'])
-<div class="container-fluid ">
-    <div class="card  card-2 border-1 shadow">
+<div class="container-fluid">
+    <div class="card card-2 border-1 shadow">
         <div class="card-body">
 
             {{-- Session Status --}}
@@ -12,7 +12,7 @@
             @endif
 
             {{-- Quick Action Buttons --}}
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4 ">
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4">
                 <div class="col">
                     <a href="{{ route('roles.index') }}" class="btn btn-primary w-100 text-white">
                         <i class="bi bi-person-fill-gear me-1"></i> <span class="d-none d-md-inline">Manage Roles</span>
@@ -49,47 +49,47 @@
             <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4">
                 @php
                 $cards = [
-                [
-                'label' => 'Manager',
-                'count' => $totalManagers,
-                'icon' => 'person-fill',
-                'color' => 'primary',
-                ],
-                [
-                'label' => 'Employee',
-                'count' => $totalEmployees,
-                'icon' => 'people-fill',
-                'color' => 'success',
-                ],
-                [
-                'label' => 'Department',
-                'count' => $totalDepartments,
-                'icon' => 'building-fill',
-                'color' => 'warning',
-                ],
-                [
-                'label' => 'Leave',
-                'count' => $totalLeaves,
-                'icon' => 'calendar-x',
-                'color' => 'danger',
-                ],
-                [
-                'label' => 'Request',
-                'count' => $totalRequests,
-                'icon' => 'clipboard-check',
-                'color' => 'info',
-                ],
-                [
-                'label' => 'Approved',
-                'count' => $totalApproved,
-                'icon' => 'check-circle',
-                'color' => 'secondary',
-                ],
+                    [
+                        'label' => 'Manager',
+                        'count' => $totalManagers,
+                        'icon' => 'person-fill',
+                        'color' => 'primary',
+                    ],
+                    [
+                        'label' => 'Employee',
+                        'count' => $totalEmployees,
+                        'icon' => 'people-fill',
+                        'color' => 'success',
+                    ],
+                    [
+                        'label' => 'Department',
+                        'count' => $totalDepartments,
+                        'icon' => 'building-fill',
+                        'color' => 'warning',
+                    ],
+                    [
+                        'label' => 'Leave',
+                        'count' => $totalLeaves,
+                        'icon' => 'calendar-x',
+                        'color' => 'danger',
+                    ],
+                    [
+                        'label' => 'Request',
+                        'count' => $totalRequests,
+                        'icon' => 'clipboard-check',
+                        'color' => 'info',
+                    ],
+                    [
+                        'label' => 'Approved',
+                        'count' => $totalApproved,
+                        'icon' => 'check-circle',
+                        'color' => 'secondary',
+                    ],
                 ];
                 @endphp
                 @foreach ($cards as $card)
                 <div class="col">
-                    <div class="card  card-2 text-center h-100 "
+                    <div class="card card-2 text-center h-100"
                         style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                         <div class="card-body">
                             <div class="mb-2">
@@ -112,16 +112,20 @@
                     <div class="card card-2 h-100"
                         style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                         <div class="card-body">
-                            <h5 class="card-title mb-3">Employee Request</h5>
+                            <h5 class="card-title mb-3">Approved Employee Requests</h5>
+                            @if (!empty($monthlyRequestData) && array_sum($monthlyRequestData) > 0)
                             <div class="ratio ratio-16x9">
                                 <canvas id="employeeChart"></canvas>
                             </div>
+                            @else
+                            <p class="text-center text-muted">No approved requests data available.</p>
+                            @endif
                         </div>
                     </div>
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <div class="card card-2 h-100 "
+                    <div class="card card-2 h-100"
                         style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Members per Department</h5>
@@ -172,12 +176,12 @@
                 @php
                 $statuses = ['Planned', 'Accepted', 'Requested', 'Rejected', 'Cancellation', 'Canceled'];
                 $statusColors = [
-                'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
-                'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
-                'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
-                'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
-                'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Planned' => ['text' => '#ffffff', 'bg' => '#A59F9F'],
+                    'Accepted' => ['text' => '#ffffff', 'bg' => '#447F44'],
+                    'Requested' => ['text' => '#ffffff', 'bg' => '#FC9A1D'],
+                    'Rejected' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
+                    'Canceled' => ['text' => '#ffffff', 'bg' => '#F80300'],
                 ];
                 @endphp
 
@@ -344,13 +348,13 @@
                 @php
                 $displayStatus = ucfirst(strtolower($request->status));
                 $badgeColor = match (strtolower($request->status)) {
-                'approved' => 'success',
-                'accepted' => 'success',
-                'requested' => 'warning',
-                'rejected' => 'danger',
-                'canceled' => 'secondary',
-                'cancellation' => 'secondary',
-                default => 'primary',
+                    'approved' => 'success',
+                    'accepted' => 'success',
+                    'requested' => 'warning',
+                    'rejected' => 'danger',
+                    'canceled' => 'secondary',
+                    'cancellation' => 'secondary',
+                    default => 'primary',
                 };
                 @endphp
                 <tr class="transition">
@@ -403,10 +407,10 @@
 
                                 @php
                                 $showHistoryStatuses = [
-                                'accepted',
-                                'rejected',
-                                'canceled',
-                                'cancellation',
+                                    'accepted',
+                                    'rejected',
+                                    'canceled',
+                                    'cancellation',
                                 ];
                                 @endphp
                                 @if (in_array(strtolower($request->status), $showHistoryStatuses))
@@ -421,11 +425,11 @@
 
                                 @php
                                 $showStatuses = [
-                                'accepted',
-                                'rejected',
-                                'canceled',
-                                'cancellation',
-                                'requested',
+                                    'accepted',
+                                    'rejected',
+                                    'canceled',
+                                    'cancellation',
+                                    'requested',
                                 ];
                                 @endphp
 
@@ -498,51 +502,52 @@
         </div>
     </div>
     @endif
-    @endif
+@endif
 
-    <div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg">
-            <div class="modal-content shadow rounded border-0">
-                <div class="modal-header text-white" style="background-color: green">
-                    <h5 class="modal-title">
-                        <i class="bi bi-file-text me-2"></i> Leave Request Details
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
+<div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm modal-md modal-lg">
+        <div class="modal-content shadow rounded border-0">
+            <div class="modal-header text-white" style="background-color: green">
+                <h5 class="modal-title">
+                    <i class="bi bi-file-text me-2"></i> Leave Request Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
 
-                <div class="modal-body px-3 px-md-4 pb-4">
-                    <dl class="row mb-0 g-3">
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">Leave Type</dt>
-                        <dd class="col-7 col-md-7 fs-6" id="modalType">-</dd>
+            <div class="modal-body px-3 px-md-4 pb-4">
+                <dl class="row mb-0 g-3">
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">Leave Type</dt>
+                    <dd class="col-7 col-md-7 fs-6" id="modalType">-</dd>
 
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">Duration (days)</dt>
-                        <dd class="col-7 col-md-7 fs-6" id="modalDuration">-</dd>
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">Duration (days)</dt>
+                    <dd class="col-7 col-md-7 fs-6" id="modalDuration">-</dd>
 
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">Start Date & Time</dt>
-                        <dd class="col-7 col-md-7 fs-6" id="modalStart">-</dd>
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">Start Date & Time</dt>
+                    <dd class="col-7 col-md-7 fs-6" id="modalStart">-</dd>
 
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">End Date & Time</dt>
-                        <dd class="col-7 col-md-7 fs-6" id="modalEnd">-</dd>
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">End Date & Time</dt>
+                    <dd class="col-7 col-md-7 fs-6" id="modalEnd">-</dd>
 
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">Reason</dt>
-                        <dd class="col-7 col-md-7 fs-6">
-                            <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
-                        </dd>
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">Reason</dt>
+                    <dd class="col-7 col-md-7 fs-6">
+                        <pre id="modalReason" class="mb-0" style="white-space: pre-wrap;">-</pre>
+                    </dd>
 
-                        <dt class="col-5 col-md-5 text-lg fw-semibold">Status</dt>
-                        <dd class="col-7 col-md-7 fs-6" id="modalStatus">
-                            <span class="badge bg-secondary text-white">-</span>
-                        </dd>
-                    </dl>
-                </div>
+                    <dt class="col-5 col-md-5 text-lg fw-semibold">Status</dt>
+                    <dd class="col-7 col-md-7 fs-6" id="modalStatus">
+                        <span class="badge bg-secondary text-white">-</span>
+                    </dd>
+                </dl>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        const departmentData = @json($departmentData);
-        const monthlyRequestData = @json($monthlyRequestData);
-    </script>
-    </section>
-    @endsection
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('js/dashboard.js') }}"></script>
+<script>
+    const departmentData = @json($departmentData);
+    const monthlyRequestData = @json($monthlyRequestData);
+</script>
+@endsection

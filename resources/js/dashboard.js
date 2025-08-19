@@ -1,3 +1,8 @@
+// Ensure monthlyRequestData is defined and valid
+const monthlyRequestDataSafe = typeof monthlyRequestData !== 'undefined' && Array.isArray(monthlyRequestData) 
+    ? monthlyRequestData 
+    : Array(12).fill(0);
+
 const employeeCtx = document.getElementById("employeeChart").getContext("2d");
 const employeeChart = new Chart(employeeCtx, {
     type: "bar",
@@ -5,8 +10,8 @@ const employeeChart = new Chart(employeeCtx, {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
             {
-                label: "Leave Requests",
-                data: monthlyRequestData, // Use dynamic data from controller
+                label: "Approved Leave Requests",
+                data: monthlyRequestDataSafe, // Use safe data
                 backgroundColor: "rgba(54, 162, 235, 0.6)",
                 borderColor: "rgba(54, 162, 235, 1)",
                 borderWidth: 1,
@@ -21,7 +26,11 @@ const employeeChart = new Chart(employeeCtx, {
                 beginAtZero: true,
                 title: {
                     display: true,
-                    text: 'Number of Requests'
+                    text: 'Number of Approved Requests'
+                },
+                ticks: {
+                    stepSize: 1, // Ensure whole numbers for counts
+                    precision: 0
                 }
             },
             x: {
@@ -38,7 +47,7 @@ const employeeChart = new Chart(employeeCtx, {
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        return `Requests: ${context.raw}`;
+                        return `Approved Requests: ${context.raw}`;
                     }
                 }
             }

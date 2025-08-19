@@ -164,10 +164,11 @@ class HomeController extends Controller
             ->values()
             ->toArray();
     
-        // Calculate monthly leave requests for the current year
+        // Calculate monthly approved leave requests for the current year
         $currentYear = now()->year;
         $monthlyRequestsQuery = LeaveRequest::selectRaw('MONTH(start_date) as month, COUNT(*) as count')
-            ->whereYear('start_date', $currentYear);
+            ->whereYear('start_date', $currentYear)
+            ->where('status', 'Accepted'); // Filter for approved requests
     
         if (!auth()->user()->hasRole(['Super Admin', 'Admin', 'HR'])) {
             $monthlyRequestsQuery->where('user_id', auth()->id());
