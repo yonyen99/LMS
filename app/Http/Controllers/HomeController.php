@@ -8,14 +8,10 @@ use App\Models\LeaveType;
 use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('auth');
@@ -81,14 +77,12 @@ class HomeController extends Controller
             $user = Auth::user();
     
             if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
-                // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
             } elseif ($user->hasRole('Manager')) {
-                // Manager sees requests from others in the same department (not their own)
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->whereHas('user', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id)
-                          ->where('id', '!=', $user->id); // exclude own requests
+                          ->where('id', '!=', $user->id);
                     })
                     ->count();
             }
@@ -159,31 +153,33 @@ class HomeController extends Controller
                 ];
             })
             ->filter(function ($department) {
-                return $department['user_count'] > 0; // Only include departments with users
+                return $department['user_count'] > 0;
             })
             ->values()
             ->toArray();
     
-        // Calculate monthly approved leave requests for the current year
+        // Calculate monthly approved leave requests
         $currentYear = now()->year;
         $monthlyRequestsQuery = LeaveRequest::selectRaw('MONTH(start_date) as month, COUNT(*) as count')
-            ->whereYear('start_date', $currentYear)
             ->where('status', 'Accepted'); // Filter for approved requests
     
         if (!auth()->user()->hasRole(['Super Admin', 'Admin', 'HR'])) {
             $monthlyRequestsQuery->where('user_id', auth()->id());
         }
     
+        // Debugging: Log the raw query results
         $monthlyRequests = $monthlyRequestsQuery
             ->groupBy('month')
             ->pluck('count', 'month')
             ->toArray();
+        Log::info('Monthly Approved Requests:', ['year' => $currentYear, 'data' => $monthlyRequests]);
     
         // Initialize array for all 12 months (1 to 12)
         $monthlyRequestData = array_fill(1, 12, 0);
         foreach ($monthlyRequests as $month => $count) {
             $monthlyRequestData[$month] = $count;
         }
+        Log::info('Formatted monthlyRequestData:', $monthlyRequestData);
     
         // Pagination size control
         $perPage = $request->input('per_page', 10);

@@ -49,42 +49,12 @@
             <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 mb-4">
                 @php
                 $cards = [
-                    [
-                        'label' => 'Manager',
-                        'count' => $totalManagers,
-                        'icon' => 'person-fill',
-                        'color' => 'primary',
-                    ],
-                    [
-                        'label' => 'Employee',
-                        'count' => $totalEmployees,
-                        'icon' => 'people-fill',
-                        'color' => 'success',
-                    ],
-                    [
-                        'label' => 'Department',
-                        'count' => $totalDepartments,
-                        'icon' => 'building-fill',
-                        'color' => 'warning',
-                    ],
-                    [
-                        'label' => 'Leave',
-                        'count' => $totalLeaves,
-                        'icon' => 'calendar-x',
-                        'color' => 'danger',
-                    ],
-                    [
-                        'label' => 'Request',
-                        'count' => $totalRequests,
-                        'icon' => 'clipboard-check',
-                        'color' => 'info',
-                    ],
-                    [
-                        'label' => 'Approved',
-                        'count' => $totalApproved,
-                        'icon' => 'check-circle',
-                        'color' => 'secondary',
-                    ],
+                    ['label' => 'Manager', 'count' => $totalManagers, 'icon' => 'person-fill', 'color' => 'primary'],
+                    ['label' => 'Employee', 'count' => $totalEmployees, 'icon' => 'people-fill', 'color' => 'success'],
+                    ['label' => 'Department', 'count' => $totalDepartments, 'icon' => 'building-fill', 'color' => 'warning'],
+                    ['label' => 'Leave', 'count' => $totalLeaves, 'icon' => 'calendar-x', 'color' => 'danger'],
+                    ['label' => 'Request', 'count' => $totalRequests, 'icon' => 'clipboard-check', 'color' => 'info'],
+                    ['label' => 'Approved', 'count' => $totalApproved, 'icon' => 'check-circle', 'color' => 'secondary'],
                 ];
                 @endphp
                 @foreach ($cards as $card)
@@ -113,12 +83,11 @@
                         style="box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;">
                         <div class="card-body">
                             <h5 class="card-title mb-3">Approved Employee Requests</h5>
-                            @if (!empty($monthlyRequestData) && array_sum($monthlyRequestData) > 0)
                             <div class="ratio ratio-16x9">
                                 <canvas id="employeeChart"></canvas>
                             </div>
-                            @else
-                            <p class="text-center text-muted">No approved requests data available.</p>
+                            @if (empty($monthlyRequestData) || array_sum($monthlyRequestData) == 0)
+                            <p class="text-center text-muted mt-2">No approved requests data available.</p>
                             @endif
                         </div>
                     </div>
@@ -315,7 +284,7 @@
                                 </button>
                             </li>
                             <li>
-                                <button class="dropdown-item d-flex align-items-center" disabled>
+                                <button class="dropdown-item d-fle x align-items-center" disabled>
                                     <i class="bi bi-printer me-2 text-primary"></i> Print
                                 </button>
                             </li>
