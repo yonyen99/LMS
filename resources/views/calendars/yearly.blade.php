@@ -133,6 +133,21 @@
             visibility: visible;
             opacity: 1;
         }
+        
+        /* New styles for day numbers */
+        .day-number {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 8px;
+            color: #666;
+            font-weight: normal;
+        }
+        
+        .event-icon {
+            position: relative;
+            z-index: 2;
+        }
     </style>
 
     <div class="table-responsive">
@@ -163,64 +178,68 @@
                                 $amMatch = null;
                             @endphp
 
-                            @if ($validDate)
-                                @foreach ($leaveRequests as $request)
-                                    @php
-                                        $start = \Carbon\Carbon::parse($request->start_date);
-                                        $end = \Carbon\Carbon::parse($request->end_date);
-                                        $target = \Carbon\Carbon::parse($date);
-                                        $status = ucfirst(strtolower($request->status ?? 'Accepted'));
-                                        $color = $statusColors[$status]['color'] ?? '#ccc';
-                                        $icon = $statusColors[$status]['icon'] ?? '';
-                                        $reason = $request->reason ?? '';
-                                    @endphp
-
-                                    @if ($target->between($start, $end))
-                                        @php
-                                            $am = false;
-                                            if ($target->isSameDay($start)) {
-                                                $am = in_array($request->start_time, ['morning', 'full']);
-                                            } elseif ($target->isSameDay($end)) {
-                                                $am = in_array($request->end_time, ['morning', 'full']);
-                                            } else {
-                                                $am = true;
-                                            }
-                                        @endphp
-
-                                        @if ($am)
-                                            @php
-                                                $amMatch = [
-                                                    'status' => $status, 
-                                                    'color' => $color, 
-                                                    'icon' => $icon,
-                                                    'reason' => $reason
-                                                ];
-                                            @endphp
-                                        @endif
-                                    @endif
-                                @endforeach
-                            @endif
-
                             <td class="p-0">
+                                <span class="day-number">{{ $day }}</span>
+                                
                                 @if (!$validDate)
                                     <div class="invalid-day" style="height: 28px;">
-                                        <div class="day-content">I</div>
+                                        <div class="day-content event-icon">I</div>
                                         <div class="day-tooltip">Invalid Date</div>
                                     </div>
                                 @elseif (isset($holidays[$date]))
                                     <div class="national-day" style="height: 28px;">
-                                        <div class="day-content">H</div>
+                                        <div class="day-content event-icon">H</div>
                                         <div class="day-tooltip">{{ $holidays[$date] }}</div>
                                     </div>
-                                @elseif ($amMatch)
-                                    <div style="height: 28px; background-color: {{ $amMatch['color'] }};">
-                                        <div class="day-content">{{ $amMatch['icon'] }}</div>
-                                        <div class="day-tooltip">{{ $amMatch['status'] }}: {{ $amMatch['reason'] }}</div>
-                                    </div>
                                 @else
-                                    <div style="height: 28px; background-color: #f8f9fa;">
-                                        <div class="day-content" style="color: #ccc;">-</div>
-                                    </div>
+                                    @if ($validDate)
+                                        @foreach ($leaveRequests as $request)
+                                            @php
+                                                $start = \Carbon\Carbon::parse($request->start_date);
+                                                $end = \Carbon\Carbon::parse($request->end_date);
+                                                $target = \Carbon\Carbon::parse($date);
+                                                $status = ucfirst(strtolower($request->status ?? 'Accepted'));
+                                                $color = $statusColors[$status]['color'] ?? '#ccc';
+                                                $icon = $statusColors[$status]['icon'] ?? '';
+                                                $reason = $request->reason ?? '';
+                                            @endphp
+
+                                            @if ($target->between($start, $end))
+                                                @php
+                                                    $am = false;
+                                                    if ($target->isSameDay($start)) {
+                                                        $am = in_array($request->start_time, ['morning', 'full']);
+                                                    } elseif ($target->isSameDay($end)) {
+                                                        $am = in_array($request->end_time, ['morning', 'full']);
+                                                    } else {
+                                                        $am = true;
+                                                    }
+                                                @endphp
+
+                                                @if ($am)
+                                                    @php
+                                                        $amMatch = [
+                                                            'status' => $status, 
+                                                            'color' => $color, 
+                                                            'icon' => $icon,
+                                                            'reason' => $reason
+                                                        ];
+                                                    @endphp
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    @endif
+
+                                    @if ($amMatch)
+                                        <div style="height: 28px; background-color: {{ $amMatch['color'] }};">
+                                            <div class="day-content event-icon">{{ $amMatch['icon'] }}</div>
+                                            <div class="day-tooltip">{{ $amMatch['status'] }}: {{ $amMatch['reason'] }}</div>
+                                        </div>
+                                    @else
+                                        <div style="height: 28px; background-color: #f8f9fa;">
+                                            <div class="day-content" style="color: transparent;">-</div>
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
                         @endfor
@@ -235,64 +254,68 @@
                                 $pmMatch = null;
                             @endphp
 
-                            @if ($validDate)
-                                @foreach ($leaveRequests as $request)
-                                    @php
-                                        $start = \Carbon\Carbon::parse($request->start_date);
-                                        $end = \Carbon\Carbon::parse($request->end_date);
-                                        $target = \Carbon\Carbon::parse($date);
-                                        $status = ucfirst(strtolower($request->status ?? 'Accepted'));
-                                        $color = $statusColors[$status]['color'] ?? '#ccc';
-                                        $icon = $statusColors[$status]['icon'] ?? '';
-                                        $reason = $request->reason ?? '';
-                                    @endphp
-
-                                    @if ($target->between($start, $end))
-                                        @php
-                                            $pm = false;
-                                            if ($target->isSameDay($start)) {
-                                                $pm = in_array($request->start_time, ['afternoon', 'full']);
-                                            } elseif ($target->isSameDay($end)) {
-                                                $pm = in_array($request->end_time, ['afternoon', 'full']);
-                                            } else {
-                                                $pm = true;
-                                            }
-                                        @endphp
-
-                                        @if ($pm)
-                                            @php
-                                                $pmMatch = [
-                                                    'status' => $status, 
-                                                    'color' => $color, 
-                                                    'icon' => $icon,
-                                                    'reason' => $reason
-                                                ];
-                                            @endphp
-                                        @endif
-                                    @endif
-                                @endforeach
-                            @endif
-
                             <td class="p-0">
+                                <span class="day-number">{{ $day }}</span>
+                                
                                 @if (!$validDate)
                                     <div class="invalid-day" style="height: 28px;">
-                                        <div class="day-content">I</div>
+                                        <div class="day-content event-icon">I</div>
                                         <div class="day-tooltip">Invalid Date</div>
                                     </div>
                                 @elseif (isset($holidays[$date]))
                                     <div class="national-day" style="height: 28px;">
-                                        <div class="day-content">H</div>
+                                        <div class="day-content event-icon">H</div>
                                         <div class="day-tooltip">{{ $holidays[$date] }}</div>
                                     </div>
-                                @elseif ($pmMatch)
-                                    <div style="height: 28px; background-color: {{ $pmMatch['color'] }};">
-                                        <div class="day-content">{{ $pmMatch['icon'] }}</div>
-                                        <div class="day-tooltip">{{ $pmMatch['status'] }}: {{ $pmMatch['reason'] }}</div>
-                                    </div>
                                 @else
-                                    <div style="height: 28px; background-color: #f8f9fa;">
-                                        <div class="day-content" style="color: #ccc;">-</div>
-                                    </div>
+                                    @if ($validDate)
+                                        @foreach ($leaveRequests as $request)
+                                            @php
+                                                $start = \Carbon\Carbon::parse($request->start_date);
+                                                $end = \Carbon\Carbon::parse($request->end_date);
+                                                $target = \Carbon\Carbon::parse($date);
+                                                $status = ucfirst(strtolower($request->status ?? 'Accepted'));
+                                                $color = $statusColors[$status]['color'] ?? '#ccc';
+                                                $icon = $statusColors[$status]['icon'] ?? '';
+                                                $reason = $request->reason ?? '';
+                                            @endphp
+
+                                            @if ($target->between($start, $end))
+                                                @php
+                                                    $pm = false;
+                                                    if ($target->isSameDay($start)) {
+                                                        $pm = in_array($request->start_time, ['afternoon', 'full']);
+                                                    } elseif ($target->isSameDay($end)) {
+                                                        $pm = in_array($request->end_time, ['afternoon', 'full']);
+                                                    } else {
+                                                        $pm = true;
+                                                    }
+                                                @endphp
+
+                                                @if ($pm)
+                                                    @php
+                                                        $pmMatch = [
+                                                            'status' => $status, 
+                                                            'color' => $color, 
+                                                            'icon' => $icon,
+                                                            'reason' => $reason
+                                                        ];
+                                                    @endphp
+                                                @endif
+                                            @endif
+                                        @endforeach
+                                    @endif
+
+                                    @if ($pmMatch)
+                                        <div style="height: 28px; background-color: {{ $pmMatch['color'] }};">
+                                            <div class="day-content event-icon">{{ $pmMatch['icon'] }}</div>
+                                            <div class="day-tooltip">{{ $pmMatch['status'] }}: {{ $pmMatch['reason'] }}</div>
+                                        </div>
+                                    @else
+                                        <div style="height: 28px; background-color: #f8f9fa;">
+                                            <div class="day-content" style="color: transparent;">-</div>
+                                        </div>
+                                    @endif
                                 @endif
                             </td>
                         @endfor
