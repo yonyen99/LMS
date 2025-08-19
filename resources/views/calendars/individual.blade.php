@@ -145,7 +145,7 @@
             <div class="modal" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <div class="modal-header bg-global text-white py-8 py-md-3">
+                        <div class="modal-header bg-global text-white py-2 py-md-3">
                             <h5 class="modal-title fw-bold fs-6 fs-md-5">New Request</h5>
                             <button type="button" class="btn-close btn-close-white m-0" onclick="hideModal('createRequestModal')" aria-label="Close"></button>
                         </div>
