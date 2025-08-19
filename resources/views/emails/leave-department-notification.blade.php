@@ -52,17 +52,17 @@
 <body>
     <div class="email-container">
         <div class="header">
-            <h2>{{ config('app.name') }} - Leave Management System</h2>
+            <p>{{ config('app.name') }} - Leave Management System</p>
         </div>
 
-        <h3>Leave Request Approved in {{ $leaveRequest->user->department->name }}</h3>
+        <p>Leave Request Approved in {{ $leaveRequest->user->department->name }}</p>
         
         <div class="employee-info">
             <p>{{ $leaveRequest->user->name }} ({{ $leaveRequest->user->email }}) has had their leave request approved by {{ $approverName }}.</p>
         </div>
 
         <div class="leave-details">
-            <h4>Leave Details</h4>
+            <p>Leave Details</p>
             <ul class="list-unstyled">
                 <li><strong>Type:</strong> {{ $leaveRequest->leaveType->name ?? 'N/A' }}</li>
                 <li><strong>Start Date:</strong> {{ \Carbon\Carbon::parse($leaveRequest->start_date)->format('F d, Y') }}</li>

@@ -28,7 +28,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>New Overtime Request Submitted</h1>
+            <p>New Overtime Request Submitted</p>
         </div>
         <div class="content">
             <p>A new overtime request has been submitted with the following details:</p>

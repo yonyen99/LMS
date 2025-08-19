@@ -6,7 +6,7 @@
                 <form method="GET" action="{{ route('notifications.index') }}">
                     <div class="row align-items-center justify-content-start flex-wrap g-3 g-md-4">
                         <div class="col-auto">
-                            <h2 class="fw-bold mb-0">My leave requests</h2>
+                            <h2 class="fw-bold mb-0">Employee requests</h2>
                         </div>
                     </div>
 

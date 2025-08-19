@@ -13,7 +13,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h2>Leave Request Approved</h2>
+            <p>Leave Request Approved</p>
         </div>
         
         <div class="content">

@@ -42,7 +42,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Leave Request Cancelled</h1>
+        <p>Leave Request Cancelled</p>
 
         <p>Dear {{ $leaveRequest->user->name }},</p>
 

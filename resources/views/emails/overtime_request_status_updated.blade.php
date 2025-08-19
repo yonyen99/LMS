@@ -14,7 +14,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Overtime Request Status Updated</h1>
+            <p>Overtime Request Status Updated</p>
         </div>
         <div class="content">
             <p>Dear {{ $user->name }},</p>

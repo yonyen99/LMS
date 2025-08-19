@@ -42,7 +42,7 @@
 
 <body>
     <div class="email-card">
-        <h1>Request for {{ $leaveRequest->leaveType->name ?? 'leave' }}</h1>
+        <p>Request for {{ $leaveRequest->leaveType->name ?? 'leave' }}</p>
 
         @php
             $adminNames = $admins->pluck('name');

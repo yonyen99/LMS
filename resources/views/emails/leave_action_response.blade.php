@@ -98,7 +98,7 @@
 <body>
 
     <div class="card">
-        <h1>Leave Request Action Confirmation</h1>
+        <p>Leave Request Action Confirmation</p>
         <div class="message">
             <i class="fas fa-check-circle"></i> {{ $message }}
         </div>
