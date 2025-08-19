@@ -212,3 +212,5 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')->with('success', 'Leave approved.');
     }
 }
+
+

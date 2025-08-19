@@ -350,17 +350,7 @@
                     </div>
                 </div>
 
-                {{-- @if ($leaveRequests->hasPages())
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3">
-                        <div class="text-muted">
-                            Showing {{ $leaveRequests->firstItem() }} to {{ $leaveRequests->lastItem() }} of
-                            {{ $leaveRequests->total() }} entries
-                        </div>
-                        <div>
-                            {{ $leaveRequests->onEachSide(1)->links() }}
-                        </div>
-                    </div>
-                @endif --}}
+
         </div>
 
         @endif
