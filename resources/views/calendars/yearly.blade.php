@@ -11,20 +11,31 @@
         <div class="d-flex flex-wrap gap-4">
             @php
                 $statusColors = [
-                    'Planned' => '#A59F9F',
-                    'Accepted' => '#447F44',
-                    'Requested' => '#FC9A1D',
-                    'Rejected' => '#F80300',
-                    'Cancellation' => '#F80300',
-                    'Canceled' => '#F80300',
+                    'Planned' => ['color' => '#A59F9F', 'icon' => 'P', 'title' => 'Planned Leave'],
+                    'Accepted' => ['color' => '#447F44', 'icon' => '✓', 'title' => 'Accepted Leave'],
+                    'Requested' => ['color' => '#FC9A1D', 'icon' => '?', 'title' => 'Requested Leave'],
+                    'Rejected' => ['color' => '#F80300', 'icon' => '✗', 'title' => 'Rejected Leave'],
+                    'Cancellation' => ['color' => '#F80300', 'icon' => 'C', 'title' => 'Cancellation Request'],
+                    'Canceled' => ['color' => '#F80300', 'icon' => 'X', 'title' => 'Canceled Leave'],
                 ];
             @endphp
 
-            @foreach ($statusColors as $label => $color)
-                <span class="badge" style="background-color: {{ $color }}; color: white; font-size: 0.9rem;">
+            @foreach ($statusColors as $label => $data)
+                <span class="badge d-flex align-items-center gap-1" style="background-color: {{ $data['color'] }}; color: white; font-size: 0.9rem;">
+                    <span style="font-weight: bold; font-size: 0.8rem;">{{ $data['icon'] }}</span>
                     {{ $label }}
                 </span>
             @endforeach
+            
+            <!-- Additional legend items -->
+            <span class="badge d-flex align-items-center gap-1" style="background-color: #00d2f8; color: white; font-size: 0.9rem;">
+                <span style="font-weight: bold; font-size: 0.8rem;">I</span>
+                Invalid Day
+            </span>
+            <span class="badge d-flex align-items-center gap-1" style="background-color: #ba0000; color: white; font-size: 0.9rem;">
+                <span style="font-weight: bold; font-size: 0.8rem;">H</span>
+                Holiday
+            </span>
         </div>
 
         @php
@@ -60,6 +71,7 @@
             padding: 0;
             margin: 0;
             border: 1px solid #ccc;
+            position: relative;
         }
 
         .calendar-table th:first-child,
@@ -86,6 +98,40 @@
         .national-day {
             background: repeating-linear-gradient(45deg, #ba0000, #f90000 10px, #f90000 10px, #f90000 20px);
             opacity: 0.7;
+        }
+        
+        .day-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-weight: bold;
+            font-size: 0.7rem;
+            color: white;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .day-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 100;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        td:hover .day-tooltip {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 
@@ -124,7 +170,8 @@
                                         $end = \Carbon\Carbon::parse($request->end_date);
                                         $target = \Carbon\Carbon::parse($date);
                                         $status = ucfirst(strtolower($request->status ?? 'Accepted'));
-                                        $color = $statusColors[$status] ?? '#ccc';
+                                        $color = $statusColors[$status]['color'] ?? '#ccc';
+                                        $icon = $statusColors[$status]['icon'] ?? '';
                                         $reason = $request->reason ?? '';
                                     @endphp
 
@@ -142,7 +189,12 @@
 
                                         @if ($am)
                                             @php
-                                                $amMatch = ['status' => $status, 'color' => $color, 'reason' => $reason];
+                                                $amMatch = [
+                                                    'status' => $status, 
+                                                    'color' => $color, 
+                                                    'icon' => $icon,
+                                                    'reason' => $reason
+                                                ];
                                             @endphp
                                         @endif
                                     @endif
@@ -151,14 +203,24 @@
 
                             <td class="p-0">
                                 @if (!$validDate)
-                                    <div class="invalid-day" style="height: 28px;"></div>
+                                    <div class="invalid-day" style="height: 28px;">
+                                        <div class="day-content">I</div>
+                                        <div class="day-tooltip">Invalid Date</div>
+                                    </div>
                                 @elseif (isset($holidays[$date]))
-                                    <div class="national-day" style="height: 28px;" title="{{ $holidays[$date] }}"></div>
+                                    <div class="national-day" style="height: 28px;">
+                                        <div class="day-content">H</div>
+                                        <div class="day-tooltip">{{ $holidays[$date] }}</div>
+                                    </div>
                                 @elseif ($amMatch)
-                                    <div title="{{ $amMatch['status'] }}: {{ $amMatch['reason'] }}"
-                                        style="height: 28px; background-color: {{ $amMatch['color'] }};"></div>
+                                    <div style="height: 28px; background-color: {{ $amMatch['color'] }};">
+                                        <div class="day-content">{{ $amMatch['icon'] }}</div>
+                                        <div class="day-tooltip">{{ $amMatch['status'] }}: {{ $amMatch['reason'] }}</div>
+                                    </div>
                                 @else
-                                    <div style="height: 28px; background-color: #f8f9fa;"></div>
+                                    <div style="height: 28px; background-color: #f8f9fa;">
+                                        <div class="day-content" style="color: #ccc;">-</div>
+                                    </div>
                                 @endif
                             </td>
                         @endfor
@@ -180,7 +242,8 @@
                                         $end = \Carbon\Carbon::parse($request->end_date);
                                         $target = \Carbon\Carbon::parse($date);
                                         $status = ucfirst(strtolower($request->status ?? 'Accepted'));
-                                        $color = $statusColors[$status] ?? '#ccc';
+                                        $color = $statusColors[$status]['color'] ?? '#ccc';
+                                        $icon = $statusColors[$status]['icon'] ?? '';
                                         $reason = $request->reason ?? '';
                                     @endphp
 
@@ -198,7 +261,12 @@
 
                                         @if ($pm)
                                             @php
-                                                $pmMatch = ['status' => $status, 'color' => $color, 'reason' => $reason];
+                                                $pmMatch = [
+                                                    'status' => $status, 
+                                                    'color' => $color, 
+                                                    'icon' => $icon,
+                                                    'reason' => $reason
+                                                ];
                                             @endphp
                                         @endif
                                     @endif
@@ -207,21 +275,30 @@
 
                             <td class="p-0">
                                 @if (!$validDate)
-                                    <div class="invalid-day" style="height: 28px;"></div>
+                                    <div class="invalid-day" style="height: 28px;">
+                                        <div class="day-content">I</div>
+                                        <div class="day-tooltip">Invalid Date</div>
+                                    </div>
                                 @elseif (isset($holidays[$date]))
-                                    <div class="national-day" style="height: 28px;" title="{{ $holidays[$date] }}"></div>
+                                    <div class="national-day" style="height: 28px;">
+                                        <div class="day-content">H</div>
+                                        <div class="day-tooltip">{{ $holidays[$date] }}</div>
+                                    </div>
                                 @elseif ($pmMatch)
-                                    <div title="{{ $pmMatch['status'] }}: {{ $pmMatch['reason'] }}"
-                                        style="height: 28px; background-color: {{ $pmMatch['color'] }};"></div>
+                                    <div style="height: 28px; background-color: {{ $pmMatch['color'] }};">
+                                        <div class="day-content">{{ $pmMatch['icon'] }}</div>
+                                        <div class="day-tooltip">{{ $pmMatch['status'] }}: {{ $pmMatch['reason'] }}</div>
+                                    </div>
                                 @else
-                                    <div style="height: 28px; background-color: #f8f9fa;"></div>
+                                    <div style="height: 28px; background-color: #f8f9fa;">
+                                        <div class="day-content" style="color: #ccc;">-</div>
+                                    </div>
                                 @endif
                             </td>
                         @endfor
                     </tr>
                 @endforeach
             </tbody>
-
         </table>
     </div>
 </div>
