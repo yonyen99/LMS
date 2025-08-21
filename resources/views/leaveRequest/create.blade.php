@@ -22,7 +22,7 @@
 
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label for="leave_type_id" class="form-label">Leave type</label>
+                        <label for="leave_type_id" class="form-label">Leave type <span style="color: red;">*</span></label>
                         <select name="leave_type_id" id="leave_type_id" class="form-select" style="cursor: pointer;" required>
                             <option value="">Select leave type</option>
                             @foreach($leaveTypes as $leaveType)
@@ -40,7 +40,7 @@
 
                     <!-- Start Date/Time Row -->
                     <div class="col-md-6">
-                        <label for="start_date" class="form-label">Start Date</label>
+                        <label for="start_date" class="form-label">Start Date <span style="color: red;">*</span></label>
                         <div class="position-relative" onclick="document.getElementById('start_date').showPicker()">
                             <input 
                                 type="date" 
@@ -55,7 +55,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="start_time" class="form-label">Start Time</label>
+                        <label for="start_time" class="form-label">Start Time <span style="color: red;">*</span></label>
                         <select name="start_time" id="start_time" class="form-select" style="cursor: pointer;" required>
                             <option value="">Select time</option>
                             <option value="morning" {{ old('start_time') == 'morning' ? 'selected' : '' }}>Morning</option>
@@ -65,7 +65,7 @@
 
                     <!-- End Date/Time Row -->
                     <div class="col-md-6">
-                        <label for="end_date" class="form-label">End Date</label>
+                        <label for="end_date" class="form-label">End Date <span style="color: red;">*</span></label>
                         <div class="position-relative" onclick="document.getElementById('end_date').showPicker()">
                             <input 
                                 type="date" 
@@ -80,7 +80,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="end_time" class="form-label">End Time</label>
+                        <label for="end_time" class="form-label">End Time <span style="color: red;">*</span></label>
                         <select name="end_time" id="end_time" class="form-select" style="cursor: pointer;" required>
                             <option value="">Select time</option>
                             <option value="morning" {{ old('end_time') == 'morning' ? 'selected' : '' }}>Morning</option>

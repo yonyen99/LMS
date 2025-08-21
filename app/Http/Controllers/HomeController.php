@@ -8,14 +8,10 @@ use App\Models\LeaveType;
 use App\Models\User;
 use App\Models\Department;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('auth');
@@ -26,30 +22,30 @@ class HomeController extends Controller
         // Fetch leave requests for the authenticated user
         $query = LeaveRequest::with('leaveType')
             ->where('user_id', auth()->id());
-
+    
         // Filters
         if ($request->filled('statuses')) {
             $query->whereIn('status', $request->statuses);
         }
-
+    
         if ($request->filled('show_request') && $request->show_request === 'mine') {
             $query->where('user_id', auth()->id());
         }
-
+    
         if ($request->filled('type')) {
             $query->whereHas('leaveType', function ($q) use ($request) {
                 $q->where('name', $request->type);
             });
         }
-
+    
         $statusRequestOptions = [
             'Planned', 'Accepted', 'Requested', 'Rejected', 'Cancellation', 'Canceled',
         ];
-
+    
         if ($request->filled('status_request') && in_array($request->status_request, $statusRequestOptions)) {
             $query->where('status', $request->status_request);
         }
-
+    
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -65,37 +61,33 @@ class HomeController extends Controller
                         ->orWhere('email', 'like', "%{$search}%"));
             });
         }
-
+    
         $notificationQuery = LeaveRequest::with(['user', 'leaveType'])
             ->where('status', 'Requested');
-
+    
         if (auth()->user()->hasRole('Manager')) {
             $notificationQuery->where('user_id', '!=', auth()->id());
         }
-
+    
         $notifications = $notificationQuery->latest()->get();
-
+    
         $requests = 0;
-
+    
         if (Auth::check()) {
             $user = Auth::user();
-
+    
             if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
-                // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
-
             } elseif ($user->hasRole('Manager')) {
-                // Manager sees requests from others in the same department (not their own)
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->whereHas('user', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id)
-                        ->where('id', '!=', $user->id); // exclude own requests
+                          ->where('id', '!=', $user->id);
                     })
                     ->count();
             }
         }
-
-
+    
         // Sorting
         $sortOrder = $request->input('sort_order', 'new');
         if ($sortOrder === 'new') {
@@ -103,7 +95,7 @@ class HomeController extends Controller
         } else {
             $query->orderBy('id', 'asc');
         }
-
+    
         // Badge colors
         $statusColors = [
             'Planned'      => ['text' => '#ffffff', 'bg' => '#A59F9F'],
@@ -113,10 +105,10 @@ class HomeController extends Controller
             'Cancellation' => ['text' => '#ffffff', 'bg' => '#F80300'],
             'Canceled'     => ['text' => '#ffffff', 'bg' => '#F80300'],
         ];
-
+    
         // Leave types for dropdown
         $leaveTypes = LeaveType::orderBy('name')->pluck('name');
-
+    
         // Fetch counts for dashboard statistics
         $totalManagers = User::role('Manager')->count();
         $totalEmployees = User::role('Employee')->count();
@@ -124,7 +116,16 @@ class HomeController extends Controller
         $totalLeaves = LeaveRequest::count();
         $totalRequests = LeaveRequest::where('status', 'Requested')->count();
         $totalApproved = LeaveRequest::where('status', 'Accepted')->count();
-
+    
+        // Debug: Log total approved requests details
+        $approvedRequests = LeaveRequest::where('status', 'Accepted')->get(['id', 'user_id', 'start_date', 'status']);
+        Log::info('Total Approved Requests:', [
+            'count' => $totalApproved,
+            'details' => $approvedRequests->toArray(),
+            'user_id' => auth()->id(),
+            'user_roles' => auth()->user()->roles->pluck('name')->toArray()
+        ]);
+    
         // Fetch department user counts with manager and employee names
         $departmentData = Department::with([
             'users' => function ($query) {
@@ -146,11 +147,11 @@ class HomeController extends Controller
                 $managers = $department->users->filter(function ($user) {
                     return $user->hasRole('Manager');
                 })->pluck('name')->toArray();
-
+    
                 $employees = $department->users->filter(function ($user) {
                     return $user->hasRole('Employee');
                 })->pluck('name')->toArray();
-
+    
                 return [
                     'name' => $department->name,
                     'user_count' => $department->users_count,
@@ -161,15 +162,43 @@ class HomeController extends Controller
                 ];
             })
             ->filter(function ($department) {
-                return $department['user_count'] > 0; // Only include departments with users
+                return $department['user_count'] > 0;
             })
             ->values()
             ->toArray();
-
+    
+        // Calculate monthly approved leave requests
+        $currentYear = now()->year;
+        $monthlyRequestsQuery = LeaveRequest::selectRaw('MONTH(start_date) as month, COUNT(*) as count')
+            ->where('status', 'Accepted'); // Filter for approved requests
+    
+        if (!auth()->user()->hasRole(['Super Admin', 'Admin', 'HR'])) {
+            $monthlyRequestsQuery->where('user_id', auth()->id());
+        }
+    
+        // Debug: Log the raw query results
+        $monthlyRequests = $monthlyRequestsQuery
+            ->groupBy('month')
+            ->pluck('count', 'month')
+            ->toArray();
+        Log::info('Monthly Approved Requests:', [
+            'year' => $currentYear,
+            'data' => $monthlyRequests,
+            'user_id' => auth()->id(),
+            'user_roles' => auth()->user()->roles->pluck('name')->toArray()
+        ]);
+    
+        // Initialize array for all 12 months (1 to 12)
+        $monthlyRequestData = array_fill(1, 12, 0);
+        foreach ($monthlyRequests as $month => $count) {
+            $monthlyRequestData[$month] = $count;
+        }
+        Log::info('Formatted monthlyRequestData:', $monthlyRequestData);
+    
         // Pagination size control
         $perPage = $request->input('per_page', 10);
         $leaveRequests = $query->paginate($perPage);
-
+    
         return view('home', compact(
             'leaveRequests',
             'statusColors',
@@ -183,7 +212,8 @@ class HomeController extends Controller
             'requests',
             'totalApproved',
             'departmentData',
-            'notifications'
+            'notifications',
+            'monthlyRequestData'
         ));
     }
 }

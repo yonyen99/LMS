@@ -145,7 +145,7 @@
             <div class="modal" id="createRequestModal" tabindex="-1" aria-labelledby="createRequestModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
-                        <div class="modal-header bg-primary text-white py-2 py-md-3">
+                        <div class="modal-header bg-global text-white py-2 py-md-3">
                             <h5 class="modal-title fw-bold fs-6 fs-md-5">New Request</h5>
                             <button type="button" class="btn-close btn-close-white m-0" onclick="hideModal('createRequestModal')" aria-label="Close"></button>
                         </div>
@@ -154,7 +154,7 @@
                                 @csrf
                                 <div class="row g-2 g-md-3">
                                     <div class="col-12 col-md-6">
-                                        <label for="leave_type_id" class="form-label small mb-0">Leave Type</label>
+                                        <label for="leave_type_id" class="form-label small mb-0">Leave Type <span class="text-danger">*</span></label>
                                         <select name="leave_type_id" id="leave_type_id" class="form-select form-select-sm" required>
                                             <option value="">Select type</option>
                                             @foreach($leaveTypes as $leaveType)
@@ -163,15 +163,15 @@
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="duration" class="form-label small mb-0">Duration</label>
+                                        <label for="duration" class="form-label small mb-0">Duration <span class="text-danger">*</span></label>
                                         <input type="text" name="duration" id="duration" class="form-control form-control-sm" placeholder="1.5 days" required>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="start_date" class="form-label small mb-0">Start Date</label>
+                                        <label for="start_date" class="form-label small mb-0">Start Date <span class="text-danger">*</span></label>
                                         <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" required>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="start_time" class="form-label small mb-0">Start Time</label>
+                                        <label for="start_time" class="form-label small mb-0">Start Time <span class="text-danger">*</span></label>
                                         <select name="start_time" id="start_time" class="form-select form-select-sm" required>
                                             <option value="">Select time</option>
                                             <option value="morning">Morning</option>
@@ -179,11 +179,11 @@
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="end_date" class="form-label small mb-0">End Date</label>
+                                        <label for="end_date" class="form-label small mb-0">End Date <span class="text-danger">*</span></label>
                                         <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" required>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="end_time" class="form-label small mb-0">End Time</label>
+                                        <label for="end_time" class="form-label small mb-0">End Time <span class="text-danger">*</span></label>
                                         <select name="end_time" id="end_time" class="form-select form-select-sm" required>
                                             <option value="">Select time</option>
                                             <option value="morning">Morning</option>
@@ -191,8 +191,8 @@
                                         </select>
                                     </div>
                                     <div class="col-12">
-                                        <label for="reason" class="form-label small mb-0">Reason</label>
-                                        <textarea name="reason" id="reason" class="form-control form-control-sm" rows="2" placeholder="Brief reason"></textarea>
+                                        <label for="reason" class="form-label small mb-0">Reason <span class="text-danger">*</span></label>
+                                        <textarea name="reason" id="reason" class="form-control form-control-sm" rows="2" placeholder="Brief reason" required></textarea>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 mt-3 justify-content-end">
@@ -227,11 +227,11 @@
                                 <input type="hidden" name="id" id="nwd_id">
                                 <div class="row g-2 g-md-3">
                                     <div class="col-12">
-                                        <label for="nwd_title" class="form-label small mb-0">Title</label>
+                                        <label for="nwd_title" class="form-label small mb-0">Title <span class="text-danger">*</span></label>
                                         <input type="text" name="title" id="nwd_title" class="form-control form-control-sm" required>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="nwd_type" class="form-label small mb-0">Type</label>
+                                        <label for="nwd_type" class="form-label small mb-0">Type <span class="text-danger">*</span></label>
                                         <select name="type" id="nwd_type" class="form-select form-select-sm" required>
                                             <option value="">Select type</option>
                                             <option value="holiday">Holiday</option>
@@ -243,7 +243,7 @@
                                         </select>
                                     </div>
                                     <div class="col-12 col-md-6">
-                                        <label for="nwd_start_date" class="form-label small mb-0">Start Date</label>
+                                        <label for="nwd_start_date" class="form-label small mb-0">Start Date <span class="text-danger">*</span></label>
                                         <input type="date" name="start_date" id="nwd_start_date" class="form-control form-control-sm" required>
                                     </div>
                                     <div class="col-12 col-md-6">
@@ -282,8 +282,8 @@
                                     <input type="hidden" name="department_id" value="{{ auth()->user()->department_id }}">
                                     @endif
                                     <div class="col-12">
-                                        <label for="nwd_description" class="form-label small mb-0">Description</label>
-                                        <textarea name="description" id="nwd_description" class="form-control form-control-sm" rows="2"></textarea>
+                                        <label for="nwd_description" class="form-label small mb-0">Description <span class="text-danger">*</span></label>
+                                        <textarea name="description" id="nwd_description" class="form-control form-control-sm" rows="2" required></textarea>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-2 mt-3 justify-content-end">
@@ -449,7 +449,7 @@
         width: 90%;
         margin: 0 auto;
         transform: translateY(-20px);
-        transition: all 0.3s ease;
+        transition: all: 0.3s ease;
     }
 
     .modal.show .modal-dialog {

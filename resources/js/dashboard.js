@@ -1,26 +1,84 @@
-const employeeCtx = document.getElementById("employeeChart").getContext("2d");
-const employeeChart = new Chart(employeeCtx, {
-    type: "bar",
-    data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [
-            {
-                label: "Requests",
-                data: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
-                backgroundColor: "rgba(54, 162, 235, 0.6)",
-                borderColor: "rgba(54, 162, 235, 1)",
-                borderWidth: 1,
-            },
-        ],
-    },
-    options: {
-        scales: {
-            y: {
-                beginAtZero: true,
-            },
+// Log to verify monthlyRequestData
+console.log('Received monthlyRequestData:', window.monthlyRequestData);
+
+// Ensure monthlyRequestData is defined and valid
+const monthlyRequestDataSafe = typeof window.monthlyRequestData !== 'undefined' && Array.isArray(window.monthlyRequestData) 
+    ? window.monthlyRequestData 
+    : Array(12).fill(0);
+
+// Log the safe data for debugging
+console.log('monthlyRequestDataSafe:', monthlyRequestDataSafe);
+
+// Get the current month (0-based index, e.g., August = 7)
+const currentMonthIndex = new Date().getMonth(); // 0 for Jan, 7 for Aug, etc.
+
+const employeeCtx = document.getElementById("employeeChart");
+if (!employeeCtx) {
+    console.error('Canvas element with id "employeeChart" not found.');
+} else {
+    const employeeChart = new Chart(employeeCtx.getContext("2d"), {
+        type: "bar",
+        data: {
+            labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+            datasets: [
+                {
+                    label: "Approved Leave Requests",
+                    data: monthlyRequestDataSafe,
+                    backgroundColor: "rgba(54, 162, 235, 0.6)",
+                    borderColor: "rgba(54, 162, 235, 1)",
+                    borderWidth: 1,
+                },
+            ],
         },
-    },
-});
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Approved Requests'
+                    },
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    },
+                    ticks: {
+                        color: function(context) {
+                            // Set blue color for the current month, black for others
+                            return context.index === currentMonthIndex ? '#0000FF' : '#000000';
+                        },
+                        font: function(context) {
+                            // Optional: Make the current month bold for extra emphasis
+                            return context.index === currentMonthIndex 
+                                ? { weight: 'bold' } 
+                                : { weight: 'normal' };
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Approved Requests: ${context.raw}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
 
 // Initialize department chart only if departmentData exists and is not empty
 if (typeof departmentData !== 'undefined' && departmentData.length > 0) {
