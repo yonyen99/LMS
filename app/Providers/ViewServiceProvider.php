@@ -21,8 +21,8 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Share leave requests with ALL views
-        View::composer('*', function ($view) {
+        // Share leave requests with layout
+        View::composer('layouts.app', function ($view) {
             if (auth()->check()) {
                 $query = LeaveRequest::with(['user', 'leaveType']);
 
@@ -34,12 +34,9 @@ class ViewServiceProvider extends ServiceProvider
                     });
                 }
 
-                // Show latest 10 requests
-                // $leaveRequests = $query->latest()->take(10)->get();
-                $leaveRequests = $query->latest()->paginate(10);
+                // Get latest 10 requests
+                $leaveRequests = $query->latest()->take(10)->get();
 
-
-                // Pass variable to all views
                 $view->with('leaveRequests', $leaveRequests);
             } else {
                 // If user not logged in, avoid error
