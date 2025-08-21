@@ -23,6 +23,6 @@
 
     <p>Approved by: {{ auth()->user()->name }}</p>
 
-    <p>Thanks,<br>{{ config('app.name') }}</p>
+    <p>Thanks,<br> {{ $leaveRequest->user->name }}</p>
 </body>
 </html>
