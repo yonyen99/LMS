@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\DelegationController;
 use App\Http\Controllers\LeaveBalanceController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', fn() => redirect()->route('login'));
 
@@ -184,3 +185,9 @@ Route::middleware(['auth'])->group(function () {
 Route::post('/leave-requests/{leaveRequest}/accept', 
     [LeaveRequestController::class, 'acceptRequest']
 )->name('leave-requests.accept')->middleware('auth');
+
+
+// Reports routes
+    Route::get('/report', [ReportController::class, 'index'])->name('reports.leave-requests');
+    Route::get('/report-export-pdf', [ReportController::class, 'exportPDF'])->name('reports.export-pdf');
+    Route::get('/report-export-excel', [ReportController::class, 'exportExcel'])->name('reports.export-excel');

@@ -116,4 +116,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Delegation::class, 'delegation_id');
     }
+
+      public function approver()
+    {
+        // approver is also a user
+        return $this->belongsTo(User::class, 'approver_id')->withTrashed();
+    }
 }
