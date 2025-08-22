@@ -26,26 +26,35 @@ use App\Exports\LeaveRequestExport;
 
 class LeaveRequestController extends Controller
 {
+    /**
+     * Display a listing of the leave requests for the authenticated user
+     * with filtering and sorting capabilities
+     */
     public function index(Request $request): View
     {
+        // Base query for user's leave requests
         $query = LeaveRequest::with('leaveType')
             ->where('user_id', auth()->id());
 
+        // Filter by statuses if provided
         if ($request->filled('statuses')) {
             $statuses = array_map('strtolower', $request->statuses);
             $query->whereIn('status', $statuses);
         }
 
+        // Filter to show only current user's requests
         if ($request->filled('show_request') && $request->show_request == 'mine') {
             $query->where('user_id', auth()->id());
         }
 
+        // Filter by leave type
         if ($request->filled('type')) {
             $query->whereHas('leaveType', function ($q) use ($request) {
                 $q->where('name', $request->type);
             });
         }
 
+        // Filter by specific status request
         $statusRequestOptions = [
             'Planned',
             'Accepted',
@@ -58,9 +67,9 @@ class LeaveRequestController extends Controller
             $query->where('status', $request->status_request);
         }
 
+        // Search functionality across multiple fields
         if ($request->filled('search')) {
             $search = $request->search;
-
             $query->where(function ($q) use ($search) {
                 $q->where('reason', 'like', "%{$search}%")
                     ->orWhere('duration', 'like', "%{$search}%")
@@ -68,26 +77,22 @@ class LeaveRequestController extends Controller
                     ->orWhere('end_date', 'like', "%{$search}%")
                     ->orWhere('start_time', 'like', "%{$search}%")
                     ->orWhere('end_time', 'like', "%{$search}%")
-                    ->orWhere('status', 'like', "%{$search}%");
-
-                $q->orWhereHas('leaveType', function ($sub) use ($search) {
-                    $sub->where('name', 'like', "%{$search}%");
-                });
-
-                $q->orWhereHas('user', function ($sub) use ($search) {
-                    $sub->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
+                    ->orWhere('status', 'like', "%{$search}%")
+                    ->orWhereHas('leaveType', function ($sub) use ($search) {
+                        $sub->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('user', function ($sub) use ($search) {
+                        $sub->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
             });
         }
+
+        // Sort order (newest first by default)
         $sortOrder = $request->input('sort_order', 'new');
+        $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
 
-        if ($sortOrder === 'new') {
-            $query->orderBy('id', 'desc');
-        } else {
-            $query->orderBy('id', 'asc');
-        }
-
+        // Status color mapping for UI display
         $statusColors = [
             'Planned'      => ['text' => '#ffffff', 'bg' => '#A59F9F'],
             'Accepted'     => ['text' => '#ffffff', 'bg' => '#447F44'],
@@ -103,10 +108,14 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.index', compact('leaveRequests', 'statusColors', 'leaveTypes', 'statusRequestOptions'));
     }
 
+    /**
+     * Show the form for creating a new leave request
+     */
     public function create()
     {
         $leaveTypes = LeaveType::all();
 
+        // Check if leave types are available
         if ($leaveTypes->isEmpty()) {
             return redirect()->route('leave-requests.index')
                 ->with('error', 'No leave types are available. Please contact the administrator.');
@@ -115,8 +124,13 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.create', compact('leaveTypes'));
     }
 
+    /**
+     * Store a newly created leave request in storage
+     * with validation, availability check, and notifications
+     */
     public function store(Request $request)
     {
+        // Validate request data
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
@@ -130,7 +144,9 @@ class LeaveRequestController extends Controller
 
         $user = auth()->user();
 
+        // Process leave request in transaction to ensure data consistency
         $leaveRequest = DB::transaction(function () use ($request, $user) {
+            // Lock leave summary for update to prevent race conditions
             $summary = LeaveSummary::where('department_id', $user->department_id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->lockForUpdate()
@@ -142,40 +158,42 @@ class LeaveRequestController extends Controller
                 ]);
             }
 
+            // Calculate entitled days (managers get +2 days)
             $entitled = $summary->entitled;
             if ($user->hasRole('Manager')) {
                 $entitled += 2;
             }
 
-            $taken = \App\Models\LeaveRequest::where('user_id', $user->id)
+            // Calculate taken, requested, and planned leave days
+            $taken = LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->where('status', 'Accepted')
                 ->sum('duration');
 
-            $requested = \App\Models\LeaveRequest::where('user_id', $user->id)
+            $requested = LeaveRequest::where('user_id', $user->id)
                 ->where('leave_type_id', $request->leave_type_id)
                 ->where('status', 'Requested')
                 ->sum('duration');
 
-            $planned = \App\Models\LeaveRequest::where('user_id', $user->id)
-                ->where('status', 'Planned')
-                ->sum('duration');
-
             $available = $entitled - ($taken + $requested);
 
+            // Check if enough leave is available
             if ($available < $request->duration) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
                     'duration' => "Not enough leave available. You can request up to $available days.",
                 ]);
             }
 
+            // Update requested count if status is requested
             if ($request->status === 'requested') {
                 $summary->requested += $request->duration;
             }
 
+            // Update available actual count
             $summary->available_actual = max($entitled - $summary->taken, 0);
             $summary->save();
 
+            // Create the leave request
             return LeaveRequest::create([
                 'user_id' => $user->id,
                 'leave_type_id' => $request->leave_type_id,
@@ -191,9 +209,7 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-        /**
-         * Send email to Admin and Manager users when user submits a leave request.
-         */
+        // Send email notifications to managers and admins
         $managersInSameDept = User::role('Manager')
             ->where('department_id', $user->department_id)
             ->pluck('email');
@@ -206,9 +222,7 @@ class LeaveRequestController extends Controller
             Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
         }
 
-        /**
-         * Telegram Notification
-         */
+        // Send Telegram notification if configured
         $botToken = config('services.telegram.bot_token');
         $chatId = config('services.telegram.chat_id');
 
@@ -232,21 +246,13 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
 
-
     /**
-     * function use for send email back to all 
-     * employee in the same department when a
-     * dmin or manager accept request
+     * Approve a leave request and send notifications
+     * to the employee and department members
      */
-
-    /**
-     * Approve leave request and send email notification
-     */
-
-
-
     public function acceptRequest(LeaveRequest $leaveRequest)
     {
+        // Authorization check
         $this->authorize('accept', $leaveRequest);
 
         $approver = auth()->user();
@@ -258,6 +264,7 @@ class LeaveRequestController extends Controller
         ]);
 
         try {
+            // Process approval in transaction
             DB::transaction(function () use ($leaveRequest, $approver) {
                 // Update leave request status
                 $leaveRequest->update([
@@ -266,7 +273,7 @@ class LeaveRequestController extends Controller
                     'last_changed_at' => now()
                 ]);
 
-                // Update leave summary if needed
+                // Update leave summary
                 $summary = LeaveSummary::where('department_id', $leaveRequest->user->department_id)
                     ->where('leave_type_id', $leaveRequest->leave_type_id)
                     ->lockForUpdate()
@@ -283,7 +290,7 @@ class LeaveRequestController extends Controller
             $leaveRequest->load(['user.department.users', 'leaveType']);
             $employee = $leaveRequest->user;
 
-            // Verify employee email exists
+            // Check if employee email exists
             if (empty($employee->email)) {
                 Log::error('Employee email missing', [
                     'leave_request_id' => $leaveRequest->id,
@@ -293,7 +300,7 @@ class LeaveRequestController extends Controller
                     ->with('warning', 'Leave approved but employee email missing.');
             }
 
-            // Send notification to the employee who requested leave
+            // Send notification to the employee
             Mail::to($employee->email)
                 ->queue(new LeaveRequestAccepted($leaveRequest, $approver->name));
 
@@ -302,7 +309,7 @@ class LeaveRequestController extends Controller
                 'employee_email' => $employee->email
             ]);
 
-            // Send notifications to all department members (including the employee)
+            // Send notifications to all department members
             if ($employee->department_id) {
                 $departmentMembers = $employee->department->users()
                     ->where('is_active', true)
@@ -312,7 +319,7 @@ class LeaveRequestController extends Controller
                 if ($departmentMembers->isNotEmpty()) {
                     foreach ($departmentMembers as $member) {
                         try {
-                            // Skip if this is the employee (already notified above)
+                            // Skip the employee (already notified)
                             if ($member->id === $employee->id) {
                                 continue;
                             }
@@ -336,7 +343,7 @@ class LeaveRequestController extends Controller
                 }
             }
 
-            // Telegram Notification
+            // Send Telegram notification
             $botToken = config('services.telegram.bot_token');
             $chatId = config('services.telegram.chat_id');
 
@@ -374,12 +381,17 @@ class LeaveRequestController extends Controller
         }
     }
 
-    
+    /**
+     * Display the specified leave request
+     */
     public function show(LeaveRequest $leaveRequest)
     {
         return view('leaveRequest.show', compact('leaveRequest'));
     }
 
+    /**
+     * Remove the specified leave request from storage
+     */
     public function destroy(LeaveRequest $leaveRequest)
     {
         $this->authorize('delete', $leaveRequest);
@@ -387,6 +399,9 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request deleted.');
     }
 
+    /**
+     * Cancel a leave request
+     */
     public function cancel(Request $request, LeaveRequest $leaveRequest)
     {
         $this->authorize('cancel-request', $leaveRequest);
@@ -397,7 +412,9 @@ class LeaveRequestController extends Controller
         return redirect()->route('leave-requests.index')->with('success', 'Leave request canceled successfully.');
     }
 
-
+    /**
+     * Display the history of status changes for a leave request
+     */
     public function history($id)
     {
         $changs = LeaveRequest::with(['user', 'leaveType', 'statusChanges.user'])->findOrFail($id);
@@ -406,18 +423,23 @@ class LeaveRequestController extends Controller
         return view('leaveRequest.history', compact('changs', 'latestStatusChange'));
     }
 
+    /**
+     * Export leave requests as PDF with filtering options
+     */
     public function exportPDF(Request $request)
     {
         try {
-            $this->authorize('export', \App\Models\LeaveRequest::class);
+            $this->authorize('export', LeaveRequest::class);
 
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
+            // Restrict to user's own requests if not admin
             if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
+            // Apply filters
             if ($request->filled('statuses')) {
                 $query->whereIn('status', $request->input('statuses', []));
             }
@@ -442,11 +464,13 @@ class LeaveRequestController extends Controller
                 });
             }
 
+            // Apply sorting
             $sortOrder = $request->input('sort_order', 'new');
             $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
 
             $leaveRequests = $query->get();
 
+            // Prepare data for PDF
             $data = [
                 'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
@@ -462,6 +486,7 @@ class LeaveRequestController extends Controller
                 ]
             ];
 
+            // Generate PDF
             $pdf = Pdf::loadView('leaveRequest.pdf', $data)
                 ->setPaper('A4', 'landscape')
                 ->setOptions([
@@ -481,10 +506,13 @@ class LeaveRequestController extends Controller
         }
     }
 
+    /**
+     * Export leave requests as Excel file
+     */
     public function exportExcel(Request $request)
     {
         try {
-            $this->authorize('export', \App\Models\LeaveRequest::class);
+            $this->authorize('export', LeaveRequest::class);
 
             $filename = 'leave-requests-' . (auth()->user()->hasRole('Admin') ? 'all-users' : str_replace(' ', '-', auth()->user()->name)) . '-' . now()->format('Y-m-d') . '.xlsx';
 
@@ -495,18 +523,23 @@ class LeaveRequestController extends Controller
         }
     }
 
+    /**
+     * Generate a printable view of leave requests
+     */
     public function print(Request $request)
     {
         try {
-            $this->authorize('export', \App\Models\LeaveRequest::class);
+            $this->authorize('export', LeaveRequest::class);
 
             $query = LeaveRequest::query()
                 ->with(['leaveType', 'user']);
 
+            // Restrict to user's own requests if not admin
             if (!auth()->user()->hasRole('Admin')) {
                 $query->where('user_id', auth()->id());
             }
 
+            // Apply filters
             if ($request->filled('statuses')) {
                 $query->whereIn('status', $request->input('statuses', []));
             }
@@ -531,11 +564,13 @@ class LeaveRequestController extends Controller
                 });
             }
 
+            // Apply sorting
             $sortOrder = $request->input('sort_order', 'new');
             $query->orderBy('id', $sortOrder === 'new' ? 'desc' : 'asc');
 
             $leaveRequests = $query->get();
 
+            // Prepare data for print view
             $data = [
                 'title' => 'Leave Requests Report - ' . (auth()->user()->hasRole('Admin') ? 'All Users' : auth()->user()->name),
                 'generatedAt' => now()->format('F j, Y \a\t H:i'),
@@ -558,10 +593,14 @@ class LeaveRequestController extends Controller
         }
     }
 
+    /**
+     * Update the status of a planned leave request
+     */
     public function updateStatus(Request $request, $id)
     {
         $leave = LeaveRequest::findOrFail($id);
 
+        // Only allow status update for planned requests
         if (strtolower($leave->status) === 'planned') {
             $leave->status = $request->input('status');
             $leave->save();
@@ -570,8 +609,10 @@ class LeaveRequestController extends Controller
         return redirect()->back()->with('success', 'Leave request status updated.');
     }
 
-
-    // 1️⃣ My Calendar
+    /**
+     * Display individual calendar view with user's leave requests
+     * and non-working days based on user role
+     */
     public function individual(Request $request)
     {
         $user = Auth::user();
@@ -580,13 +621,13 @@ class LeaveRequestController extends Controller
         // Get non-working days based on user role
         $nonWorkingDaysQuery = NonWorkingDay::query();
 
-        // Replace hasRole with direct role check (assuming 'role' column exists)
+        // Filter non-working days based on user role
         if ($user->role !== 'Admin') {
             if ($user->role === 'Manager') {
                 // Managers see their department's non-working days
                 $nonWorkingDaysQuery->where('department_id', $user->department_id);
             } else {
-                // Regular users see global non-working days (department_id = null)
+                // Regular users see global non-working days
                 $nonWorkingDaysQuery->whereNull('department_id');
             }
         }
@@ -597,8 +638,9 @@ class LeaveRequestController extends Controller
         return view('calendars.individual', compact('leaveRequests', 'leaveTypes', 'nonWorkingDays'));
     }
 
-
-
+    /**
+     * Get Cambodian holidays from Calendarific API
+     */
     protected function getCambodianHolidays($year)
     {
         $response = Http::get('https://calendarific.com/api/v2/holidays', [
@@ -625,12 +667,15 @@ class LeaveRequestController extends Controller
         return $holidays;
     }
 
-    // 2️⃣ Yearly Calendar (simplified, display all 12 months)
+    /**
+     * Display yearly calendar view with user's leave requests and holidays
+     */
     public function yearly(Request $request)
     {
         $year = $request->input('year', now()->year);
         $user = auth()->user();
 
+        // Get leave requests for the specified year
         $leaveRequests = LeaveRequest::where('user_id', $user->id)
             ->where(function ($query) use ($year) {
                 $query->whereDate('start_date', '<=', "$year-12-31")
@@ -638,19 +683,21 @@ class LeaveRequestController extends Controller
             })
             ->get();
 
+        // Get Cambodian holidays for the year
         $holidays = $this->getCambodianHolidays($year);
 
         return view('calendars.yearly', compact('leaveRequests', 'year', 'holidays'));
     }
 
-
-    // 3️⃣ My Workmates' Leave Calendar (for coworkers in same department)
+    /**
+     * Display workmates' leave calendar for users in the same department
+     */
     public function workmates(Request $request)
     {
         $user = auth()->user();
 
-        // Admins see all users
-        if ($user->hasRole('Admin')) { // or use $user->is_admin if using a boolean flag
+        // Get workmates based on user role
+        if ($user->hasRole('Admin')) {
             $workmates = User::all();
         } else {
             $workmates = User::where('department_id', $user->department_id)->get();
@@ -660,11 +707,11 @@ class LeaveRequestController extends Controller
         $year = $request->input('year', now()->year);
         $currentDate = Carbon::create($year, $month, 1);
 
-        // Always start on Sunday and end on Saturday
+        // Set calendar boundaries (Sunday to Saturday)
         $startDate = $currentDate->copy()->startOfMonth()->startOfWeek(Carbon::SUNDAY);
         $endDate = $currentDate->copy()->endOfMonth()->endOfWeek(Carbon::SATURDAY);
 
-        // Fetch leave requests more efficiently
+        // Fetch leave requests for workmates in the date range
         $leaveRequests = LeaveRequest::with('user')
             ->whereIn('user_id', $workmates->pluck('id'))
             ->where(function ($q) use ($startDate, $endDate) {
@@ -677,6 +724,7 @@ class LeaveRequestController extends Controller
             })
             ->get();
 
+        // Status color mapping
         $statusColors = [
             'Planned' => '#A59F9F',
             'Accepted' => '#447F44',
@@ -688,11 +736,11 @@ class LeaveRequestController extends Controller
 
         $leaveMap = [];
 
+        // Map leave requests to dates for each user
         foreach ($leaveRequests as $leave) {
             $start = Carbon::parse($leave->start_date)->startOfDay();
             $end = Carbon::parse($leave->end_date)->startOfDay();
 
-            // Create period including both start and end dates
             $period = CarbonPeriod::create($start, $end);
 
             foreach ($period as $date) {
@@ -703,7 +751,7 @@ class LeaveRequestController extends Controller
                 $isHalfDay = false;
                 $halfDayType = null;
 
-                // Half-day logic
+                // Determine half-day status
                 if ($isFirstDay && $isLastDay) {
                     // Single day leave
                     if ($leave->start_time === 'morning' && $leave->end_time === 'morning') {
@@ -745,6 +793,7 @@ class LeaveRequestController extends Controller
                 'users' => [],
             ];
 
+            // Add leave data for each workmate for this date
             foreach ($workmates as $workmate) {
                 $dateKey = $date->format('Y-m-d');
                 $leaveData = $leaveMap[$workmate->id][$dateKey] ?? null;
@@ -759,6 +808,7 @@ class LeaveRequestController extends Controller
 
             $week[] = $dayData;
 
+            // End of week (Saturday)
             if ($date->dayOfWeek == Carbon::SATURDAY) {
                 $weeks[] = $week;
                 $week = [];
@@ -767,7 +817,7 @@ class LeaveRequestController extends Controller
             $date->addDay();
         }
 
-        // Ensure we don't miss the last week if it doesn't end on Saturday
+        // Add remaining days if any
         if (!empty($week)) {
             $weeks[] = $week;
         }
@@ -776,11 +826,13 @@ class LeaveRequestController extends Controller
             'weeks' => $weeks,
             'currentDate' => $currentDate,
             'workmates' => $workmates,
-            'statusColors' => $statusColors, // Pass to view
+            'statusColors' => $statusColors,
         ]);
     }
 
-
+    /**
+     * Display department calendar with leave requests filtered by department
+     */
     public function department(Request $request)
     {
         $month = $request->input('month', now()->month);
@@ -794,7 +846,7 @@ class LeaveRequestController extends Controller
         // Start on Sunday
         $startDate = $currentDate->copy()->startOfWeek(Carbon::SUNDAY);
 
-        // Collect 42 days (6 weeks view)
+        // Generate 6 weeks of dates (42 days)
         $dates = collect();
         for ($i = 0; $i < 42; $i++) {
             $dates->push($startDate->copy()->addDays($i));
@@ -804,12 +856,12 @@ class LeaveRequestController extends Controller
         $departments = Department::all();
         $endDate = $startDate->copy()->addDays(41);
 
-        // Load leave requests with Department + Delegation
+        // Load leave requests with department and delegation info
         $leaveRequestsQuery = LeaveRequest::with(['user.department', 'user.delegation'])
             ->whereDate('start_date', '<=', $endDate)
             ->whereDate('end_date', '>=', $startDate);
 
-        // Filter by department if selected
+        // Filter by selected departments
         if (!in_array('all', $selectedDepartmentIds) && count($selectedDepartmentIds) > 0) {
             $leaveRequestsQuery->whereHas('user.department', function ($query) use ($selectedDepartmentIds) {
                 $query->whereIn('id', $selectedDepartmentIds);
@@ -818,7 +870,7 @@ class LeaveRequestController extends Controller
 
         $leaveRequests = $leaveRequestsQuery->get();
 
-        // Build events with delegation info
+        // Build events array for calendar display
         $events = [];
         foreach ($leaveRequests as $leave) {
             $period = CarbonPeriod::create($leave->start_date, $leave->end_date);
@@ -828,11 +880,12 @@ class LeaveRequestController extends Controller
                 $events[$dateStr][] = [
                     'title'      => $leave->user->name,
                     'status'     => $status,
-                    'delegation' => $leave->user->delegation->name ?? null, // delegation name
+                    'delegation' => $leave->user->delegation->name ?? null,
                 ];
             }
         }
 
+        // Status color mapping
         $statusColors  = [
             'Planned'      => '#A59F9F',
             'Accepted'     => '#447F44',

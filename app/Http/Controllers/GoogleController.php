@@ -10,12 +10,29 @@ use Exception;
 
 class GoogleController extends Controller
 {
+    /**
+     * Redirect the user to the Google authentication page.
+     * This method initiates the OAuth flow by redirecting the user to Google's login page.
+     * It requests access to the user's email and profile information.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
     public function googlepage()
     {
         return Socialite::driver('google')
             ->scopes(['email', 'profile'])
             ->redirect();
     }
+
+    /**
+     * Obtain the user information from Google and log them in.
+     * This method handles the callback from Google after the user has authenticated.
+     * It retrieves the user's information, checks if they already exist in the database,
+     * and logs them in or creates a new user if they don't exist.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
 
     public function googlecallback()
     {

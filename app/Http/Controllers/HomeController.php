@@ -17,6 +17,15 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * Display the home page with leave requests and statistics.
+     * This method retrieves leave requests for the authenticated user,
+     * applies filters, sorts them, and prepares data for the view.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+
     public function index(Request $request)
     {
         // Fetch leave requests for the authenticated user

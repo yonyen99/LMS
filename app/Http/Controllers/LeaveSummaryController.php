@@ -13,6 +13,15 @@ use Illuminate\Support\Facades\DB;
 
 class LeaveSummaryController extends Controller
 {
+
+    /**
+     * Display a listing of the resource.
+     * This method retrieves the latest leave summaries for each department and leave type,
+     * ensuring that only the most recent summary for each combination is shown.
+     *
+     * @return \Illuminate\View\View
+     */
+    
     public function index()
     {
         $subquery = DB::table('leave_summaries')
@@ -31,6 +40,12 @@ class LeaveSummaryController extends Controller
         return view('leave_summaries.index', compact('summaries', 'departments', 'leaveTypes'));
     }
 
+    /**
+     * Show the form for creating a new resource.
+     * This method retrieves all leave types and departments to populate the form for creating a new leave summary.
+     * It checks if the user has permission to create a leave summary before returning the view.
+     */
+
     public function create()
     {
         $this->authorize('create', LeaveSummary::class);
@@ -40,6 +55,12 @@ class LeaveSummaryController extends Controller
 
         return view('leave_summaries.create', compact('leaveTypes', 'departments'));
     }
+
+    /**
+     * Store a newly created resource in storage.
+     * This method creates leave summaries for all users in the specified department
+     * based on the leave type and report date provided in the request.
+     */
 
     public function store(Request $request)
     {
@@ -76,6 +97,13 @@ class LeaveSummaryController extends Controller
         return redirect()->route('leave-summaries.index')->with('success', 'Leave summaries created for all users in department.');
     }
 
+    /**
+     * Show the form for editing the specified resource.
+     * This method retrieves a specific leave summary record for editing.
+     * It checks if the user has permission to edit the record and then returns the edit view
+     * with the leave summary data.
+     */
+
     public function edit(LeaveSummary $leaveSummary)
     {
         $this->authorize('update', $leaveSummary);
@@ -85,6 +113,15 @@ class LeaveSummaryController extends Controller
 
         return view('leave_summaries.edit', compact('leaveSummary', 'leaveTypes', 'departments'));
     }
+
+    /**
+     * 
+     * Update the specified resource in storage.
+     * This method updates an existing leave summary record.
+     * It checks if the user has permission to update the record and then updates it with the
+     *  validated data from the request.
+     * If the update is successful, it redirects back to the index with a success message.
+     */
 
     public function update(Request $request, LeaveSummary $leaveSummary)
     {
@@ -107,6 +144,15 @@ class LeaveSummaryController extends Controller
         return redirect()->route('leave-summaries.index')->with('success', 'Leave summary updated successfully.');
     }
 
+    /**
+     * 
+     * Remove the specified resource from storage.
+     * This method deletes a leave summary record.
+     * It checks if the user has permission to delete the record and then deletes it.
+     * If the deletion is successful, it redirects back to the index with a success message.
+     * 
+     */
+
     public function destroy(LeaveSummary $leaveSummary)
     {
         $this->authorize('delete', $leaveSummary);
@@ -115,6 +161,12 @@ class LeaveSummaryController extends Controller
 
         return redirect()->route('leave-summaries.index')->with('success', 'Leave summary deleted successfully.');
     }
+
+    /**
+     * Display the leave summary for the authenticated user.
+     * This method retrieves the leave summary information for the current user,
+     * including their entitlements, usage, and available leave.
+     */
 
     public function userLeave()
     {

@@ -15,6 +15,15 @@ class DelegationController extends Controller
         $this->middleware('auth');
     }
 
+    /**
+     * Display a listing of the delegations.
+     * This method retrieves all delegations and their associated users,
+     * ordered by the most recent delegation first.
+     *
+     * @return \Illuminate\View\View
+     */
+    
+
     public function index()
     {
         $delegations = Delegation::with(['delegator', 'delegatee'])
@@ -23,6 +32,14 @@ class DelegationController extends Controller
         $users = User::orderBy('name')->get(); // Include all users for dropdowns
         return view('delegations.index', compact('delegations', 'users'));
     }
+
+    /**
+     * Show the form for creating a new delegation.
+     * This method retrieves all users to populate the dropdown for delegator and delegatee.
+     *
+     * @return \Illuminate\View\View
+     */
+
 
     public function store(Request $request)
     {
@@ -47,6 +64,17 @@ class DelegationController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Show the form for editing the specified delegation.
+     * This method retrieves a specific delegation record for editing.
+     * It checks if the user has permission to edit the record and then returns the edit view
+     * with the delegation data.
+     *
+     * @param Delegation $delegation
+     * @return \Illuminate\View\View
+     */
+
 
     public function update(Request $request, Delegation $delegation)
     {
@@ -77,6 +105,15 @@ class DelegationController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Remove the specified delegation from storage.
+     * This method deletes a delegation record and redirects back to the index with a success message.
+     *
+     * @param Delegation $delegation
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
 
     public function destroy(Delegation $delegation)
     {

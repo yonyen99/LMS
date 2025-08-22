@@ -18,17 +18,44 @@ class NonWorkingDayController extends Controller
         $this->middleware('permission:delete-non-working-day', ['only' => ['destroy']]);
     }
 
+    /**
+     * Display a listing of the non-working days.
+     * This method retrieves all non-working days and their associated departments,
+     * ordered by the most recent entry first.
+     *
+     * @return \Illuminate\View\View
+     */
+
+
     public function index()
     {
         $nonWorkingDays = NonWorkingDay::with(['department', 'creator'])->get();
         return view('non-working-days.index', compact('nonWorkingDays'));
     }
 
+    /**
+     * Show the form for creating a new non-working day.
+     * This method retrieves all departments to populate the dropdown for department selection.
+     *
+     * @return \Illuminate\View\View
+     */
+
+
     public function create()
     {
         $departments = Department::all();
         return view('non-working-days.create', compact('departments'));
     }
+
+    /**
+     * Store a newly created non-working day in storage.
+     * This method validates the request data and creates a new non-working day entry.
+     * It also ensures that managers can only create entries for their own department.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
 
     public function store(Request $request)
     {
@@ -60,10 +87,28 @@ class NonWorkingDayController extends Controller
             ->with('success', 'Calendar entry added successfully.');
     }
 
+    /**
+     * Display the specified non-working day.
+     * This method retrieves a specific non-working day entry by its ID and returns the view to show it.
+     *
+     * @param NonWorkingDay $nonWorkingDay
+     * @return \Illuminate\View\View
+     */
+
+
     public function show(NonWorkingDay $nonWorkingDay)
     {
         return view('non-working-days.show', compact('nonWorkingDay'));
     }
+
+    /**
+     * Show the form for editing the specified non-working day.
+     * This method retrieves a specific non-working day entry for editing.
+     * It also retrieves all departments to populate the dropdown for department selection.
+     *
+     * @param NonWorkingDay $nonWorkingDay
+     * @return \Illuminate\View\View
+     */
 
     public function edit(NonWorkingDay $nonWorkingDay)
     {
@@ -72,6 +117,16 @@ class NonWorkingDayController extends Controller
         $departments = Department::all();
         return view('non-working-days.edit', compact('nonWorkingDay', 'departments'));
     }
+
+    /**
+     * Update the specified non-working day in storage.
+     * This method validates the request data and updates an existing non-working day entry.
+     * It also ensures that managers can only update entries for their own department.
+     *
+     * @param Request $request
+     * @param NonWorkingDay $nonWorkingDay
+     * @return \Illuminate\Http\RedirectResponse
+     */
 
     public function update(Request $request, NonWorkingDay $nonWorkingDay)
     {
@@ -104,6 +159,14 @@ class NonWorkingDayController extends Controller
             ->with('success', 'Calendar entry updated successfully.');
     }
 
+    /**
+     * Remove the specified non-working day from storage.
+     * This method deletes a non-working day entry and redirects back to the calendar with a success message.
+     *
+     * @param NonWorkingDay $nonWorkingDay
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    
     public function destroy(NonWorkingDay $nonWorkingDay)
     {
         $this->authorize('delete', $nonWorkingDay);

@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container-fluid py-4">
-        <div class="card shadow-sm rounded-3">
+        <div class="card shadow-lg rounded-3">
             <div class="card-body">
                 {{-- Header Section --}}
                 <div class="row align-items-center g-3 mb-4">

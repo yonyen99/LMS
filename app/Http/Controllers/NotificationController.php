@@ -14,6 +14,17 @@ use App\Models\User;
 
 class NotificationController extends Controller
 {
+
+    /**
+     * Display a listing of the notifications.
+     * This method retrieves leave requests and displays them in a paginated view.
+     * It applies various filters based on user input and permissions.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+
+    
     public function index(Request $request)
     {
         $unreadCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
@@ -111,6 +122,17 @@ class NotificationController extends Controller
             'statusColors'
         ));
     }
+
+    /**
+     * Update the status of a leave request.
+     * This method allows a user to update the status of a leave request.
+     * It validates the request and updates the leave request status accordingly.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+
 
     public function updateStatus(Request $request, $id)
     {

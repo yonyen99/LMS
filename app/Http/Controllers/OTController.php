@@ -516,6 +516,8 @@ class OTController extends Controller
 
     /**
      * Export overtime requests as PDF
+     * This method generates a PDF of the overtime requests based on the current filters.
+     * It retrieves the requests, applies role-based filtering, and saves the PDF file.
      */
     public function exportPDF(Request $request)
     {
@@ -561,6 +563,8 @@ class OTController extends Controller
 
     /**
      * Export overtime requests as Excel
+     * This method retrieves overtime requests based on the user's role and applies filters,
+     * then exports the data to an Excel file.
      */
     public function exportExcel(Request $request)
     {
