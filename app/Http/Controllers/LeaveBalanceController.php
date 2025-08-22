@@ -150,11 +150,11 @@ class LeaveBalanceController extends Controller
             $usage = $this->getLeaveUsage($user->id, $type->id);
             return (object)[
                 'leaveType' => $type,
-                'entitled' => $type->typical_annual_requests,
+                'entitled' => $type->entitled,
                 'taken' => $usage->taken,
                 'requested' => $usage->requested,
                 'planned' => $usage->planned,
-                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+                'available_actual' => max($type->entitled - $usage->taken, 0),
             ];
         });
 
