@@ -67,35 +67,50 @@ class LeaveSummaryController extends Controller
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
             'department_id' => 'required|exists:departments,id',
-            'report_date' => 'required|date',
+            'report_date'   => 'required|date',
         ]);
 
         $leaveType = LeaveType::findOrFail($request->leave_type_id);
-        $entitled = $leaveType->typical_annual_requests ?? 0;
 
+        $annualEntitlement = 18;               // Total days per year
+        $monthlyAccrual = $annualEntitlement / 12; // 1.5 days per month
+
+        $reportDate = \Carbon\Carbon::parse($request->report_date);
         $users = User::where('department_id', $request->department_id)->get();
 
         foreach ($users as $user) {
-            LeaveSummary::updateOrCreate(
-                [
-                    'user_id'        => $user->id,
-                    'leave_type_id'  => $request->leave_type_id,
-                    'department_id'  => $request->department_id,
-                    'report_date'    => $request->report_date,
-                ],
-                [
-                    'entitled'           => $entitled,
-                    'taken'              => 0,
-                    'planned'            => 0,
-                    'requested'          => 0,
-                    'available_actual'   => $entitled,
-                    'available_simulated' => $entitled,
-                ]
-            );
+            // Get or create leave summary for this month
+            $leaveSummary = LeaveSummary::firstOrNew([
+                'user_id'        => $user->id,
+                'leave_type_id'  => $request->leave_type_id,
+                'department_id'  => $request->department_id,
+                'report_date'    => $reportDate->format('Y-m-d'),
+            ]);
+
+            // Calculate current remaining days (available_actual)
+            $currentRemaining = $leaveSummary->available_actual ?? 0;
+
+            // Add monthly accrual
+            $newRemaining = $currentRemaining + $monthlyAccrual;
+
+            // Make sure total entitlement does not exceed annual entitlement
+            $leaveSummary->entitled = min(($leaveSummary->entitled ?? 0) + $monthlyAccrual, $annualEntitlement);
+
+            $leaveSummary->available_actual = min($newRemaining, $annualEntitlement);
+
+            // Keep other fields
+            $leaveSummary->taken = $leaveSummary->taken ?? 0;
+            $leaveSummary->planned = $leaveSummary->planned ?? 0;
+            $leaveSummary->requested = $leaveSummary->requested ?? 0;
+            $leaveSummary->available_simulated = $leaveSummary->available_actual;
+
+            $leaveSummary->save();
         }
 
-        return redirect()->route('leave-summaries.index')->with('success', 'Leave summaries created for all users in department.');
+        return redirect()->route('leave-summaries.index')
+            ->with('success', 'Leave summaries updated: monthly accrual added (max 18 days/year).');
     }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -202,18 +217,20 @@ class LeaveSummaryController extends Controller
 
         // Build summaries
         $summaries = $deptEntitlements->map(function ($entitlement, $leaveTypeId) use ($taken, $requested, $planned, $user) {
-            $baseEntitled = $entitlement->leaveType->typical_annual_requests ?? 0;
+            $baseEntitled = $entitlement->entitled ?? 0;
 
-            // If user is a Manager, add 2 extra entitled days
-            if ($user->hasRole('Manager')) {
-                $baseEntitled += 2;
-            }
+            // // If user is a Manager, add 2 extra entitled days
+            // if ($user->hasRole('Manager')) {
+            //     $baseEntitled += 2;
+            // }
 
             $takenDays = $taken[$leaveTypeId] ?? 0;
             $requestedDays = $requested[$leaveTypeId] ?? 0;
             $plannedDays = $planned[$leaveTypeId] ?? 0;
-            $availableActual = max($baseEntitled - $takenDays, 0);
-            $availableSimulated = max($baseEntitled - ($takenDays + $requestedDays), 0);
+
+            // Calculate available days — allow negative if over-requested
+            $availableActual = $baseEntitled - $takenDays;
+            $availableSimulated = $baseEntitled - ($takenDays + $requestedDays);
 
             return (object)[
                 'leaveType' => $entitlement->leaveType,
@@ -228,4 +245,5 @@ class LeaveSummaryController extends Controller
 
         return view('user_leaves.index', compact('summaries'));
     }
+
 }

@@ -130,7 +130,7 @@ class LeaveRequestController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate request data
+        // Validate input
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
@@ -144,82 +144,32 @@ class LeaveRequestController extends Controller
 
         $user = auth()->user();
 
-        // Process leave request in transaction to ensure data consistency
-        $leaveRequest = DB::transaction(function () use ($request, $user) {
-            // Lock leave summary for update to prevent race conditions
-            $summary = LeaveSummary::where('department_id', $user->department_id)
-                ->where('leave_type_id', $request->leave_type_id)
-                ->lockForUpdate()
-                ->first();
-
-            if (!$summary) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'leave_type_id' => 'Leave summary not found for your department.',
-                ]);
-            }
-
-            // Calculate entitled days (managers get +2 days)
-            $entitled = $summary->entitled;
-            if ($user->hasRole('Manager')) {
-                $entitled += 2;
-            }
-
-            // Calculate taken, requested, and planned leave days
-            $taken = LeaveRequest::where('user_id', $user->id)
-                ->where('leave_type_id', $request->leave_type_id)
-                ->where('status', 'Accepted')
-                ->sum('duration');
-
-            $requested = LeaveRequest::where('user_id', $user->id)
-                ->where('leave_type_id', $request->leave_type_id)
-                ->where('status', 'Requested')
-                ->sum('duration');
-
-            $available = $entitled - ($taken + $requested);
-
-            // Check if enough leave is available
-            if ($available < $request->duration) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    'duration' => "Not enough leave available. You can request up to $available days.",
-                ]);
-            }
-
-            // Update requested count if status is requested
-            if ($request->status === 'requested') {
-                $summary->requested += $request->duration;
-            }
-
-            // Update available actual count
-            $summary->available_actual = max($entitled - $summary->taken, 0);
-            $summary->save();
-
-            // Create the leave request
-            return LeaveRequest::create([
-                'user_id' => $user->id,
-                'leave_type_id' => $request->leave_type_id,
-                'start_date' => $request->start_date,
-                'start_time' => $request->start_time,
-                'end_date' => $request->end_date,
-                'end_time' => $request->end_time,
-                'duration' => $request->duration,
-                'reason' => $request->reason,
-                'status' => $request->status,
-                'requested_at' => now(),
-                'last_changed_at' => now(),
-            ]);
-        });
+        // No leave balance checks — just create the leave request
+        $leaveRequest = LeaveRequest::create([
+            'user_id' => $user->id,
+            'leave_type_id' => $request->leave_type_id,
+            'start_date' => $request->start_date,
+            'start_time' => $request->start_time,
+            'end_date' => $request->end_date,
+            'end_time' => $request->end_time,
+            'duration' => $request->duration,
+            'reason' => $request->reason,
+            'status' => $request->status,
+            'requested_at' => now(),
+            'last_changed_at' => now(),
+        ]);
 
         // Send email notifications to managers and admins
-        $managersInSameDept = User::role('Manager')
+        $managersInDept = User::role('Manager')
             ->where('department_id', $user->department_id)
             ->pluck('email');
 
         $admins = User::role('Admin')->pluck('email');
 
-        $adminEmails = $managersInSameDept->merge($admins)->unique()->toArray();
+        $recipients = $managersInDept->merge($admins)->unique()->toArray();
 
-        if (!empty($adminEmails)) {
-            Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
+        if (!empty($recipients)) {
+            Mail::to($recipients)->send(new LeaveRequestSubmitted($leaveRequest));
         }
 
         // Send Telegram notification if configured
@@ -243,8 +193,10 @@ class LeaveRequestController extends Controller
             ]);
         }
 
-        return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
+        return redirect()->route('leave-requests.index')
+            ->with('success', "Leave request submitted successfully ({$leaveRequest->duration} day(s)).");
     }
+
 
     /**
      * Approve a leave request and send notifications

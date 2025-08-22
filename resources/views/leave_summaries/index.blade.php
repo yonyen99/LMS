@@ -57,7 +57,7 @@
                             <td>{{ $summary->department->name ?? '-' }}</td>
                             <td>{{ $summary->leaveType->name ?? '-' }}</td>
                             <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
-                            <td class="d-none d-md-table-cell text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ $summary->entitled ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
