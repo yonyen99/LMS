@@ -72,17 +72,19 @@ class HomeController extends Controller
             ->where('status', 'Requested');
 
         if ($user->hasRole('Manager')) {
-            $notificationsQuery
-                ->whereHas('user', function ($q) use ($user) {
-                    $q->where('department_id', $user->department_id) // same department
-                    ->where('id', '!=', $user->id);                // not themselves
-                })
-                ->whereHas('user.roles', function ($r) {
-                    $r->where('name', 'Employee'); // strictly employees only
-                });
+            $departmentId = $user->department_id;
+            $userId = $user->id;
+
+            $notificationsQuery->whereHas('user', function ($q) use ($departmentId, $userId) {
+                $q->where('department_id', $departmentId)  // Same department (was '!=')
+                    ->where('id', '!=', $userId)                  // exclude self just in case
+                    ->whereHas('roles', function ($r) {
+                        $r->where('name', 'Employee');           // only employees
+                    });
+            });
         }
 
-        $notifications = $notificationsQuery->latest()->get();
+        $messages = $notificationsQuery->latest()->get();
 
         
         // Count leave requests based on user roles
@@ -194,7 +196,7 @@ class HomeController extends Controller
             'requests',
             'totalApproved',
             'departmentData',
-            'notifications'
+            'messages',
         ));
     }
 }

@@ -626,7 +626,7 @@
                         <h4 class="mb-0">Notifications</h4>
                     </div>
                     <div class="card-body" style="max-height: 400px; overflow-y: auto;">
-                        @forelse ($notifications as $request)
+                        @forelse ($messages as $request)
                             <a href="{{ route('notifications.index', $request->id) }}"
                                 class="text-decoration-none text-dark">
                                 <div class="notification-item position-relative" data-id="{{ $request->id }}"
