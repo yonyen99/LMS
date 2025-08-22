@@ -24,7 +24,7 @@ class NotificationController extends Controller
      * @return \Illuminate\View\View
      */
 
-    
+
     public function index(Request $request)
     {
         $unreadCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
@@ -106,14 +106,6 @@ class NotificationController extends Controller
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate(10);
         $leaveTypes = LeaveType::all();
 
-        // return view('notifications.index', compact(
-        //     'unreadCount',
-        //     'leaveRequests',
-        //     'leaveTypes',
-        //     'statusRequestOptions',
-        //     'statusColors'
-        // ));
-
         return view('notifications.index', compact(
             'unreadCount',
             'leaveRequests',   // ✅ NOT $notifications
@@ -193,14 +185,9 @@ class NotificationController extends Controller
             ]);
         });
 
-        // ✅ Send email if Accepted
+        // ✅ Send email if Accepted → send to all department members (including requester)
         if ($newStatus === 'Accepted') {
-            // Send to employee
-            Mail::to($leaveRequest->user->email)->send(new LeaveRequestAcceptedMail($leaveRequest));
-
-            // Send to all employees in same department
             $departmentUsers = \App\Models\User::where('department_id', $leaveRequest->user->department_id)
-                ->where('id', '!=', $leaveRequest->user_id) // avoid duplicate to same user
                 ->pluck('email')
                 ->toArray();
 
@@ -209,8 +196,16 @@ class NotificationController extends Controller
             }
         }
 
+
         return redirect()->route('notifications.index')->with('success', "Leave request updated to {$newStatus}.");
     }
+
+    /**
+     * Approve function
+     * 
+    
+     */
+
     public function approve(LeaveRequest $leaveRequest)
     {
         DB::transaction(function () use ($leaveRequest) {
@@ -234,5 +229,3 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')->with('success', 'Leave approved.');
     }
 }
-
-

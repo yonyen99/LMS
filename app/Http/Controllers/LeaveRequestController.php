@@ -128,6 +128,7 @@ class LeaveRequestController extends Controller
      * Store a newly created leave request in storage
      * with validation, availability check, and notifications
      */
+
     public function store(Request $request)
     {
         // Validate request data
@@ -209,9 +210,10 @@ class LeaveRequestController extends Controller
             ]);
         });
 
-        // Send email notifications to managers and admins
+        // ✅ Send email notifications to managers and admins
         $managersInSameDept = User::role('Manager')
             ->where('department_id', $user->department_id)
+            ->where('id', '!=', $user->id) // exclude the requester if Manager
             ->pluck('email');
 
         $admins = User::role('Admin')->pluck('email');
@@ -222,7 +224,7 @@ class LeaveRequestController extends Controller
             Mail::to($adminEmails)->send(new LeaveRequestSubmitted($leaveRequest));
         }
 
-        // Send Telegram notification if configured
+        // ✅ Send Telegram notification if configured
         $botToken = config('services.telegram.bot_token');
         $chatId = config('services.telegram.chat_id');
 
@@ -245,6 +247,7 @@ class LeaveRequestController extends Controller
 
         return redirect()->route('leave-requests.index')->with('success', 'Leave request submitted and sent to approvers.');
     }
+
 
     /**
      * Approve a leave request and send notifications
