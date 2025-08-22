@@ -70,22 +70,36 @@ class HomeController extends Controller
                         ->orWhere('email', 'like', "%{$search}%"));
             });
         }
-    
-        $notificationQuery = LeaveRequest::with(['user', 'leaveType'])
+
+        $user = Auth::user();
+
+        $notificationsQuery = LeaveRequest::with(['user', 'leaveType'])
             ->where('status', 'Requested');
-    
-        if (auth()->user()->hasRole('Manager')) {
-            $notificationQuery->where('user_id', '!=', auth()->id());
+
+        if ($user->hasRole('Manager')) {
+            $departmentId = $user->department_id;
+            $userId = $user->id;
+
+            $notificationsQuery->whereHas('user', function ($q) use ($departmentId, $userId) {
+                $q->where('department_id', $departmentId)  // Same department (was '!=')
+                    ->where('id', '!=', $userId)                  // exclude self just in case
+                    ->whereHas('roles', function ($r) {
+                        $r->where('name', 'Employee');           // only employees
+                    });
+            });
         }
-    
-        $notifications = $notificationQuery->latest()->get();
-    
+
+        $messages = $notificationsQuery->latest()->get();
+
+        
+        // Count leave requests based on user roles
         $requests = 0;
     
         if (Auth::check()) {
             $user = Auth::user();
-    
-            if ($user->hasRole(['Super Admin', 'Admin', 'HR'])) {
+
+            if ($user->hasRole(['Admin', 'HR'])) {
+                // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
             } elseif ($user->hasRole('Manager')) {
                 $requests = LeaveRequest::where('status', 'Requested')
@@ -221,8 +235,7 @@ class HomeController extends Controller
             'requests',
             'totalApproved',
             'departmentData',
-            'notifications',
-            'monthlyRequestData'
+            'messages',
         ));
     }
 }
