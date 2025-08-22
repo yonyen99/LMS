@@ -62,22 +62,25 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('*', function ($view) {
-            $notifications = [];
-
             if (Auth::check()) {
                 $user = Auth::user();
 
-                $query = LeaveRequest::with(['user', 'leaveType'])
-                            ->where('status', 'Requested');
+                $notificationsQuery = LeaveRequest::with(['user', 'leaveType'])
+                    ->where('status', 'Requested');
 
                 if ($user->hasRole('Manager')) {
-                    $query->where('user_id', '!=', $user->id);
+                    $notificationsQuery->whereHas('user', function ($q) use ($user) {
+                        $q->where('department_id', $user->department_id)
+                        ->where('id', '!=', $user->id);
+                    });
                 }
 
-                $notifications = $query->latest()->get();
+                $messages = $notificationsQuery->latest()->get();
+            } else {
+                $messages = collect(); // empty collection if not logged in
             }
 
-            $view->with('notifications', $notifications);
+            $view->with('messages', $messages);
         });
     }
 }

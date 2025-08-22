@@ -70,7 +70,7 @@ class HomeController extends Controller
                         ->orWhere('email', 'like', "%{$search}%"));
             });
         }
-
+    
         $user = Auth::user();
 
         $notificationsQuery = LeaveRequest::with(['user', 'leaveType'])
@@ -94,18 +94,20 @@ class HomeController extends Controller
         
         // Count leave requests based on user roles
         $requests = 0;
-    
+
         if (Auth::check()) {
             $user = Auth::user();
 
             if ($user->hasRole(['Admin', 'HR'])) {
                 // Admins see all requested leave requests
                 $requests = LeaveRequest::where('status', 'Requested')->count();
+
             } elseif ($user->hasRole('Manager')) {
+                // Manager sees requests from others in the same department (not their own)
                 $requests = LeaveRequest::where('status', 'Requested')
                     ->whereHas('user', function ($q) use ($user) {
                         $q->where('department_id', $user->department_id)
-                          ->where('id', '!=', $user->id);
+                        ->where('id', '!=', $user->id); // exclude own requests
                     })
                     ->count();
             }
@@ -236,6 +238,7 @@ class HomeController extends Controller
             'totalApproved',
             'departmentData',
             'messages',
+            'monthlyRequestData'
         ));
     }
 }
