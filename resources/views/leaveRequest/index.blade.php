@@ -161,11 +161,11 @@
                                             <i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel
                                         </button>
                                     </li>
-                                    <li>
+                                    {{-- <li>
                                         <button class="dropdown-item d-flex align-items-center" disabled>
                                             <i class="bi bi-printer me-2 text-primary"></i> Print
                                         </button>
-                                    </li>
+                                    </li> --}}
                                 </ul>
                             </div>
                         @endcan

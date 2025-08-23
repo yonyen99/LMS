@@ -38,7 +38,7 @@ class LeaveRequestPolicy
      */
     public function export(User $user): bool
     {
-        return $user->hasAnyRole(['Admin', 'Manager']);
+        return $user->hasAnyRole(['Admin', 'Manager', 'Employee']);
     }
 
     /**
