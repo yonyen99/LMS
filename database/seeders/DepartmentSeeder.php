@@ -10,24 +10,23 @@ class DepartmentSeeder extends Seeder
     public function run(): void
     {
         $departments = [
-            ['name' => 'Human Resources', 'description' => 'Handles hiring, employee relations, payroll, and leave.'],
-            ['name' => 'Finance & Accounting', 'description' => 'Manages budgets, expenses, payroll, and tax compliance.'],
-            ['name' => 'Sales', 'description' => 'Responsible for selling products or services and managing customer relationships.'],
-            ['name' => 'Marketing', 'description' => 'Promotes the company, runs advertising campaigns, and manages branding.'],
-            ['name' => 'Operations', 'description' => 'Oversees daily business activities and production workflows.'],
-            ['name' => 'Customer Service', 'description' => 'Assists customers with inquiries, complaints, and support.'],
-            ['name' => 'Information Technology', 'description' => 'Maintains IT infrastructure, systems, and network security.'],
-            ['name' => 'Software Development', 'description' => 'Builds and maintains applications, websites, and software systems.'],
-            ['name' => 'Product Management', 'description' => 'Defines product vision and coordinates development and launches.'],
-            ['name' => 'UI/UX Design', 'description' => 'Designs user interfaces and improves user experience.'],
-            ['name' => 'Quality Assurance', 'description' => 'Tests software to ensure quality and performance standards.'],
-            ['name' => 'DevOps', 'description' => 'Manages deployments, automation, and infrastructure.'],
-            ['name' => 'Cybersecurity', 'description' => 'Protects systems and data from cyber threats.'],
-            ['name' => 'Legal', 'description' => 'Handles legal compliance, contracts, and company policies.'],
-            ['name' => 'Administration', 'description' => 'Provides office management and administrative support.'],
-            ['name' => 'Executive Management', 'description' => 'Leads company strategy and high-level decisions (e.g., CEO, CTO).'],
+            [
+                'name' => 'PALI Program',
+                'description' => 'Focuses on leadership development, capacity building, and community empowerment initiatives.'
+            ],
+            [
+                'name' => 'SACHAS Program',
+                'description' => 'Provides support in health, social welfare, and awareness campaigns to improve community well-being.'
+            ],
+            [
+                'name' => 'RITI Program',
+                'description' => 'Drives research, innovation, training, and incubation activities to foster growth and development.'
+            ],
+            [
+                'name' => 'MACOR Program',
+                'description' => 'Works on monitoring, accountability, compliance, and organizational reporting for transparency and efficiency.'
+            ],
         ];
-
         foreach ($departments as $department) {
             DB::table('departments')->insert([
                 'name' => $department['name'],

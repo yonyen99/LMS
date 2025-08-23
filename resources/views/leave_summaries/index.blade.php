@@ -38,6 +38,15 @@
             </div>
             @endif
 
+            {{-- Error message --}}
+            @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -54,10 +63,10 @@
                         @forelse ($summaries as $summary)
                         <tr>
                             <th scope="row">{{ ($summaries->currentPage() - 1) * $summaries->perPage() + $loop->iteration }}</th>
-                            <td>{{ $summary->department->name ?? '-' }}</td>
-                            <td>{{ $summary->leaveType->name ?? '-' }}</td>
+                            <td>{{ $summary->department_name ?? '-' }}</td>
+                            <td>{{ $summary->leave_types ?? '-' }}</td>
                             <td class="d-none d-md-table-cell">{{ \Carbon\Carbon::parse($summary->report_date)->format('d M, Y') }}</td>
-                            <td class="d-none d-md-table-cell text-center">{{ $summary->leaveType->typical_annual_requests ?? '-' }}</td>
+                            <td class="d-none d-md-table-cell">{{ $summary->entitled ?? '-' }}</td>
                             <td>
                                 <div class="dropdown">
                                     <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
@@ -67,9 +76,8 @@
                                         <i class="bi bi-three-dots-vertical"></i>
                                     </button>
                                     <ul class="dropdown-menu bg-white dropdown-menu-end shadow-sm" aria-labelledby="actionsDropdown{{ $summary->id }}">
-                                        @can('update', $summary)
+                                        @can('update', App\Models\LeaveSummary::class)
                                         <li>
-
                                             <button class="dropdown-item d-flex align-items-center gap-2"
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#editLeaveSummaryModal{{ $summary->id }}">
@@ -77,7 +85,7 @@
                                             </button>
                                         </li>
                                         @endcan
-                                        @can('delete', $summary)
+                                        @can('delete', App\Models\LeaveSummary::class)
                                         <li>
                                             <button class="dropdown-item d-flex align-items-center gap-2 text-danger"
                                                     data-bs-toggle="modal"
@@ -92,7 +100,7 @@
                         </tr>
 
                         {{-- Edit Leave Summary Modal --}}
-                        @can('update', $summary)
+                        @can('update', App\Models\LeaveSummary::class)
                         <div class="modal fade" id="editLeaveSummaryModal{{ $summary->id }}" tabindex="-1" aria-labelledby="editLeaveSummaryModalLabel{{ $summary->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -120,24 +128,26 @@
                                                 </select>
                                                 @error('department_id')
                                                     <div class="invalid-feedback">{{ $message }}</div>
-
                                                 @enderror
                                             </div>
                                             <div class="mb-3">
-                                                <label for="leave_type_id{{ $summary->id }}" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                                                <select name="leave_type_id" id="leave_type_id{{ $summary->id }}" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled{{ $summary->id }}" required>
-                                                    <option value="">Select Leave Type</option>
+                                                <label for="leave_type_ids{{ $summary->id }}" class="form-label fw-bold">Leave Types <span class="text-danger">*</span></label>
+                                                <div class="form-check mb-2">
+                                                    <input type="checkbox" class="form-check-input" id="select_all_leave_types{{ $summary->id }}" onchange="toggleLeaveTypes(this, 'leave_type_ids{{ $summary->id }}')">
+                                                    <label class="form-check-label" for="select_all_leave_types{{ $summary->id }}">Select All</label>
+                                                </div>
+                                                <select name="leave_type_ids[]" id="leave_type_ids{{ $summary->id }}" class="form-select @error('leave_type_ids') is-invalid @enderror" multiple required>
                                                     @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
                                                         @foreach ($leaveTypes as $type)
-                                                            <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ $summary->leave_type_id == $type->id ? 'selected' : '' }}>
+                                                            <option value="{{ $type->id }}" {{ in_array($type->id, explode(',', $summary->leave_type_ids ?? '')) ? 'selected' : '' }}>
                                                                 {{ $type->name }}
                                                             </option>
                                                         @endforeach
                                                     @else
-                                                        <option value="">No leave types available</option>
+                                                        <option value="" disabled>No leave types available</option>
                                                     @endif
                                                 </select>
-                                                @error('leave_type_id')
+                                                @error('leave_type_ids')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
@@ -149,28 +159,19 @@
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                             </div>
-                                            <div class="mb-3">
-                                                <label for="entitled{{ $summary->id }}" class="form-label fw-bold">Entitled Days <span class="text-danger">*</span></label>
-                                                <input type="number" step="0.5" name="entitled" id="entitled{{ $summary->id }}" class="form-control @error('entitled') is-invalid @enderror"
-                                                       value="{{ old('entitled', $summary->leaveType->typical_annual_requests ?? '') }}" readonly required>
-                                                @error('entitled')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                             <button type="submit" class="btn btn-primary">Update Leave Summary</button>
                                         </div>
                                     </form>
-
                                 </div>
                             </div>
                         </div>
                         @endcan
 
                         {{-- Delete Confirmation Modal --}}
-                        @can('delete', $summary)
+                        @can('delete', App\Models\LeaveSummary::class)
                         <div class="modal fade" id="deleteLeaveSummaryModal{{ $summary->id }}" tabindex="-1" aria-labelledby="deleteLeaveSummaryModalLabel{{ $summary->id }}" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
                                 <div class="modal-content">
@@ -179,7 +180,7 @@
                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <p>Are you sure you want to delete this leave summary for <strong>{{ $summary->department->name ?? '-' }}</strong>? This action cannot be undone.</p>
+                                        <p>Are you sure you want to delete this leave summary for <strong>{{ $summary->department_name ?? '-' }}</strong>? This action cannot be undone.</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -226,7 +227,6 @@
         </div>
     </div>
 
-
     {{-- Create Leave Summary Modal --}}
     @can('create', App\Models\LeaveSummary::class)
     <div class="modal fade" id="createLeaveSummaryModal" tabindex="-1" aria-labelledby="createLeaveSummaryModalLabel" aria-hidden="true">
@@ -240,7 +240,7 @@
                     @csrf
                     <div class="modal-body">
                         <div class="alert alert-info mb-3">
-                            This will create leave summaries for all users in the selected department.
+                            This will create leave summaries for all users in the selected department for all leave types.
                         </div>
                         <div class="mb-3">
                             <label for="department_id" class="form-label fw-bold">Department <span class="text-danger">*</span></label>
@@ -261,27 +261,8 @@
                             @enderror
                         </div>
                         <div class="mb-3">
-                            <label for="leave_type_id" class="form-label fw-bold">Leave Type <span class="text-danger">*</span></label>
-                            <select name="leave_type_id" id="leave_type_id" class="form-select @error('leave_type_id') is-invalid @enderror leave-type-select" data-entitled-field="entitled" required>
-                                <option value="">Select Leave Type</option>
-                                @if(isset($leaveTypes) && $leaveTypes->isNotEmpty())
-                                    @foreach ($leaveTypes as $type)
-                                        <option value="{{ $type->id }}" data-entitled-days="{{ $type->typical_annual_requests ?? '' }}" {{ old('leave_type_id') == $type->id ? 'selected' : '' }}>
-                                            {{ $type->name }}
-                                        </option>
-                                    @endforeach
-                                @else
-                                    <option value="">No leave types available</option>
-                                @endif
-                            </select>
-                            @error('leave_type_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
                             <label for="report_date" class="form-label fw-bold">Report Date <span class="text-danger">*</span></label>
                             <input type="date" name="report_date" id="report_date" class="form-control @error('report_date') is-invalid @enderror"
-
                                    value="{{ old('report_date', now()->format('Y-m-d')) }}" required>
                             @error('report_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -324,7 +305,7 @@
         min-width: 10rem;
         border-radius: 0.25rem;
     }
-    .form-control:focus {
+    .form-control:focus, .form-select:focus {
         border-color: #86b7fe;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
@@ -338,6 +319,15 @@
         .d-none.d-md-table-cell {
             display: none !important;
         }
+    }
+    select[multiple] {
+        height: auto;
+        min-height: 100px;
+        padding: 5px;
+    }
+    .form-check-input:checked {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
     }
 </style>
 @endsection
@@ -380,41 +370,28 @@
             });
         });
 
-        // Handle leave type selection to auto-populate entitled days
-        document.addEventListener('change', function(e) {
-            if (e.target.classList.contains('leave-type-select')) {
-                const select = e.target;
-                console.log('Change event triggered on:', select.id); // Debug log
-                const leaveTypeId = select.value;
-                const entitledFieldId = select.getAttribute('data-entitled-field');
-                const entitledInput = document.getElementById(entitledFieldId);
-
-
-                if (entitledInput) {
-                    if (leaveTypeId) {
-                        const selectedOption = select.querySelector(`option[value="${leaveTypeId}"]`);
-                        const entitledDays = selectedOption ? selectedOption.getAttribute('data-entitled-days') : '';
-                        console.log('Selected leave type ID:', leaveTypeId, 'Entitled days:', entitledDays); // Debug log
-                        entitledInput.value = entitledDays !== '' && entitledDays !== null ? parseFloat(entitledDays) || 0 : '';
-                    } else {
-                        entitledInput.value = '';
-                    }
-                } else {
-                    console.error('Entitled input not found for field:', entitledFieldId); // Debug log
-                }
+        // Initialize "Select All" checkbox state based on selected options
+        document.querySelectorAll('select[multiple]').forEach(select => {
+            const selectAllCheckbox = document.getElementById('select_all_leave_types' + select.id.replace('leave_type_ids', ''));
+            if (selectAllCheckbox) {
+                const options = select.querySelectorAll('option:not([disabled])');
+                const selectedOptions = select.querySelectorAll('option[selected]:not([disabled])');
+                selectAllCheckbox.checked = options.length > 0 && options.length === selectedOptions.length;
             }
-        }, true);
-
-        // Trigger change event for pre-selected leave types after modal is shown
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('shown.bs.modal', function(e) {
-                const select = this.querySelector('.leave-type-select');
-                if (select && select.value) {
-                    console.log('Modal shown, triggering change for:', select.id); // Debug log
-                    select.dispatchEvent(new Event('change'));
-                }
-            });
         });
     });
+
+    // Select All checkbox handler
+    function toggleLeaveTypes(checkbox, selectId) {
+        const select = document.getElementById(selectId);
+        if (!select) {
+            console.error('Select element not found: ' + selectId);
+            return;
+        }
+        const options = select.querySelectorAll('option:not([disabled])');
+        options.forEach(option => {
+            option.selected = checkbox.checked;
+        });
+    }
 </script>
 @endsection
