@@ -39,13 +39,36 @@ class NotificationController extends Controller
         $query = LeaveRequest::with(['user', 'leaveType'])
             ->whereIn('status', $statusRequestOptions);
 
-        // Manager can only see requests from their department (including their own)
+        // Role-based filtering
         if (auth()->user()->hasRole('Manager')) {
+            // Manager can only see requests from their department employees (not other managers)
             $departmentId = auth()->user()->department_id;
 
             $query->whereHas('user', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
+                $q->where('department_id', $departmentId)
+                    ->whereHas('roles', function ($roleQuery) {
+                        $roleQuery->where('name', 'Employee'); // Only show employees, not managers
+                    });
             });
+        } elseif (auth()->user()->hasRole('Admin')) {
+            // Admin sees both managers and employees
+            $query->whereHas('user', function ($q) {
+                $q->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->whereIn('name', ['Employee', 'Manager']);
+                });
+            });
+
+            // Add role filter for admin if requested
+            if ($request->filled('role')) {
+                $query->whereHas('user', function ($q) use ($request) {
+                    $q->whereHas('roles', function ($roleQuery) use ($request) {
+                        $roleQuery->where('name', $request->role);
+                    });
+                });
+            }
+        } else {
+            // For other roles (like Employee), only show their own requests
+            $query->where('user_id', auth()->id());
         }
 
         // === Filters ===
@@ -108,7 +131,7 @@ class NotificationController extends Controller
 
         return view('notifications.index', compact(
             'unreadCount',
-            'leaveRequests',   // ✅ NOT $notifications
+            'leaveRequests',
             'leaveTypes',
             'statusRequestOptions',
             'statusColors'
