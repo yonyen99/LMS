@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\DelegationController;
 use App\Http\Controllers\LeaveBalanceController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', fn() => redirect()->route('login'));
 

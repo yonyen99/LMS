@@ -24,7 +24,7 @@ class NotificationController extends Controller
      * @return \Illuminate\View\View
      */
 
-    
+
     public function index(Request $request)
     {
         $unreadCount = auth()->check() ? auth()->user()->unreadNotifications->count() : 0;
@@ -39,13 +39,36 @@ class NotificationController extends Controller
         $query = LeaveRequest::with(['user', 'leaveType'])
             ->whereIn('status', $statusRequestOptions);
 
-        // Manager can only see requests from their department (including their own)
+        // Role-based filtering
         if (auth()->user()->hasRole('Manager')) {
+            // Manager can only see requests from their department employees (not other managers)
             $departmentId = auth()->user()->department_id;
 
             $query->whereHas('user', function ($q) use ($departmentId) {
-                $q->where('department_id', $departmentId);
+                $q->where('department_id', $departmentId)
+                    ->whereHas('roles', function ($roleQuery) {
+                        $roleQuery->where('name', 'Employee'); // Only show employees, not managers
+                    });
             });
+        } elseif (auth()->user()->hasRole('Admin')) {
+            // Admin sees both managers and employees
+            $query->whereHas('user', function ($q) {
+                $q->whereHas('roles', function ($roleQuery) {
+                    $roleQuery->whereIn('name', ['Employee', 'Manager']);
+                });
+            });
+
+            // Add role filter for admin if requested
+            if ($request->filled('role')) {
+                $query->whereHas('user', function ($q) use ($request) {
+                    $q->whereHas('roles', function ($roleQuery) use ($request) {
+                        $roleQuery->where('name', $request->role);
+                    });
+                });
+            }
+        } else {
+            // For other roles (like Employee), only show their own requests
+            $query->where('user_id', auth()->id());
         }
 
         // === Filters ===
@@ -106,17 +129,9 @@ class NotificationController extends Controller
         $leaveRequests = $query->orderBy('created_at', 'desc')->paginate(10);
         $leaveTypes = LeaveType::all();
 
-        // return view('notifications.index', compact(
-        //     'unreadCount',
-        //     'leaveRequests',
-        //     'leaveTypes',
-        //     'statusRequestOptions',
-        //     'statusColors'
-        // ));
-
         return view('notifications.index', compact(
             'unreadCount',
-            'leaveRequests',   // ✅ NOT $notifications
+            'leaveRequests',
             'leaveTypes',
             'statusRequestOptions',
             'statusColors'
@@ -193,14 +208,9 @@ class NotificationController extends Controller
             ]);
         });
 
-        // ✅ Send email if Accepted
+        // ✅ Send email if Accepted → send to all department members (including requester)
         if ($newStatus === 'Accepted') {
-            // Send to employee
-            Mail::to($leaveRequest->user->email)->send(new LeaveRequestAcceptedMail($leaveRequest));
-
-            // Send to all employees in same department
             $departmentUsers = \App\Models\User::where('department_id', $leaveRequest->user->department_id)
-                ->where('id', '!=', $leaveRequest->user_id) // avoid duplicate to same user
                 ->pluck('email')
                 ->toArray();
 
@@ -209,8 +219,16 @@ class NotificationController extends Controller
             }
         }
 
+
         return redirect()->route('notifications.index')->with('success', "Leave request updated to {$newStatus}.");
     }
+
+    /**
+     * Approve function
+     * 
+    
+     */
+
     public function approve(LeaveRequest $leaveRequest)
     {
         DB::transaction(function () use ($leaveRequest) {
@@ -234,4 +252,3 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')->with('success', 'Leave approved.');
     }
 }
-
