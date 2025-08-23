@@ -129,7 +129,7 @@
                                             <i class="bi bi-file-earmark-excel me-2 text-success"></i> Excel
                                         </a>
                                     </li>
-                                    <li>
+                                    {{-- <li>
                                         <a href="{{ route('leave-requests.print', [
                                             'statuses' => request('statuses', []),
                                             'type' => request('type'),
@@ -140,7 +140,7 @@
                                             class="dropdown-item d-flex align-items-center">
                                             <i class="bi bi-printer me-2 text-primary"></i> Print
                                         </a>
-                                    </li>
+                                    </li> --}}
                                 </ul>
                             </div>
                         @else
