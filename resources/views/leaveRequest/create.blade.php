@@ -96,9 +96,36 @@
                         </div>
                     </div>
 
+                    <!-- Reason for Leave -->
                     <div class="col-12">
-                        <label for="reason" class="form-label">Reason</label>
-                        <textarea name="reason" id="reason" class="form-control" style="cursor: pointer;" rows="3" placeholder="Enter reason">{{ old('reason') }}</textarea>
+                        <label class="form-label">Reason for Leave <span style="color: red;">*</span></label>
+                        <div class="mb-2">
+                            @foreach(['Personal', 'Medical', 'Family', 'Vacation', 'Other'] as $reason)
+                                <div class="form-check form-check-inline">
+                                    <input 
+                                        type="radio" 
+                                        name="reason_type" 
+                                        id="reason_{{ strtolower($reason) }}" 
+                                        value="{{ $reason }}" 
+                                        class="form-check-input" 
+                                        style="cursor: pointer;"
+                                        {{ old('reason_type') == $reason ? 'checked' : '' }}
+                                        required
+                                    >
+                                    <label for="reason_{{ strtolower($reason) }}" class="form-check-label">{{ $reason }}</label>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div id="other-reason-container" style="display: {{ old('reason_type') == 'Other' ? 'block' : 'none' }};">
+                            <textarea 
+                                name="other_reason" 
+                                id="other_reason" 
+                                class="form-control" 
+                                style="cursor: pointer;" 
+                                rows="3" 
+                                placeholder="Please specify the reason"
+                            >{{ old('other_reason') }}</textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -117,7 +144,6 @@
         </div>
     </div>
 </div>
-@endsection
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -128,6 +154,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const durationInput = document.getElementById('duration');
     const dayRangeContainer = document.getElementById('day-range-container');
     const dayRangeVisual = document.getElementById('day-range-visual');
+    const reasonRadios = document.querySelectorAll('input[name="reason_type"]');
+    const otherReasonContainer = document.getElementById('other-reason-container');
+    const otherReasonInput = document.getElementById('other_reason');
 
     function calculateDuration() {
         const start = new Date(startDate.value);
@@ -208,6 +237,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Toggle other reason textarea visibility
+    reasonRadios.forEach(radio => {
+        radio.addEventListener('change', function () {
+            otherReasonContainer.style.display = this.value === 'Other' ? 'block' : 'none';
+            if (this.value !== 'Other') {
+                otherReasonInput.value = '';
+            }
+        });
+    });
+
     startDate.addEventListener('change', calculateDuration);
     endDate.addEventListener('change', calculateDuration);
     startTime.addEventListener('change', calculateDuration);
@@ -231,3 +270,4 @@ document.addEventListener('DOMContentLoaded', function () {
     background: linear-gradient(to right, black 50%, white 50%);
 }
 </style>
+@endsection

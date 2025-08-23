@@ -134,11 +134,12 @@ class LeaveRequestController extends Controller
         $request->validate([
             'leave_type_id' => 'required|exists:leave_types,id',
             'start_date' => 'required|date',
-            'start_time' => 'required|in:morning,afternoon,full',
+            'start_time' => 'required|in:morning,afternoon',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'end_time' => 'required|in:morning,afternoon,full',
+            'end_time' => 'required|in:morning,afternoon',
             'duration' => 'required|numeric|min:0.5',
-            'reason' => 'nullable|string',
+            'reason_type' => 'required|in:Personal,Medical,Family,Vacation,Other',
+            'other_reason' => 'required_if:reason_type,Other|nullable|string',
             'status' => 'required|in:planned,requested',
         ]);
 
@@ -153,7 +154,8 @@ class LeaveRequestController extends Controller
             'end_date' => $request->end_date,
             'end_time' => $request->end_time,
             'duration' => $request->duration,
-            'reason' => $request->reason,
+            'reason_type' => $request->reason_type,
+            'other_reason' => $request->reason_type === 'Other' ? $request->other_reason : null,
             'status' => $request->status,
             'requested_at' => now(),
             'last_changed_at' => now(),
@@ -177,13 +179,14 @@ class LeaveRequestController extends Controller
         $chatId = config('services.telegram.chat_id');
 
         if ($botToken && $chatId) {
+            $reason = $request->reason_type === 'Other' ? $request->other_reason : $request->reason_type;
             $message = "📢 *New Leave Request Submitted*\n\n"
                 . "👤 *User:* {$user->name}\n"
                 . "🏢 *Department:* {$user->department->name}\n"
                 . "📅 *From:* {$request->start_date} ({$request->start_time})\n"
                 . "📅 *To:* {$request->end_date} ({$request->end_time})\n"
                 . "🕒 *Duration:* {$request->duration} day(s)\n"
-                . "📝 *Reason:* " . ($request->reason ?: 'N/A') . "\n"
+                . "📝 *Reason:* " . ($reason ?: 'N/A') . "\n"
                 . "🔖 *Status:* {$request->status}";
 
             Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
@@ -195,142 +198,6 @@ class LeaveRequestController extends Controller
 
         return redirect()->route('leave-requests.index')
             ->with('success', "Leave request submitted successfully ({$leaveRequest->duration} day(s)).");
-    }
-
-
-    /**
-     * Approve a leave request and send notifications
-     * to the employee and department members
-     */
-    public function acceptRequest(LeaveRequest $leaveRequest)
-    {
-        // Authorization check
-        $this->authorize('accept', $leaveRequest);
-
-        $approver = auth()->user();
-
-        Log::info('Leave approval initiated', [
-            'leave_request_id' => $leaveRequest->id,
-            'approver_id' => $approver->id,
-            'approver_email' => $approver->email,
-        ]);
-
-        try {
-            // Process approval in transaction
-            DB::transaction(function () use ($leaveRequest, $approver) {
-                // Update leave request status
-                $leaveRequest->update([
-                    'status' => 'Accepted',
-                    'approved_by' => $approver->id,
-                    'last_changed_at' => now()
-                ]);
-
-                // Update leave summary
-                $summary = LeaveSummary::where('department_id', $leaveRequest->user->department_id)
-                    ->where('leave_type_id', $leaveRequest->leave_type_id)
-                    ->lockForUpdate()
-                    ->first();
-
-                if ($summary) {
-                    $summary->taken += $leaveRequest->duration;
-                    $summary->available_actual = max($summary->entitled - $summary->taken, 0);
-                    $summary->save();
-                }
-            });
-
-            // Reload relationships
-            $leaveRequest->load(['user.department.users', 'leaveType']);
-            $employee = $leaveRequest->user;
-
-            // Check if employee email exists
-            if (empty($employee->email)) {
-                Log::error('Employee email missing', [
-                    'leave_request_id' => $leaveRequest->id,
-                    'employee_id' => $employee->id
-                ]);
-                return redirect()->route('leave-requests.index')
-                    ->with('warning', 'Leave approved but employee email missing.');
-            }
-
-            // Send notification to the employee
-            Mail::to($employee->email)
-                ->queue(new LeaveRequestAccepted($leaveRequest, $approver->name));
-
-            Log::info('Employee notification sent', [
-                'leave_request_id' => $leaveRequest->id,
-                'employee_email' => $employee->email
-            ]);
-
-            // Send notifications to all department members
-            if ($employee->department_id) {
-                $departmentMembers = $employee->department->users()
-                    ->where('is_active', true)
-                    ->whereNotNull('email')
-                    ->get();
-
-                if ($departmentMembers->isNotEmpty()) {
-                    foreach ($departmentMembers as $member) {
-                        try {
-                            // Skip the employee (already notified)
-                            if ($member->id === $employee->id) {
-                                continue;
-                            }
-
-                            Mail::to($member->email)
-                                ->queue(new DepartmentLeaveNotification($leaveRequest, $approver->name));
-
-                            Log::debug('Department notification queued', [
-                                'leave_request_id' => $leaveRequest->id,
-                                'recipient_id' => $member->id,
-                                'recipient_email' => $member->email
-                            ]);
-                        } catch (\Exception $e) {
-                            Log::error('Failed to queue department notification', [
-                                'leave_request_id' => $leaveRequest->id,
-                                'recipient_id' => $member->id,
-                                'error' => $e->getMessage()
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            // Send Telegram notification
-            $botToken = config('services.telegram.bot_token');
-            $chatId = config('services.telegram.chat_id');
-
-            if ($botToken && $chatId) {
-                $message = "✅ *Leave Request Approved*\n\n"
-                    . "👤 *Employee:* {$employee->name}\n"
-                    . "🏢 *Department:* {$employee->department->name}\n"
-                    . "👨‍💼 *Approved By:* {$approver->name}\n"
-                    . "📅 *Dates:* {$leaveRequest->start_date->format('M d')} - {$leaveRequest->end_date->format('M d')}\n"
-                    . "🕒 *Duration:* {$leaveRequest->duration} day(s)";
-
-                try {
-                    Http::post("https://api.telegram.org/bot{$botToken}/sendMessage", [
-                        'chat_id' => $chatId,
-                        'text' => $message,
-                        'parse_mode' => 'Markdown',
-                    ]);
-                } catch (\Exception $e) {
-                    Log::error('Failed to send Telegram notification', [
-                        'leave_request_id' => $leaveRequest->id,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-
-            return redirect()->route('leave-requests.index')
-                ->with('success', 'Leave approved and notifications sent to department.');
-        } catch (\Exception $e) {
-            Log::error('Approval process failed', [
-                'leave_request_id' => $leaveRequest->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return back()->with('error', 'Approval process failed: ' . $e->getMessage());
-        }
     }
 
     /**

@@ -204,8 +204,10 @@
                                     'rejected' => 'danger',
                                     'canceled' => 'secondary',
                                     'cancellation' => 'secondary',
+                                    'planned' => 'primary',
                                     default => 'primary',
                                 };
+                                $reason = $request->reason_type === 'Other' ? $request->other_reason : $request->reason_type;
                             @endphp
                             <tr class="transition">
                                 <th scope="row">
@@ -216,7 +218,7 @@
                                 </td>
                                 <td>{{ optional($request->end_date)->format('d/m/Y') }}
                                     ({{ ucfirst($request->end_time) }})</td>
-                                <td class="d-none d-md-table-cell">{{ $request->reason ?? '-' }}</td>
+                                <td class="d-none d-md-table-cell">{{ $reason ?? '-' }}</td>
                                 <td>{{ number_format($request->duration, 2) }}</td>
                                 <td class="d-none d-md-table-cell">{{ optional($request->leaveType)->name ?? '-' }}</td>
                                 <td>
@@ -247,7 +249,7 @@
                                                     data-start-time="{{ $request->start_time }}"
                                                     data-end-date="{{ \Carbon\Carbon::parse($request->end_date)->format('d M Y') }}"
                                                     data-end-time="{{ $request->end_time }}"
-                                                    data-reason="{{ $request->reason }}"
+                                                    data-reason="{{ $reason }}"
                                                     data-status="{{ $request->status }}">
                                                     <i class="bi bi-eye text-primary"></i> View
                                                 </button>
@@ -349,14 +351,9 @@
                         {{ $leaveRequests->onEachSide(1)->links() }}
                     </div>
                 </div>
-
-
+            @endif
         </div>
-
-        @endif
-
     </div>
-
 
     {{-- View Modal --}}
     <div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel"
@@ -398,6 +395,4 @@
             </div>
         </div>
     </div>
-
-
-    @endsection
+@endsection
