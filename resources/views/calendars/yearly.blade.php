@@ -1,109 +1,120 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-7xl mx-auto p-4 sm:p-6 bg-white rounded-2xl shadow-sm">
+<div class="max-w-7xl mx-auto p-4 sm:p-6 bg-white rounded-lg shadow-sm">
     <!-- Header Section -->
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
-        <h2 class="text-2xl font-semibold text-gray-800 tracking-tight">
-            Yearly Calendar <span class="text-gray-500 text-lg font-normal">({{ Auth::user()->name }})</span>
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
+        <h2 class="text-lg font-medium text-gray-900">
+            {{ $year ?? now()->year }} Calendar <span class="text-gray-500 text-sm font-normal">({{ Auth::user()->name }})</span>
         </h2>
-        <div class="flex items-center gap-3">
-            <form method="GET" action="" class="flex items-center gap-2">
-                <button type="submit" name="year" value="{{ ($year ?? now()->year) - 1 }}"
-                    class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-colors duration-200"
-                    aria-label="Previous Year">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
-                <select name="year" onchange="this.form.submit()"
-                    class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm"
-                    aria-label="Select Year">
-                    @for ($y = ($year ?? now()->year) - 5; $y <= ($year ?? now()->year) + 5; $y++)
-                        <option value="{{ $y }}" {{ $y == ($year ?? now()->year) ? 'selected' : '' }}>{{ $y }}</option>
-                    @endfor
-                </select>
-                <button type="submit" name="year" value="{{ ($year ?? now()->year) + 1 }}"
-                    class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 focus:outline-none transition-colors duration-200"
-                    aria-label="Next Year">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-            </form>
-        </div>
+        <form method="GET" action="" class="flex items-center gap-1.5">
+            <button type="submit" name="year" value="{{ ($year ?? now()->year) - 1 }}"
+                class="p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:outline-none transition-colors duration-100"
+                aria-label="Previous Year">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+            <select name="year" onchange="this.form.submit()"
+                class="px-2 py-1.5 bg-white border border-gray-200 rounded-md text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 transition-colors duration-100"
+                aria-label="Select Year">
+                @for ($y = ($year ?? now()->year) - 5; $y <= ($year ?? now()->year) + 5; $y++)
+                    <option value="{{ $y }}" {{ $y == ($year ?? now()->year) ? 'selected' : '' }}>{{ $y }}</option>
+                @endfor
+            </select>
+            <button type="submit" name="year" value="{{ ($year ?? now()->year) + 1 }}"
+                class="p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1 focus:outline-none transition-colors duration-100"
+                aria-label="Next Year">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </form>
     </div>
 
     <!-- Legend Section -->
-    <div class="flex flex-wrap gap-3 mb-8">
-        <span class="flex items-center gap-2 px-3 py-1.5 bg-cyan-50 text-cyan-700 rounded-full text-sm font-medium shadow-sm">
-            <span class="font-bold">I</span> Invalid Day
+    <div class="flex flex-wrap gap-2 mb-6">
+        <span class="flex items-center gap-1.5 px-2.5 py-1 bg-teal-50 text-teal-800 rounded-md text-xs font-medium transition-colors duration-100 hover:bg-teal-100 focus:bg-teal-100 focus:ring-2 focus:ring-teal-500 focus:ring-offset-1 focus:outline-none">
+            <span class="w-3 h-3 rounded-full bg-teal-500"></span> Invalid Day
         </span>
-        <span class="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 rounded-full text-sm font-medium shadow-sm">
-            <span class="font-bold">H</span> Holiday
+        <span class="flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-800 rounded-md text-xs font-medium transition-colors duration-100 hover:bg-rose-100 focus:bg-rose-100 focus:ring-2 focus:ring-rose-500 focus:ring-offset-1 focus:outline-none">
+            <span class="w-3 h-3 rounded-full bg-rose-500"></span> Holiday
         </span>
     </div>
 
     <!-- Calendar Styles -->
     <style>
+        :root {
+            --primary-color: #4f46e5; /* Indigo */
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --bg-light: #f9fafb;
+            --border-light: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.15s ease;
+        }
+
         .calendar-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
             table-layout: fixed;
-            font-size: 0.875rem;
+            font-size: 0.85rem;
+            background-color: var(--bg-light);
+            border-radius: 0.5rem;
+            overflow: hidden;
         }
 
         .calendar-table th,
         .calendar-table td {
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border-light);
             text-align: center;
             vertical-align: middle;
-            height: 60px;
+            height: 44px;
             position: relative;
-            transition: all 0.2s ease;
+            transition: var(--transition);
         }
 
         .calendar-table th {
-            background-color: #f8fafc;
-            font-weight: 600;
-            color: #1e293b;
-            padding: 0.75rem;
+            background-color: var(--bg-light);
+            font-weight: 500;
+            color: var(--text-primary);
+            padding: 0.5rem;
             text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.05em;
+            font-size: 0.7rem;
+            letter-spacing: 0.04em;
         }
 
         .calendar-table th:first-child,
         .calendar-table td:first-child {
-            width: 120px;
+            width: 90px;
             text-align: left;
-            padding-left: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-            background-color: #f8fafc;
+            padding-left: 0.75rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
         }
 
         .invalid-day {
             background: repeating-linear-gradient(
                 45deg,
-                #06b6d4,
-                #06b6d4 4px,
-                #22d3ee 4px,
-                #22d3ee 8px
+                #14b8a6,
+                #14b8a6 4px,
+                #2dd4bf 4px,
+                #2dd4bf 8px
             );
-            opacity: 0.95;
+            opacity: 0.85;
         }
 
         .holiday {
             background: repeating-linear-gradient(
                 45deg,
-                #b91c1c,
-                #b91c1c 4px,
-                #dc2626 4px,
-                #dc2626 8px
+                #e11d48,
+                #e11d48 4px,
+                #fb7185 4px,
+                #fb7185 8px
             );
-            opacity: 0.95;
+            opacity: 0.85;
         }
 
         .day-content {
@@ -111,64 +122,63 @@
             align-items: center;
             justify-content: center;
             height: 100%;
-            font-weight: 600;
+            font-weight: 500;
             color: white;
-            font-size: 1rem;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            font-size: 0.8rem;
         }
 
         .day-number {
             position: absolute;
-            top: 6px;
-            left: 6px;
-            font-size: 0.7rem;
-            color: #6b7280;
-            font-weight: 500;
+            top: 3px;
+            left: 3px;
+            font-size: 0.6rem;
+            color: var(--text-secondary);
+            font-weight: 400;
         }
 
         .day-tooltip {
             position: absolute;
-            bottom: calc(100% + 12px);
+            bottom: calc(100% + 6px);
             left: 50%;
             transform: translateX(-50%);
-            background: #1e293b;
+            background: var(--text-primary);
             color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
             white-space: nowrap;
             z-index: 40;
             visibility: hidden;
             opacity: 0;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            box-shadow: var(--shadow-sm);
         }
 
         td:hover .day-tooltip {
             visibility: visible;
             opacity: 1;
-            transform: translateX(-50%) translateY(-8px);
+            transform: translateX(-50%) translateY(-2px);
         }
 
         .leave-day {
             position: relative;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: var(--transition);
         }
 
         td:hover {
             transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-sm);
             z-index: 20;
         }
 
         .calendar-table td:focus {
-            outline: 2px solid #3b82f6;
-            outline-offset: -2px;
+            outline: 2px solid var(--primary-color);
+            outline-offset: -1px;
             z-index: 20;
         }
 
         .calendar-table tr:hover td:first-child {
-            background-color: #f1f5f9;
+            background-color: #f3f4f6;
         }
 
         .bg-gray-50:hover {
@@ -177,13 +187,14 @@
 
         /* Accessibility Enhancements */
         .calendar-table td:focus-visible {
-            outline: 2px solid #3b82f6;
-            outline-offset: -2px;
+            outline: 2px solid var(--primary-color);
+            outline-offset: -1px;
         }
 
         /* Smooth Scroll for Mobile */
         .overflow-x-auto {
             scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         /* Border Radius for Table Edges */
@@ -202,10 +213,41 @@
         .calendar-table tr:last-child td:last-child {
             border-bottom-right-radius: 0.5rem;
         }
+
+        /* Responsive Adjustments */
+        @media (max-width: 640px) {
+            .calendar-table {
+                font-size: 0.7rem;
+            }
+
+            .calendar-table th,
+            .calendar-table td {
+                height: 36px;
+            }
+
+            .calendar-table th:first-child,
+            .calendar-table td:first-child {
+                width: 70px;
+                padding-left: 0.5rem;
+            }
+
+            .day-number {
+                font-size: 0.55rem;
+            }
+
+            .day-content {
+                font-size: 0.7rem;
+            }
+
+            .day-tooltip {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.4rem;
+            }
+        }
     </style>
 
     <!-- Calendar Table -->
-    <div class="overflow-x-auto rounded-xl shadow-sm">
+    <div class="overflow-x-auto rounded-lg">
         <table class="calendar-table" role="grid" aria-label="Yearly Calendar for {{ $year ?? now()->year }}">
             <thead>
                 <tr>
