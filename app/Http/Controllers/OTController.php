@@ -49,15 +49,27 @@ class OTController extends Controller
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 
-        // Apply search filters
-        if ($request->filled('date')) {
-            $query->whereDate('overtime_date', $request->date);
+        // Apply search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+
+            $query->where(function ($q) use ($searchTerm) {
+                // Search by user name
+                $q->whereHas('user', function ($userQuery) use ($searchTerm) {
+                    $userQuery->where('name', 'like', '%' . $searchTerm . '%');
+                })
+                    // Search by department name
+                    ->orWhereHas('department', function ($deptQuery) use ($searchTerm) {
+                        $deptQuery->where('name', 'like', '%' . $searchTerm . '%');
+                    })
+                    // Search by time period
+                    ->orWhere('time_period', 'like', '%' . $searchTerm . '%');
+            });
         }
 
-        if ($request->filled('name')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->name . '%');
-            });
+        // Apply specific filters
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
         }
 
         if ($request->filled('department_id')) {
@@ -72,14 +84,15 @@ class OTController extends Controller
             }
         }
 
-        $totalRequests = $query->count();
-        $approvedRequests = (clone $query)->where('status', 'approved')->count();
-        $pendingRequests = (clone $query)->where('status', 'requested')->count();
-        $rejectedCancelledRequests = (clone $query)->whereIn('status', ['rejected', 'cancelled'])->count();
+        // Get counts for stats cards (unfiltered totals)
+        $totalRequests = OvertimeRequest::count();
+        $approvedRequests = OvertimeRequest::where('status', 'approved')->count();
+        $pendingRequests = OvertimeRequest::where('status', 'requested')->count();
+        $rejectedCancelledRequests = OvertimeRequest::whereIn('status', ['rejected', 'cancelled'])->count();
 
         $overtimes = $query->latest()->paginate(10);
 
-        $departments = Department::pluck('name', 'id'); // For department dropdown in search form
+        $departments = Department::pluck('name', 'id');
 
         return view('over_time.list_over_time', compact('overtimes', 'totalRequests', 'approvedRequests', 'pendingRequests', 'rejectedCancelledRequests', 'departments'));
     }
@@ -108,15 +121,24 @@ class OTController extends Controller
             return redirect()->route('home')->with('error', 'Unauthorized access.');
         }
 
-        // Apply search filters
-        if ($request->filled('date')) {
-            $query->whereDate('overtime_date', $request->date);
+        // Apply search filter
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->search . '%';
+
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('user', function ($userQuery) use ($searchTerm) {
+                    $userQuery->where('name', 'like', $searchTerm);
+                })
+                    ->orWhereHas('department', function ($deptQuery) use ($searchTerm) {
+                        $deptQuery->where('name', 'like', $searchTerm);
+                    })
+                    ->orWhere('reason', 'like', $searchTerm);
+            });
         }
 
-        if ($request->filled('name')) {
-            $query->whereHas('user', function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->name . '%');
-            });
+        // Apply specific filters
+        if ($request->filled('date')) {
+            $query->whereDate('overtime_date', $request->date);
         }
 
         if ($request->filled('department_id')) {
@@ -138,7 +160,7 @@ class OTController extends Controller
 
         $overtimes = $query->latest()->paginate(10);
 
-        $departments = Department::pluck('name', 'id'); // For department dropdown in search form
+        $departments = Department::pluck('name', 'id');
 
         return view('over_time.over_time', [
             'overtimes' => $overtimes,
