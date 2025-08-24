@@ -212,6 +212,7 @@
                                     $lastChangedAt = $request->last_changed_at
                                         ? \Carbon\Carbon::parse($request->last_changed_at)->format('d/m/Y')
                                         : '-';
+                                    $reason = $request->reason_type === 'Other' ? $request->other_reason : $request->reason_type;
                                 @endphp
                                 <tr class="transition">
                                     <th scope="row">
@@ -220,7 +221,7 @@
                                     <td>{{ $request->user->name }}</td>
                                     <td>{{ $startDate }} ({{ ucfirst($request->start_time) }})</td>
                                     <td>{{ $endDate }} ({{ ucfirst($request->end_time) }})</td>
-                                    <td class="d-none d-lg-table-cell">{{ $request->reason ?? '-' }}</td>
+                                    <td class="d-none d-md-table-cell">{{ $reason ?? '-' }}</td>
                                     <td>{{ number_format($request->duration, 2) }}</td>
                                     <td class="d-none d-md-table-cell">{{ optional($request->leaveType)->name ?? '-' }}
                                     </td>
