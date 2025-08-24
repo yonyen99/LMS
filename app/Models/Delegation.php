@@ -7,13 +7,14 @@ use Illuminate\Support\Carbon;
 
 class Delegation extends Model
 {
-   protected $fillable = [
-    'delegator_id',
-    'delegatee_id',
-    'delegation_type', // Keep only one field for the type
-    'start_date',
-    'end_date'
-];
+    protected $fillable = [
+        'delegator_id',
+        'delegatee_id',
+        'delegation_type',
+        'start_date',
+        'end_date',
+        'remarks'
+    ];
 
     protected $dates = [
         'start_date',
