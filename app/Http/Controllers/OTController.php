@@ -153,12 +153,14 @@ class OTController extends Controller
             }
         }
 
+        // Get counts for statistics
         $totalRequests = $query->count();
         $approvedRequests = (clone $query)->where('status', 'approved')->count();
-        $pendingRequests = (clone $query)->where('status', 'requested')->count();
+        $pendingRequests = (clone $query)->where('status', 'pending')->count();
         $rejectedCancelledRequests = (clone $query)->whereIn('status', ['rejected', 'cancelled'])->count();
 
-        $overtimes = $query->latest()->paginate(10);
+        // Get paginated results with applied filters
+        $overtimes = $query->latest()->paginate(10)->appends($request->except('page'));
 
         $departments = Department::pluck('name', 'id');
 
