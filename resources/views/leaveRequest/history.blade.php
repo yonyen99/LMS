@@ -54,7 +54,7 @@
                         <tr>
                             <td class="text-center px-1 py-2">✏️</td>
                             <td class="text-center px-1 py-2">{{ \Carbon\Carbon::parse($changs->updated_at)->format('d/m/Y') }}</td>
-                            <td class="text-center px-1 py-2">{{ $latestStatusChange->user->name ?? $changs->user->name ?? 'N/A' }}</td>
+                            <td class="text-center px-1 py-2"></td>
                             <td class="text-center px-1 py-2">
                                 {{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }}<br>
                                 <span>({{ ucfirst($changs->start_time) }})</span>
@@ -87,7 +87,7 @@
                                 <td class="text-center px-1 py-2">
                                     
                                 </td>
-                                <td class="text-center px-1 py-2"></td>
+                                <td class="text-center px-1 py-2">{{ $latestStatusChange->user->name ?? $changs->user->name ?? 'N/A' }}</td>
                                 <td class="text-center px-1 py-2">
                                     {{ \Carbon\Carbon::parse($changs->start_date)->format('d/m/Y') }}<br>
                                     <span>({{ ucfirst($changs->start_time) }})</span>

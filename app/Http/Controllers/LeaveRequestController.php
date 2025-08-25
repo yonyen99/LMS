@@ -11,6 +11,7 @@ use App\Models\LeaveSummary;
 use App\Models\User;
 use App\Models\Department;
 use App\Models\NonWorkingDay;
+use App\Models\Delegation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -651,9 +652,6 @@ class LeaveRequestController extends Controller
         ]);
     }
 
-    /**
-     * Display department calendar with leave requests filtered by department
-     */
     public function department(Request $request)
     {
         $month = $request->input('month', now()->month);
@@ -661,13 +659,14 @@ class LeaveRequestController extends Controller
         $selectedDepartmentIds = (array) $request->input('departments', ['all']);
 
         $currentDate = Carbon::create($year, $month, 1);
-        $monthName = $currentDate->format('F');
-        $isToday = $currentDate->format('Y-m') === now()->format('Y-m');
+        $monthName   = $currentDate->format('F');
+        $isToday     = $currentDate->format('Y-m') === now()->format('Y-m');
 
-        // Start on Sunday
+        // Calendar range
         $startDate = $currentDate->copy()->startOfWeek(Carbon::SUNDAY);
+        $endDate   = $startDate->copy()->addDays(41);
 
-        // Generate 6 weeks of dates (42 days)
+        // Generate 6 weeks of dates
         $dates = collect();
         for ($i = 0; $i < 42; $i++) {
             $dates->push($startDate->copy()->addDays($i));
@@ -675,15 +674,13 @@ class LeaveRequestController extends Controller
         $weeks = $dates->chunk(7);
 
         $departments = Department::all();
-        $endDate = $startDate->copy()->addDays(41);
 
-        // Load leave requests with department and delegation info
+        // Leave Requests
         $leaveRequestsQuery = LeaveRequest::with(['user.department', 'user.delegation'])
             ->whereDate('start_date', '<=', $endDate)
             ->whereDate('end_date', '>=', $startDate);
 
-        // Filter by selected departments
-        if (!in_array('all', $selectedDepartmentIds) && count($selectedDepartmentIds) > 0) {
+        if (!in_array('all', $selectedDepartmentIds)) {
             $leaveRequestsQuery->whereHas('user.department', function ($query) use ($selectedDepartmentIds) {
                 $query->whereIn('id', $selectedDepartmentIds);
             });
@@ -691,29 +688,133 @@ class LeaveRequestController extends Controller
 
         $leaveRequests = $leaveRequestsQuery->get();
 
-        // Build events array for calendar display
-        $events = [];
-        foreach ($leaveRequests as $leave) {
-            $period = CarbonPeriod::create($leave->start_date, $leave->end_date);
+        // Delegations
+        $delegations = Delegation::with(['delegator', 'delegatee'])
+            ->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('start_date', [$startDate, $endDate])
+                ->orWhereBetween('end_date', [$startDate, $endDate]);
+            })->get();
+
+        // Cambodian holidays
+        $holidays = $this->getCambodianHolidays($year); // date => name array
+
+        // Non-working days from DB
+        $nonWorkingDaysQuery = NonWorkingDay::where(function($q) use ($startDate, $endDate) {
+            $q->whereBetween('start_date', [$startDate, $endDate])
+            ->orWhereBetween('end_date', [$startDate, $endDate]);
+        });
+        $nonWorkingDays = $nonWorkingDaysQuery->get();
+
+        // Map non-working days to all dates in their range
+        $nonWorkingDaysEvents = [];
+        foreach ($nonWorkingDays as $nwd) {
+            $period = CarbonPeriod::create($nwd->start_date, $nwd->end_date ?? $nwd->start_date);
             foreach ($period as $date) {
                 $dateStr = $date->toDateString();
-                $status = ucfirst(strtolower($leave->status ?? 'Planned'));
+                $nonWorkingDaysEvents[$dateStr] = $nwd->title;
+            }
+        }
+
+        // Build events array
+        $events = [];
+
+        // Leaves
+        
+        foreach ($leaveRequests as $leave) {
+            $period = CarbonPeriod::create(
+                Carbon::parse($leave->start_date),
+                Carbon::parse($leave->end_date)
+            );
+
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $status  = ucfirst(strtolower($leave->status ?? 'Planned'));
+
+                $latestStatusChange = $leave->statusChanges->sortByDesc('changed_at')->first();
+
                 $events[$dateStr][] = [
-                    'title'      => $leave->user->name,
-                    'status'     => $status,
-                    'delegation' => $leave->user->delegation->name ?? null,
+                    'title'        => $leave->user->name,
+                    'status'       => $status,
+                    'type'         => 'leave',
+                    'leave_type'   => $leave->leaveType->name ?? 'N/A',
+                    'start_date'   => Carbon::parse($leave->start_date)->format('d/m/Y'),
+                    'start_time'   => ucfirst($leave->start_time),
+                    'end_date'     => Carbon::parse($leave->end_date)->format('d/m/Y'),
+                    'end_time'     => ucfirst($leave->end_time),
+                    'reason'       => $leave->reason_type === 'Other' ? $leave->other_reason : $leave->reason_type,
+                    'duration'     => number_format($leave->duration, 1),
+                    'changed_by'   => $latestStatusChange->user->name ?? $leave->user->name ?? 'N/A',
                 ];
             }
         }
 
-        // Status color mapping
-        $statusColors  = [
+
+        // Delegations
+        foreach ($delegations as $delegation) {
+            $period = CarbonPeriod::create($delegation->start_date, $delegation->end_date);
+            foreach ($period as $date) {
+                $dateStr = $date->toDateString();
+                $events[$dateStr][] = [
+                    'title'           => 'Delegation',
+                    'delegator_name'  => $delegation->delegator->name,
+                    'delegatee_name'  => $delegation->delegatee->name,
+                    'delegation_type' => $delegation->delegation_type,
+                    'start_date'      => $delegation->start_date->toDateString(),
+                    'end_date'        => $delegation->end_date->toDateString(),
+                    'status'          => 'Delegation',
+                ];
+            }
+        }
+
+        // Non-working days (weekends, holidays, and DB)
+        foreach ($dates as $date) {
+            $dateStr = $date->toDateString();
+
+            // DB non-working days
+            if (isset($nonWorkingDaysEvents[$dateStr])) {
+                foreach ($nonWorkingDays as $nwd) {
+                    $period = CarbonPeriod::create(
+                        Carbon::parse($nwd->start_date),
+                        $nwd->end_date ? Carbon::parse($nwd->end_date) : Carbon::parse($nwd->start_date)
+                    );
+
+                    foreach ($period as $date) {
+                        $dateStr = $date->toDateString();
+                        $events[$dateStr][] = [
+                            'title'        => $nwd->title,
+                            'status'       => 'Event',
+                            'nwd_type'     => $nwd->type,
+                            'description'  => $nwd->description,
+                            'department'   => $nwd->department?->name ?? 'Global(All Departments)',
+                            'start_date'   => Carbon::parse($nwd->start_date)->toDateString(),
+                            'end_date'     => $nwd->end_date ? Carbon::parse($nwd->end_date)->toDateString() : null,
+                        ];
+                    }
+                }
+            }
+
+            // Cambodian holidays
+            if (isset($holidays[$dateStr])) {
+                $events[$dateStr][] = [
+                    'title'       => $holidays[$dateStr],   // Holiday name
+                    'status'      => 'Holiday',
+                    'date'        => $dateStr,
+                    'country'     => 'Cambodia',
+                ];
+            }
+        }
+
+        // Status colors
+        $statusColors = [
             'Planned'      => '#A59F9F',
             'Accepted'     => '#447F44',
             'Requested'    => '#FC9A1D',
             'Rejected'     => '#F80300',
             'Cancellation' => '#F80300',
             'Canceled'     => '#F80300',
+            'Delegation'   => '#1E90FF',
+            'Event'        => '#ff080c',
+            'Holiday'      => '#FF7544',
         ];
 
         return view('calendars.department', compact(

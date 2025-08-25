@@ -27,6 +27,7 @@ class Delegation extends Model
         return $this->belongsTo(User::class, 'delegator_id');
     }
 
+    // The person who receives the delegation
     public function delegatee()
     {
         return $this->belongsTo(User::class, 'delegatee_id');
@@ -52,4 +53,9 @@ class Delegation extends Model
             'expired' => 'danger'
         ][$this->status] ?? 'secondary';
     }
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+    ];
 }
