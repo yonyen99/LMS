@@ -73,7 +73,7 @@
                                 <option value="">All Status</option>
                                 <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved
                                 </option>
-                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending
+                                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Requests
                                 </option>
                                 <option value="rejected_canceled"
                                     {{ request('status') == 'rejected_canceled' ? 'selected' : '' }}>Rejected/Cancelled
