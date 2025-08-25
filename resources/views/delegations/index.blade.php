@@ -5,7 +5,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Delegations</h5>
+                <h5 class="mb-0">My Delegations</h5>
                 <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#createDelegationModal">
                     <i class="bi bi-plus-circle me-1"></i> Add Delegation
                 </button>
@@ -32,6 +32,18 @@
             <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>
                 {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            {{-- Error message --}}
+            @if($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             @endif
@@ -129,6 +141,10 @@
                                             <p>{{ \Carbon\Carbon::parse($delegation->end_date)->format('Y-m-d') }}</p>
                                         </div>
                                         <div class="mb-3">
+                                            <label class="form-label fw-bold">Remarks:</label>
+                                            <p>{{ $delegation->remarks ?? 'N/A' }}</p>
+                                        </div>
+                                        <div class="mb-3">
                                             <label class="form-label fw-bold">Status:</label>
                                             <p>
                                                 <span class="badge bg-{{ $delegation->status_color }}">
@@ -191,9 +207,9 @@
                                             <div class="mb-3">
                                                 <label for="delegatee_id{{ $delegation->id }}" class="form-label fw-bold">Delegatee <span class="text-danger">*</span></label>
                                                 <select name="delegatee_id" id="delegatee_id{{ $delegation->id }}" class="form-select @error('delegatee_id') is-invalid @enderror" required>
-                                                    <option value="">-- Select Delegatee --</option>
-                                                    @foreach ($users as $user)
-                                                        <option value="{{ $user->id }}" {{ old('delegatee_id', $delegation->delegatee_id) == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                                    <option value="">-- Select Delegatee (Manager) --</option>
+                                                    @foreach ($managers as $manager)
+                                                        <option value="{{ $manager->id }}" {{ old('delegatee_id', $delegation->delegatee_id) == $manager->id ? 'selected' : '' }}>{{ $manager->name }}</option>
                                                     @endforeach
                                                 </select>
                                                 @error('delegatee_id')
@@ -240,6 +256,13 @@
                                                         <div class="invalid-feedback">{{ $message }}</div>
                                                     @enderror
                                                 </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="remarks{{ $delegation->id }}" class="form-label fw-bold">Remarks</label>
+                                                <textarea name="remarks" id="remarks{{ $delegation->id }}" class="form-control @error('remarks') is-invalid @enderror">{{ old('remarks', $delegation->remarks) }}</textarea>
+                                                @error('remarks')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -339,9 +362,9 @@
                         <div class="mb-3">
                             <label for="delegatee_id" class="form-label fw-bold">Delegatee <span class="text-danger">*</span></label>
                             <select name="delegatee_id" id="delegatee_id" class="form-select @error('delegatee_id') is-invalid @enderror" required>
-                                <option value="">-- Select Delegatee --</option>
-                                @foreach ($users as $user)
-                                    <option value="{{ $user->id }}" {{ old('delegatee_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                                <option value="">-- Select Delegatee (Manager) --</option>
+                                @foreach ($managers as $manager)
+                                    <option value="{{ $manager->id }}" {{ old('delegatee_id') == $manager->id ? 'selected' : '' }}>{{ $manager->name }}</option>
                                 @endforeach
                             </select>
                             @error('delegatee_id')
@@ -389,6 +412,13 @@
                                 @enderror
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="remarks" class="form-label fw-bold">Remarks</label>
+                            <textarea name="remarks" id="remarks" class="form-control @error('remarks') is-invalid @enderror">{{ old('remarks') }}</textarea>
+                            @error('remarks')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -425,7 +455,7 @@
         min-width: 10rem;
         border-radius: 0.25rem;
     }
-    .form-control:focus {
+    .form-control:focus, .form-select:focus, textarea:focus {
         border-color: #86b7fe;
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }

@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class DelegationController extends Controller
 {
@@ -16,40 +17,49 @@ class DelegationController extends Controller
     }
 
     /**
-     * Display a listing of the delegations.
-     * This method retrieves all delegations and their associated users,
-     * ordered by the most recent delegation first.
+     * Display a listing of the delegations for the authenticated user.
      *
      * @return \Illuminate\View\View
      */
-    
-
     public function index()
     {
+        $userId = Auth::id();
         $delegations = Delegation::with(['delegator', 'delegatee'])
+            ->where(function ($query) use ($userId) {
+                $query->where('delegator_id', $userId)
+                      ->orWhere('delegatee_id', $userId);
+            })
             ->orderByDesc('created_at')
             ->paginate(10);
-        $users = User::orderBy('name')->get(); // Include all users for dropdowns
-        return view('delegations.index', compact('delegations', 'users'));
+        $users = User::orderBy('name')->get();
+        $managers = User::role('Manager')->orderBy('name')->get();
+        return view('delegations.index', compact('delegations', 'users', 'managers'));
     }
 
     /**
-     * Show the form for creating a new delegation.
-     * This method retrieves all users to populate the dropdown for delegator and delegatee.
+     * Store a newly created delegation in storage.
      *
-     * @return \Illuminate\View\View
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
      */
-
-
     public function store(Request $request)
     {
         $validated = $request->validate([
             'delegator_id' => 'required|exists:users,id',
             'delegatee_id' => 'required|exists:users,id|different:delegator_id',
-            'delegation_type' => 'required|string|max:255', // Changed from 'type' to 'delegation_type'
+            'delegation_type' => 'required|string|max:255',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'remarks' => 'nullable|string',
         ]);
+
+        // Ensure delegatee has Manager role
+        $delegatee = User::findOrFail($validated['delegatee_id']);
+        if (!$delegatee->hasRole('Manager')) {
+            return redirect()->route('delegations.index')
+                ->withErrors(['delegatee_id' => 'The selected delegatee must have the Manager role.'])
+                ->withInput();
+        }
 
         try {
             DB::transaction(function () use ($validated) {
@@ -66,16 +76,12 @@ class DelegationController extends Controller
     }
 
     /**
-     * Show the form for editing the specified delegation.
-     * This method retrieves a specific delegation record for editing.
-     * It checks if the user has permission to edit the record and then returns the edit view
-     * with the delegation data.
+     * Update the specified delegation in storage.
      *
-     * @param Delegation $delegation
-     * @return \Illuminate\View\View
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\Delegation  $delegation
+     * @return \Illuminate\Http\RedirectResponse
      */
-
-
     public function update(Request $request, Delegation $delegation)
     {
         $this->authorize('update', $delegation);
@@ -86,16 +92,19 @@ class DelegationController extends Controller
             'delegation_type' => 'required|string|max:255',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'remarks' => 'nullable|string',
         ]);
 
+        // Ensure delegatee has Manager role
+        $delegatee = User::findOrFail($validated['delegatee_id']);
+        if (!$delegatee->hasRole('Manager')) {
+            return redirect()->route('delegations.index')
+                ->withErrors(['delegatee_id' => 'The selected delegatee must have the Manager role.'])
+                ->withInput();
+        }
+
         try {
-            $delegation->update([
-                'delegator_id' => $validated['delegator_id'],
-                'delegatee_id' => $validated['delegatee_id'],
-                'delegation_type' => $validated['delegation_type'],
-                'start_date' => $validated['start_date'],
-                'end_date' => $validated['end_date'],
-            ]);
+            $delegation->update($validated);
 
             return redirect()->route('delegations.index')
                 ->with('success', 'Delegation updated successfully.');
@@ -108,13 +117,10 @@ class DelegationController extends Controller
 
     /**
      * Remove the specified delegation from storage.
-     * This method deletes a delegation record and redirects back to the index with a success message.
      *
-     * @param Delegation $delegation
+     * @param  \App\Models\Delegation  $delegation
      * @return \Illuminate\Http\RedirectResponse
      */
-
-
     public function destroy(Delegation $delegation)
     {
         $this->authorize('delete', $delegation);
