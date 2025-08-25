@@ -208,20 +208,18 @@ class NotificationController extends Controller
             ]);
         });
 
-        // ✅ Send email if Accepted → send to all department members (including requester)
+        // ✅ Send email if Accepted → send to ALL users in ALL departments
         if ($newStatus === 'Accepted') {
-            $departmentUsers = \App\Models\User::where('department_id', $leaveRequest->user->department_id)
-                ->pluck('email')
-                ->toArray();
+            $allUsers = \App\Models\User::pluck('email')->toArray();
 
-            if (!empty($departmentUsers)) {
-                Mail::to($departmentUsers)->send(new LeaveRequestAcceptedMail($leaveRequest));
+            if (!empty($allUsers)) {
+                Mail::to($allUsers)->send(new LeaveRequestAcceptedMail($leaveRequest));
             }
         }
 
-
         return redirect()->route('notifications.index')->with('success', "Leave request updated to {$newStatus}.");
     }
+
 
     /**
      * Approve function
