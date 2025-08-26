@@ -28,29 +28,44 @@
                             </h3>
                             <p class="mb-1">Total {{ $totals['entitled'] }} days entitled</p>
                             <p class="mb-1">{{ $totals['taken'] }} days taken</p>
+                            <p class="mb-1">{{ $totals['requested'] }} days requested</p>
                             <span class="badge bg-label-primary">+{{ $totals['available'] }} Available</span>
                             <hr class="d-sm-none mt-4">
                         </div>
                         <div class="col-sm-7 ps-sm-4 pt-2 scrollable-leave-types">
                             @forelse ($summaries as $summary)
                                 @php
-                                    // Debug: Check what's in the summary
-// dd($summary); // Remove this after debugging
+                                    // Extract values from summary object/array
+                                    $entitled = is_object($summary)
+                                        ? $summary->entitled ?? 0
+                                        : $summary['entitled'] ?? 0;
+                                    $taken = is_object($summary) ? $summary->taken ?? 0 : $summary['taken'] ?? 0;
+                                    $requested = is_object($summary)
+                                        ? $summary->requested ?? 0
+                                        : $summary['requested'] ?? 0;
+                                    $planned = is_object($summary) ? $summary->planned ?? 0 : $summary['planned'] ?? 0;
 
-$entitled = is_object($summary) ? $summary->entitled : $summary['entitled'] ?? 0;
-$available_actual = is_object($summary)
-    ? $summary->available_actual
-    : $summary['available_actual'] ?? 0;
-$leaveTypeName = is_object($summary)
-    ? (is_object($summary->leaveType)
-        ? $summary->leaveType->name
-        : 'Unknown')
-    : $summary['leaveType']['name'] ?? 'Unknown';
+                                    // Calculate available days (entitled minus taken)
+                                    $available_actual = max($entitled - $taken, 0);
+
+                                    // Calculate simulated available (entitled minus taken and requested)
+                                    $available_simulated = max($entitled - ($taken + $requested), 0);
+
+                                    // Get leave type name
+                                    if (is_object($summary)) {
+                                        $leaveTypeName = is_object($summary->leaveType ?? null)
+                                            ? $summary->leaveType->name
+                                            : $summary->leaveType['name'] ?? 'Unknown Leave Type';
+                                    } else {
+                                        $leaveTypeName = is_object($summary['leaveType'] ?? null)
+                                            ? $summary['leaveType']->name
+                                            : $summary['leaveType']['name'] ?? 'Unknown Leave Type';
+                                    }
 
                                     $availablePercent = $entitled > 0 ? ($available_actual / $entitled) * 100 : 0;
                                 @endphp
                                 <div class="d-flex align-items-center gap-2 mb-2" data-bs-toggle="tooltip"
-                                    title="{{ $leaveTypeName }}: {{ $available_actual }} / {{ $entitled }} days available">
+                                    title="{{ $leaveTypeName }}: {{ $available_actual }} available out of {{ $entitled }} days ({{ $taken }} taken, {{ $requested }} requested)">
                                     <small class="w-50 text-truncate">{{ $leaveTypeName }}
                                         ({{ $entitled }})
                                     </small>
@@ -61,7 +76,10 @@ $leaveTypeName = is_object($summary)
                                     <small>{{ number_format($available_actual, 1) }}</small>
                                 </div>
                             @empty
-                                <p class="text-muted">No leave balances available.</p>
+                                <div class="alert alert-warning py-2">
+                                    <p class="text-muted mb-0">No leave balances available.</p>
+                                    <small class="text-muted">Please contact HR if you believe this is an error.</small>
+                                </div>
                             @endforelse
                         </div>
                     </div>
@@ -81,56 +99,91 @@ $leaveTypeName = is_object($summary)
                                 </span>
                             </p>
                             <p class="mb-1">
-                                <span class="me-2">{{ $summaries->sum('planned') }} Planned</span>
-                                <span class="badge bg-label-secondary">
-                                    +{{ $totals['entitled'] > 0 ? number_format(($summaries->sum('planned') / $totals['entitled']) * 100, 1) : 0 }}%
+                                <span class="me-2">{{ $totals['requested'] }} Requested</span>
+                                <span class="badge bg-label-warning">
+                                    {{ $totals['entitled'] > 0 ? number_format(($totals['requested'] / $totals['entitled']) * 100, 1) : 0 }}%
                                 </span>
                             </p>
-                            <h6 class="mt-4 fw-normal">
+                            <p class="mb-1">
+                                <span class="me-2">{{ $summaries->sum('planned') }} Planned</span>
+                                <span class="badge bg-label-info">
+                                    {{ $totals['entitled'] > 0 ? number_format(($summaries->sum('planned') / $totals['entitled']) * 100, 1) : 0 }}%
+                                </span>
+                            </p>
+                            <h6 class="mt-3 fw-normal">
                                 <span class="text-success">
                                     {{ $totals['entitled'] > 0 ? number_format(($totals['taken'] / $totals['entitled']) * 100, 1) : 0 }}%
                                 </span> Leave Taken
                             </h6>
-                            <small>Monthly Report</small>
+                            <small>As of {{ now()->format('M j, Y') }}</small>
                             <hr class="d-sm-none mt-4">
                         </div>
                         <div class="col-sm-7 ps-sm-4 pt-2 scrollable-leave-types">
                             @forelse ($summaries as $summary)
                                 @php
-                                    $entitled = is_object($summary) ? $summary->entitled : $summary['entitled'] ?? 0;
-                                    $available_actual = is_object($summary)
-                                        ? $summary->available_actual
-                                        : $summary['available_actual'] ?? 0;
-                                    $leaveTypeName = is_object($summary)
-                                        ? (is_object($summary->leaveType)
+                                    // Extract values from summary object/array
+                                    $entitled = is_object($summary)
+                                        ? $summary->entitled ?? 0
+                                        : $summary['entitled'] ?? 0;
+                                    $taken = is_object($summary) ? $summary->taken ?? 0 : $summary['taken'] ?? 0;
+                                    $requested = is_object($summary)
+                                        ? $summary->requested ?? 0
+                                        : $summary['requested'] ?? 0;
+
+                                    // Calculate available days (entitled minus taken)
+                                    $available_actual = max($entitled - $taken, 0);
+
+                                    // Get leave type name
+                                    if (is_object($summary)) {
+                                        $leaveTypeName = is_object($summary->leaveType ?? null)
                                             ? $summary->leaveType->name
-                                            : 'Unknown')
-                                        : $summary['leaveType']['name'] ?? 'Unknown';
+                                            : $summary->leaveType['name'] ?? 'Unknown Leave Type';
+                                    } else {
+                                        $leaveTypeName = is_object($summary['leaveType'] ?? null)
+                                            ? $summary['leaveType']->name
+                                            : $summary['leaveType']['name'] ?? 'Unknown Leave Type';
+                                    }
 
                                     $total = $entitled ?: 1;
                                     $availablePercent = ($available_actual / $total) * 100;
+                                    $takenPercent = ($taken / $total) * 100;
+                                    $requestedPercent = ($requested / $total) * 100;
                                 @endphp
-                                <div class="mb-4">
+                                <div class="mb-3">
                                     <h6 class="fw-semibold mb-1">{{ $leaveTypeName }}</h6>
-                                    <div class="d-flex justify-content-between small">
+                                    <div class="d-flex justify-content-between small mb-1">
                                         <span class="text-primary">Available:
                                             {{ number_format($available_actual, 1) }}</span>
                                         <span class="text-muted">{{ number_format($availablePercent, 1) }}%</span>
                                     </div>
-                                    <div class="progress mb-2" style="height: 6px;">
-                                        <div class="progress-bar bg-primary" style="width: {{ $availablePercent }}%;">
+                                    <div class="progress mb-1" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: {{ $availablePercent }}%;"
+                                            data-bs-toggle="tooltip"
+                                            title="Available: {{ number_format($available_actual, 1) }} days">
                                         </div>
+                                        <div class="progress-bar bg-warning" style="width: {{ $requestedPercent }}%;"
+                                            data-bs-toggle="tooltip"
+                                            title="Requested: {{ number_format($requested, 1) }} days">
+                                        </div>
+                                        <div class="progress-bar bg-danger" style="width: {{ $takenPercent }}%;"
+                                            data-bs-toggle="tooltip" title="Taken: {{ number_format($taken, 1) }} days">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>Entitled: {{ $entitled }}</span>
+                                        <span>Taken: {{ $taken }}</span>
                                     </div>
                                 </div>
                             @empty
-                                <p class="text-muted">No leave balances available.</p>
+                                <div class="alert alert-warning py-2">
+                                    <p class="text-muted mb-0">No leave balances available.</p>
+                                </div>
                             @endforelse
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Manager'))
             <div class="card card-1 border-0 p-4 rounded-3 bg-white mt-4 shadow">
                 <div
