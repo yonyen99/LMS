@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\LeaveRequest;
 use App\Models\LeaveType;
 use App\Models\Department;
+use App\Models\LeaveSummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,6 @@ use App\Exports\LeaveBalanceExport;
 
 class LeaveBalanceController extends Controller
 {
-
     /**
      * Display the leave balance for the authenticated user.
      * This method retrieves the leave balance information for the current user,
@@ -24,8 +24,6 @@ class LeaveBalanceController extends Controller
      * @param Request $request
      * @return \Illuminate\View\View
      */
-
-
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -34,7 +32,6 @@ class LeaveBalanceController extends Controller
 
         // Get all leave types with their default entitlements
         $leaveTypes = LeaveType::all()->keyBy('id');
-        // $leaveTypes = LeaveType::all()->keyBy('id');
 
         // Get leave usage for current user grouped by leave type
         $usage = LeaveRequest::where('user_id', $userId)
@@ -46,9 +43,15 @@ class LeaveBalanceController extends Controller
             ->get()
             ->keyBy('leave_type_id');
 
-        // Build leave summaries
-        $summaries = $leaveTypes->map(function ($leaveType) use ($usage) {
-            $entitled = (float)$leaveType->typical_annual_requests;
+        // Build leave summaries for ALL leave types
+        $summaries = $leaveTypes->map(function ($leaveType) use ($usage, $user) {
+            // Try to get department-specific entitlement first
+            $deptEntitlement = LeaveSummary::where('department_id', $user->department_id)
+                ->where('leave_type_id', $leaveType->id)
+                ->orderBy('report_date', 'desc')
+                ->first();
+                
+            $entitled = $deptEntitlement->entitled ?? $leaveType->typical_annual_requests;
             $taken = (float)($usage[$leaveType->id]->taken ?? 0);
             $requested = (float)($usage[$leaveType->id]->requested ?? 0);
             $planned = (float)($usage[$leaveType->id]->planned ?? 0);
@@ -91,7 +94,16 @@ class LeaveBalanceController extends Controller
                     ->where('status', 'Accepted')
                     ->sum('duration');
 
-                $entitled = $leaveTypes->sum('typical_annual_requests');
+                // Calculate entitled days for this employee
+                $entitled = 0;
+                foreach ($leaveTypes as $leaveType) {
+                    $deptEntitlement = LeaveSummary::where('department_id', $employee->department_id)
+                        ->where('leave_type_id', $leaveType->id)
+                        ->orderBy('report_date', 'desc')
+                        ->first();
+                        
+                    $entitled += $deptEntitlement->entitled ?? $leaveType->typical_annual_requests;
+                }
 
                 return (object) [
                     'name'         => $employee->name,
@@ -110,7 +122,6 @@ class LeaveBalanceController extends Controller
             }
         }
 
-
         return view('leave_types.leave_balance', compact(
             'summaries',
             'departmentOverview',
@@ -121,15 +132,12 @@ class LeaveBalanceController extends Controller
     }
 
     /**
-     * 
      * Show leave balance details for a specific user.
      * This method is used to display the leave balance details for a specific user.
      * It checks if the user is authorized to view the details and retrieves the leave balance information
      * for the specified user.
-     * 
      */
-
-    public function show(User $user) // Using route model binding
+    public function show(User $user)
     {
         $currentUser = Auth::user();
 
@@ -145,16 +153,39 @@ class LeaveBalanceController extends Controller
             abort(403, 'Only employee records can be viewed.');
         }
 
-        $leaveTypes = LeaveType::all();
-        $summaries = $leaveTypes->map(function ($type) use ($user) {
-            $usage = $this->getLeaveUsage($user->id, $type->id);
+        // Get all leave types with their default entitlements
+        $leaveTypes = LeaveType::all()->keyBy('id');
+
+        // Get leave usage for the specified user grouped by leave type
+        $usage = LeaveRequest::where('user_id', $user->id)
+            ->select('leave_type_id')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Accepted" THEN duration ELSE 0 END), 0) as taken')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
+            ->groupBy('leave_type_id')
+            ->get()
+            ->keyBy('leave_type_id');
+
+        // Build summaries for ALL leave types
+        $summaries = $leaveTypes->map(function ($leaveType) use ($usage, $user) {
+            // Try to get department-specific entitlement first
+            $deptEntitlement = LeaveSummary::where('department_id', $user->department_id)
+                ->where('leave_type_id', $leaveType->id)
+                ->orderBy('report_date', 'desc')
+                ->first();
+                
+            $entitled = $deptEntitlement->entitled ?? $leaveType->typical_annual_requests;
+            $taken = (float)($usage[$leaveType->id]->taken ?? 0);
+            $requested = (float)($usage[$leaveType->id]->requested ?? 0);
+            $planned = (float)($usage[$leaveType->id]->planned ?? 0);
+
             return (object)[
-                'leaveType' => $type,
-                'entitled' => $type->entitled,
-                'taken' => $usage->taken,
-                'requested' => $usage->requested,
-                'planned' => $usage->planned,
-                'available_actual' => max($type->entitled - $usage->taken, 0),
+                'leaveType' => $leaveType,
+                'entitled' => $entitled,
+                'taken' => $taken,
+                'requested' => $requested,
+                'planned' => $planned,
+                'available_actual' => max($entitled - $taken, 0),
             ];
         });
 
@@ -162,8 +193,7 @@ class LeaveBalanceController extends Controller
             'user' => $user,
             'summaries' => $summaries,
         ]);
-}
-
+    }
 
     /**
      * Get leave usage for a specific user and leave type.
@@ -174,7 +204,6 @@ class LeaveBalanceController extends Controller
      * @param int $leaveTypeId
      * @return \Illuminate\Database\Eloquent\Collection
      */
-
     protected function getLeaveUsage($userId, $leaveTypeId)
     {
         return LeaveRequest::where('user_id', $userId)
@@ -186,14 +215,11 @@ class LeaveBalanceController extends Controller
     }
 
     /**
-     * 
      * Export leave balance details to PDF.
      * This method exports the leave balance details of a specific user to a PDF file.
      * It checks if the user is authorized to export the details and generates a PDF file
      * containing the leave balance information.
      */
-
-
     public function exportPDF(User $user)
     {
         $currentUser = Auth::user();
@@ -203,16 +229,39 @@ class LeaveBalanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $leaveTypes = LeaveType::all();
-        $summaries = $leaveTypes->map(function ($type) use ($user) {
-            $usage = $this->getLeaveUsage($user->id, $type->id);
+        // Get all leave types with their default entitlements
+        $leaveTypes = LeaveType::all()->keyBy('id');
+
+        // Get leave usage for the specified user grouped by leave type
+        $usage = LeaveRequest::where('user_id', $user->id)
+            ->select('leave_type_id')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Accepted" THEN duration ELSE 0 END), 0) as taken')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
+            ->groupBy('leave_type_id')
+            ->get()
+            ->keyBy('leave_type_id');
+
+        // Build summaries for ALL leave types
+        $summaries = $leaveTypes->map(function ($leaveType) use ($usage, $user) {
+            // Try to get department-specific entitlement first
+            $deptEntitlement = LeaveSummary::where('department_id', $user->department_id)
+                ->where('leave_type_id', $leaveType->id)
+                ->orderBy('report_date', 'desc')
+                ->first();
+                
+            $entitled = $deptEntitlement->entitled ?? $leaveType->typical_annual_requests;
+            $taken = (float)($usage[$leaveType->id]->taken ?? 0);
+            $requested = (float)($usage[$leaveType->id]->requested ?? 0);
+            $planned = (float)($usage[$leaveType->id]->planned ?? 0);
+
             return [
-                'leaveType' => $type,
-                'entitled' => $type->typical_annual_requests,
-                'taken' => $usage->taken,
-                'requested' => $usage->requested,
-                'planned' => $usage->planned,
-                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+                'leaveType' => $leaveType,
+                'entitled' => $entitled,
+                'taken' => $taken,
+                'requested' => $requested,
+                'planned' => $planned,
+                'available_actual' => max($entitled - $taken, 0),
             ];
         });
 
@@ -227,15 +276,12 @@ class LeaveBalanceController extends Controller
         return $pdf->download($filename);
     }
 
-
     /**
-     * 
      * Export leave balance details to Excel.
      * This method exports the leave balance details of a specific user to an Excel file.
      * It checks if the user is authorized to export the details and generates an Excel file
      * containing the leave balance information.
      */
-
     public function exportExcel(User $user)
     {
         $currentUser = Auth::user();
@@ -244,16 +290,39 @@ class LeaveBalanceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $leaveTypes = LeaveType::all();
-        $summaries = $leaveTypes->map(function ($type) use ($user) {
-            $usage = $this->getLeaveUsage($user->id, $type->id);
+        // Get all leave types with their default entitlements
+        $leaveTypes = LeaveType::all()->keyBy('id');
+
+        // Get leave usage for the specified user grouped by leave type
+        $usage = LeaveRequest::where('user_id', $user->id)
+            ->select('leave_type_id')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Accepted" THEN duration ELSE 0 END), 0) as taken')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Requested" THEN duration ELSE 0 END), 0) as requested')
+            ->selectRaw('COALESCE(SUM(CASE WHEN status = "Planned" THEN duration ELSE 0 END), 0) as planned')
+            ->groupBy('leave_type_id')
+            ->get()
+            ->keyBy('leave_type_id');
+
+        // Build summaries for ALL leave types
+        $summaries = $leaveTypes->map(function ($leaveType) use ($usage, $user) {
+            // Try to get department-specific entitlement first
+            $deptEntitlement = LeaveSummary::where('department_id', $user->department_id)
+                ->where('leave_type_id', $leaveType->id)
+                ->orderBy('report_date', 'desc')
+                ->first();
+                
+            $entitled = $deptEntitlement->entitled ?? $leaveType->typical_annual_requests;
+            $taken = (float)($usage[$leaveType->id]->taken ?? 0);
+            $requested = (float)($usage[$leaveType->id]->requested ?? 0);
+            $planned = (float)($usage[$leaveType->id]->planned ?? 0);
+
             return [
-                'leaveType' => $type,
-                'entitled' => $type->typical_annual_requests,
-                'taken' => $usage->taken,
-                'requested' => $usage->requested,
-                'planned' => $usage->planned,
-                'available_actual' => max($type->typical_annual_requests - $usage->taken, 0),
+                'leaveType' => $leaveType,
+                'entitled' => $entitled,
+                'taken' => $taken,
+                'requested' => $requested,
+                'planned' => $planned,
+                'available_actual' => max($entitled - $taken, 0),
             ];
         });
 
