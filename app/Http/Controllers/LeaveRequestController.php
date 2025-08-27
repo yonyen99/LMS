@@ -647,7 +647,7 @@ class LeaveRequestController extends Controller
             'api_key' => env('CALENDARIFIC_API_KEY'),
             'country' => 'KH',
             'year' => $year,
-            'type' => 'national'
+            'type' => 'national,observance',
         ]);
 
         if ($response->failed()) {
