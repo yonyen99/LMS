@@ -54,7 +54,7 @@ class NotificationController extends Controller
             // Admin sees both managers and employees
             $query->whereHas('user', function ($q) {
                 $q->whereHas('roles', function ($roleQuery) {
-                    $roleQuery->whereIn('name', ['Employee', 'Manager']);
+                    $roleQuery->whereIn('name', ['Employee', 'Manager', 'Admin']);
                 });
             });
 
