@@ -138,17 +138,6 @@ class NotificationController extends Controller
         ));
     }
 
-    /**
-     * Update the status of a leave request.
-     * This method allows a user to update the status of a leave request.
-     * It validates the request and updates the leave request status accordingly.
-     *
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-
-
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
