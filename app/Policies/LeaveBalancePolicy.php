@@ -11,18 +11,24 @@ class LeaveBalancePolicy
      */
     public function export(User $currentUser, User $targetUser): bool
     {
-        // Admins can export any employee
+        // Admins can export anyone
         if ($currentUser->hasRole('Admin')) {
             return true;
         }
 
-        // Managers can only export their own department's employees (non-managers)
-        if ($currentUser->hasRole('Manager')) {
-            return $currentUser->department_id === $targetUser->department_id 
-                   && !$targetUser->hasRole('Manager') 
-                   && !$targetUser->hasRole('Admin');
+        // Users can always export their own leave balance
+        if ($currentUser->id === $targetUser->id) {
+            return true;
         }
 
+        // Managers can export employees in their department, but not Admins/Managers
+        if ($currentUser->hasRole('Manager')) {
+            return $currentUser->department_id === $targetUser->department_id
+                && !$targetUser->hasRole('Admin')
+                && !$targetUser->hasRole('Manager');
+        }
+
+        // Everyone else: denied
         return false;
     }
 }

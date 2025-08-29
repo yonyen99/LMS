@@ -24,10 +24,22 @@ class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, W
     {
         $query = LeaveRequest::query()->with(['leaveType', 'user']);
 
-        if (!Auth::user()->hasRole('Super Admin')) {
-            $query->where('user_id', Auth::id());
+        $user = Auth::user();
+
+        if ($user->hasRole('Admin')) {
+            // Admin: no restrictions
+        } elseif ($user->hasRole('Manager')) {
+            // Manager: only their department, excluding Admins/Managers
+            $query->whereHas('user', function ($q) use ($user) {
+                $q->where('department_id', $user->department_id)
+                    ->whereDoesntHave('roles', fn($r) => $r->whereIn('name', ['Admin', 'Manager']));
+            });
+        } else {
+            // Employee: only own requests
+            $query->where('user_id', $user->id);
         }
 
+        // Apply filters
         if ($this->request->filled('statuses')) {
             $query->whereIn('status', $this->request->input('statuses', []));
         }
@@ -58,6 +70,7 @@ class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, W
         return $query->get();
     }
 
+
     public function headings(): array
     {
         return [
@@ -78,11 +91,11 @@ class LeaveRequestExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function map($leaveRequest): array
     {
-        $this->rowNumber++; 
+        $this->rowNumber++;
 
         $displayStatus = ucfirst(strtolower($leaveRequest->status));
         return [
-            $this->rowNumber, 
+            $this->rowNumber,
             optional($leaveRequest->user)->name ?? '-',
             optional($leaveRequest->start_date)->format('d/m/Y') ?? '-',
             ucfirst($leaveRequest->start_time),
