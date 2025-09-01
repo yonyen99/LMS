@@ -2,9 +2,62 @@
 
 @section('content')
     <div class="container-fluid">
+        <!-- Monthly Limit Card -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card bg-white shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="text-primary mb-2">
+                                    <i class="bi bi-calendar-month me-2"></i>Monthly Leave Limit
+                                </h5>
+                                <div class="d-flex align-items-center gap-4">
+                                    <div class="bg-primary text-white rounded-3 p-3 text-center" style="width: 120px;">
+                                        <h4 class="mb-0">{{ number_format($monthlyRemaining, 1) }}</h4>
+                                        <small>Days Left This Month</small>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <span class="text-muted">Monthly Usage</span>
+                                            <span class="fw-semibold">{{ number_format($currentMonthUsage, 1) }} / {{ $monthlyLimit }} days</span>
+                                        </div>
+                                        <div class="progress" style="height: 12px;">
+                                            <div class="progress-bar {{ $currentMonthUsage >= $monthlyLimit ? 'bg-danger' : 'bg-success' }}" 
+                                                 style="width: {{ $monthlyUsagePercentage }}%">
+                                                <span class="progress-text">{{ number_format($monthlyUsagePercentage, 1) }}%</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2">
+                                            <small class="text-muted">
+                                                @if($monthlyRemaining <= 0)
+                                                    <span class="text-danger">⚠️ You've reached your monthly limit</span>
+                                                @else
+                                                    <span class="text-success">✅ {{ $monthlyRemaining }} days available this month</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-3 mt-md-0">
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        <strong>Monthly Policy:</strong> Maximum {{ $monthlyLimit }} days per calendar month.
+                                        Includes all leave types. Resets on the 1st of each month.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rest of your existing content -->
         <div class="card card-1 border-0 p-4 rounded-3 bg-white shadow-sm">
-            <div
-                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                 <h2 class="fw-bold text-primary m-0">
                     <i class="bi bi-calendar-check-fill me-2"></i>Leave Balance
                 </h2>
@@ -35,23 +88,13 @@
                         <div class="col-sm-7 ps-sm-4 pt-2 scrollable-leave-types">
                             @forelse ($summaries as $summary)
                                 @php
-                                    // Extract values from summary object/array
-                                    $entitled = is_object($summary)
-                                        ? $summary->entitled ?? 0
-                                        : $summary['entitled'] ?? 0;
+                                    $entitled = is_object($summary) ? $summary->entitled ?? 0 : $summary['entitled'] ?? 0;
                                     $taken = is_object($summary) ? $summary->taken ?? 0 : $summary['taken'] ?? 0;
-                                    $requested = is_object($summary)
-                                        ? $summary->requested ?? 0
-                                        : $summary['requested'] ?? 0;
+                                    $requested = is_object($summary) ? $summary->requested ?? 0 : $summary['requested'] ?? 0;
                                     $planned = is_object($summary) ? $summary->planned ?? 0 : $summary['planned'] ?? 0;
-
-                                    // Calculate available days (entitled minus taken)
                                     $available_actual = max($entitled - $taken, 0);
-
-                                    // Calculate simulated available (entitled minus taken and requested)
                                     $available_simulated = max($entitled - ($taken + $requested), 0);
 
-                                    // Get leave type name
                                     if (is_object($summary)) {
                                         $leaveTypeName = is_object($summary->leaveType ?? null)
                                             ? $summary->leaveType->name
@@ -121,19 +164,11 @@
                         <div class="col-sm-7 ps-sm-4 pt-2 scrollable-leave-types">
                             @forelse ($summaries as $summary)
                                 @php
-                                    // Extract values from summary object/array
-                                    $entitled = is_object($summary)
-                                        ? $summary->entitled ?? 0
-                                        : $summary['entitled'] ?? 0;
+                                    $entitled = is_object($summary) ? $summary->entitled ?? 0 : $summary['entitled'] ?? 0;
                                     $taken = is_object($summary) ? $summary->taken ?? 0 : $summary['taken'] ?? 0;
-                                    $requested = is_object($summary)
-                                        ? $summary->requested ?? 0
-                                        : $summary['requested'] ?? 0;
-
-                                    // Calculate available days (entitled minus taken)
+                                    $requested = is_object($summary) ? $summary->requested ?? 0 : $summary['requested'] ?? 0;
                                     $available_actual = max($entitled - $taken, 0);
 
-                                    // Get leave type name
                                     if (is_object($summary)) {
                                         $leaveTypeName = is_object($summary->leaveType ?? null)
                                             ? $summary->leaveType->name
@@ -184,10 +219,10 @@
                 </div>
             </div>
         </div>
+
         @if (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Manager'))
             <div class="card card-1 border-0 p-4 rounded-3 bg-white mt-4 shadow">
-                <div
-                    class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
                     <h5 class="fw-bold text-primary m-0">
                         <i class="bi bi-person-lines-fill me-2"></i>
                         @if (Auth::user()->hasRole('Admin'))
@@ -222,6 +257,7 @@
                                 <th class="text-center">Entitled</th>
                                 <th class="text-center">Used</th>
                                 <th class="text-center">Available</th>
+                                <th class="text-center">Monthly Used</th>
                                 <th class="text-center">Utilization</th>
                                 <th class="text-end">Actions</th>
                             </tr>
@@ -239,15 +275,18 @@
                                     <td class="text-center">{{ number_format($employee->entitled, 1) }}</td>
                                     <td class="text-center">{{ number_format($employee->used, 1) }}</td>
                                     <td class="text-center">
-                                        <span
-                                            class="badge rounded-pill {{ ($employee->available ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
+                                        <span class="badge rounded-pill {{ ($employee->available ?? 0) > 0 ? 'bg-success' : 'bg-danger' }}">
                                             {{ number_format($employee->available, 1) }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge rounded-pill {{ ($employee->monthly_used ?? 0) >= 1.5 ? 'bg-danger' : (($employee->monthly_used ?? 0) > 0 ? 'bg-warning' : 'bg-success') }}">
+                                            {{ number_format($employee->monthly_used, 1) }} / 1.5
                                         </span>
                                     </td>
                                     <td class="text-center">
                                         {{ number_format($employee->utilization, 1) }}%
                                     </td>
-
                                     <td class="text-end">
                                         <a href="{{ route('leave-balances.show', $employee->id) }}"
                                             class="btn btn-sm btn-outline-primary">
@@ -257,7 +296,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">No employees found</td>
+                                    <td colspan="8" class="text-center text-muted">No employees found</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -285,42 +324,49 @@
                 });
             </script>
         @endpush
-    @endsection
+    </div>
+@endsection
 
-    <style>
-        /* Custom scrollbar styling */
-        .scrollable-leave-types {
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 8px;
-        }
+<style>
+    .scrollable-leave-types {
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 8px;
+    }
 
-        .scrollable-leave-types::-webkit-scrollbar {
-            width: 6px;
-        }
+    .scrollable-leave-types::-webkit-scrollbar {
+        width: 6px;
+    }
 
-        .scrollable-leave-types::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
+    .scrollable-leave-types::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
 
-        .scrollable-leave-types::-webkit-scrollbar-thumb {
-            background: #a0a0a0;
-            border-radius: 10px;
-        }
+    .scrollable-leave-types::-webkit-scrollbar-thumb {
+        background: #a0a0a0;
+        border-radius: 10px;
+    }
 
-        .scrollable-leave-types::-webkit-scrollbar-thumb:hover {
-            background: #808080;
-        }
+    .scrollable-leave-types::-webkit-scrollbar-thumb:hover {
+        background: #808080;
+    }
 
-        /* For Firefox */
-        .scrollable-leave-types {
-            scrollbar-width: thin;
-            scrollbar-color: #a0a0a0 #f1f1f1;
-        }
+    .scrollable-leave-types {
+        scrollbar-width: thin;
+        scrollbar-color: #a0a0a0 #f1f1f1;
+    }
 
-        /* Optional fade effect at bottom */
-        .scrollable-leave-types {
-            mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
-        }
-    </style>
+    .scrollable-leave-types {
+        mask-image: linear-gradient(to bottom, black 90%, transparent 100%);
+    }
+
+    .progress-bar .progress-text {
+        position: absolute;
+        right: 5px;
+        font-size: 10px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+</style>
